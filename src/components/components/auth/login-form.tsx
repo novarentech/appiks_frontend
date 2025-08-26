@@ -18,7 +18,7 @@ export function LoginForm({
             <Image
               width={300}
               height={300}
-              src="/image/loginPic.svg"
+              src="/image/imgPic.webp"
               alt="Image"
               priority
               className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"

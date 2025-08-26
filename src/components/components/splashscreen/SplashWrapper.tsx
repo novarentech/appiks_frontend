@@ -11,7 +11,7 @@ type Props = {
 
 export default function SplashWrapper({
   children,
-  imageSrc = "/image/bgSplashScreen.svg",
+  imageSrc = "/image/bgSplashScreen.webp",
   duration = 30000,
   showOnce = true,
 }: Props) {

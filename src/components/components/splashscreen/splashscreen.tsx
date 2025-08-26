@@ -17,7 +17,7 @@ type SplashProps = {
 };
 
 export default function SplashScreen({
-  imageSrc = "/image/bgSplashScreen.svg",
+  imageSrc = "/image/bgSplashScreen.webp",
   title = "Hai, Selamat Datang di Appiks!",
   subtitle = "Platform untuk Mencegah Intoleransi dan Kekerasan di Sekolah melalui Pemantauan Emosi & Edukasi Positif.",
   quote = '"Percayalah pada dirimu sendiri dan semua yang ada dalam dirimu. Ketahuilah bahwa ada sesuatu di dalam dirimu yang lebih besar daripada rintangan apa pun."',
