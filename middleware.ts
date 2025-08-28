@@ -2,46 +2,50 @@ import { auth } from "@/lib/nextauth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Define routes that require authentication
 const protectedRoutes = ["/dashboard", "/profile", "/checkin", "/videos"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Get session
-  const session = await auth();
+  try {
+    const session = await auth();
+    
+    // Debug logging (remove in production)
+    if (pathname === "/login") {
+      console.log("🔍 Middleware - Login access attempt:", {
+        path: pathname,
+        hasSession: !!session,
+        userAgent: request.headers.get("user-agent")?.slice(0, 50)
+      });
+    }
 
-  // Check if current route is protected
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
+    const isProtectedRoute = protectedRoutes.some((route) =>
+      pathname.startsWith(route)
+    );
 
-  // If route is protected and user is not authenticated, redirect to login
-  if (isProtectedRoute && !session) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+    // Protect routes that require authentication
+    if (isProtectedRoute && !session) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Redirect authenticated users away from login
+    if (session && pathname === "/login") {
+      console.log("✅ Redirecting authenticated user to dashboard");
+      const dashboardUrl = new URL("/dashboard", request.url);
+      return NextResponse.redirect(dashboardUrl);
+    }
+
+    return NextResponse.next();
+  } catch (error) {
+    console.error("❌ Middleware error:", error);
+    return NextResponse.next();
   }
-
-  // If user is authenticated and trying to access login, redirect to dashboard
-  if (session && pathname === "/login") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
-  return NextResponse.next();
 }
 
-// Configure which routes middleware should run on
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (images, etc)
-     */
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|public|icon|image).*)",
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|public|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.svg).*)",
   ],
 };

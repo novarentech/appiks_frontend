@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, Suspense } from "react";
-import { signIn, getSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 function LoginFormContent({
   className,
@@ -20,9 +21,11 @@ function LoginFormContent({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
+  // Use the auth redirect hook
+  const { isAuthenticated, isLoading: authLoading } = useAuthRedirect(callbackUrl);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,13 +41,9 @@ function LoginFormContent({
 
       if (result?.error) {
         setError("Username atau password salah");
-      } else {
-        // Get session to verify login
-        const session = await getSession();
-        if (session) {
-          router.push(callbackUrl);
-          router.refresh();
-        }
+      } else if (result?.ok) {
+        // Use hard redirect after successful login
+        window.location.href = callbackUrl;
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -53,6 +52,16 @@ function LoginFormContent({
       setIsLoading(false);
     }
   };
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return <LoginFormSkeleton />;
+  }
+
+  // Don't render login form if user is already authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
