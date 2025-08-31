@@ -220,7 +220,7 @@ const FillData = () => {
       <div className="mb-4">
         <SessionDebugger />
       </div>
-      
+
       {/* Profile Card */}
       <Card className="relative p-0">
         <CardHeader className="pb-4 p-0">

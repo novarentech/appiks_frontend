@@ -87,7 +87,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       // Handle session update (when update() is called from client)
       if (trigger === "update" && session) {
         console.log("🔄 JWT Callback - Session update triggered:", session);
-        
+
         // Update token with new session data
         if (session.user) {
           token.username = session.user.username || token.username;
@@ -95,12 +95,12 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           token.name = session.user.name || token.name;
           token.verified = session.user.verified ?? token.verified;
         }
-        
+
         console.log("✅ JWT Callback - Token updated:", {
           username: token.username,
           phone: token.phone,
           name: token.name,
-          verified: token.verified
+          verified: token.verified,
         });
       }
 

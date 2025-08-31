@@ -5,8 +5,10 @@
 ### 🔍 Debugging Steps
 
 1. **Cek Console Logs**
+
    - Buka Browser Developer Tools → Console
    - Update profile dan lihat logs berikut:
+
    ```
    🔄 Updating session with new profile data: {...}
    🔍 Current session before update: {...}
@@ -18,11 +20,12 @@
    ```
 
 2. **Menggunakan SessionDebugger Component**
+
    ```tsx
    import { SessionDebugger } from "@/components/debug/SessionDebugger";
-   
+
    // Tambahkan di komponen untuk memonitor session changes
-   <SessionDebugger />
+   <SessionDebugger />;
    ```
 
 ### 🐛 Possible Issues & Solutions
@@ -30,13 +33,16 @@
 #### 1. **JWT Callback Tidak Dipanggil**
 
 **Symptoms:**
+
 - Tidak ada log "JWT Callback - Session update triggered"
 - Session tidak berubah meski API sukses
 
 **Cause:**
+
 - File auth configuration tidak menghandle `trigger: "update"`
 
 **Solution:**
+
 ```typescript
 // File: auth.ts (root)
 callbacks: {
@@ -46,7 +52,7 @@ callbacks: {
     // Handle session update
     if (trigger === "update" && session) {
       console.log("🔄 JWT Callback - Session update triggered:", session);
-      
+
       if (session.user) {
         const sessionUser = session.user as {
           username?: string;
@@ -54,13 +60,13 @@ callbacks: {
           name?: string;
           verified?: boolean;
         };
-        
+
         token.username = sessionUser.username || token.username;
         token.phone = sessionUser.phone || token.phone;
         token.name = sessionUser.name || token.name;
         token.verified = sessionUser.verified ?? token.verified;
       }
-      
+
       console.log("✅ JWT Callback - Token updated");
     }
 
@@ -72,13 +78,16 @@ callbacks: {
 #### 2. **Update Function Tidak Dipanggil**
 
 **Symptoms:**
+
 - Tidak ada log "Updating session with new profile data"
 - API sukses tapi tidak ada attempt update session
 
 **Cause:**
+
 - `update` function dari `useSession()` tidak dipanggil
 
 **Solution:**
+
 ```typescript
 // File: useProfileUpdate.ts
 const { data: session, update } = useSession();
@@ -88,7 +97,7 @@ const updateProfile = async (profileData) => {
 
   if (data.success) {
     console.log("🔄 Updating session with new profile data:", data.data);
-    
+
     await update({
       ...session,
       user: {
@@ -99,7 +108,7 @@ const updateProfile = async (profileData) => {
         verified: data.data.verified,
       },
     });
-    
+
     console.log("✅ Session updated successfully");
   }
 };
@@ -108,9 +117,11 @@ const updateProfile = async (profileData) => {
 #### 3. **NextAuth Configuration File Mismatch**
 
 **Symptoms:**
+
 - Changes tidak tereflect meski sudah update configuration
 
 **Check:**
+
 ```bash
 # Cek file mana yang digunakan di API routes
 cat src/app/api/auth/[...nextauth]/route.ts
@@ -124,16 +135,19 @@ import { GET, POST } from "@/lib/nextauth";
 ```
 
 **Solution:**
+
 - Pastikan semua file menggunakan configuration yang sama
 - Update import paths jika diperlukan
 
 #### 4. **Type Errors Preventing Compilation**
 
 **Symptoms:**
+
 - Build fails dengan TypeScript errors
 - Session properties undefined
 
 **Solution:**
+
 ```typescript
 // Extend NextAuth types
 declare module "next-auth" {
@@ -154,10 +168,12 @@ declare module "next-auth" {
 #### 5. **Session Cache Issues**
 
 **Symptoms:**
+
 - Update berhasil tapi komponen tidak re-render
 - Old data masih muncul di UI
 
 **Solution:**
+
 ```typescript
 // Force re-fetch session
 await update();
@@ -165,17 +181,17 @@ await update();
 // Or with explicit data
 await update({
   ...session,
-  user: { ...newUserData }
+  user: { ...newUserData },
 });
 
 // Wait for propagation
-await new Promise(resolve => setTimeout(resolve, 100));
+await new Promise((resolve) => setTimeout(resolve, 100));
 ```
 
 ### 🎯 Testing Checklist
 
 - [ ] ✅ Build succeeds without errors
-- [ ] ✅ Dev server starts successfully  
+- [ ] ✅ Dev server starts successfully
 - [ ] ✅ Login works and creates session
 - [ ] ✅ Can access profile update form
 - [ ] ✅ SessionDebugger shows current session data
@@ -190,22 +206,26 @@ await new Promise(resolve => setTimeout(resolve, 100));
 ### 🔧 Manual Testing Steps
 
 1. **Setup**
+
    ```bash
    npm run dev
    # Open http://localhost:3000
    ```
 
 2. **Login**
+
    - Go to /login
    - Enter credentials
    - Verify session is created
 
 3. **Check Initial Session**
-   - Go to /fill-data  
+
+   - Go to /fill-data
    - Look at SessionDebugger component
    - Note current username/phone
 
 4. **Update Profile**
+
    - Change username and/or phone
    - Submit form
    - Check console for logs

@@ -77,9 +77,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           username: token.username,
           phone: token.phone,
           name: token.name,
-          verified: token.verified
+          verified: token.verified,
         });
-        
+
         // Update token with new session data
         if (session.user) {
           // Type assertion untuk custom user properties
@@ -89,18 +89,18 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             name?: string;
             verified?: boolean;
           };
-          
+
           token.username = sessionUser.username || token.username;
           token.phone = sessionUser.phone || token.phone;
           token.name = sessionUser.name || token.name;
           token.verified = sessionUser.verified ?? token.verified;
         }
-        
+
         console.log("✅ JWT Callback - Token updated:", {
           username: token.username,
           phone: token.phone,
           name: token.name,
-          verified: token.verified
+          verified: token.verified,
         });
       }
 

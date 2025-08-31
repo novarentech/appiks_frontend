@@ -14,7 +14,9 @@ export function useProfileUpdate() {
   const [error, setError] = useState<string | null>(null);
   const { data: session, update } = useSession();
 
-  const updateProfile = async (profileData: UpdateProfileData): Promise<boolean> => {
+  const updateProfile = async (
+    profileData: UpdateProfileData
+  ): Promise<boolean> => {
     if (!session?.user?.token) {
       setError("Token tidak ditemukan");
       return false;
@@ -40,7 +42,9 @@ export function useProfileUpdate() {
       if (!response.ok) {
         const errorData = await response.json();
         console.error("❌ API Error:", errorData);
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
       }
 
       const data: UpdateProfileResponse = await response.json();
@@ -50,7 +54,7 @@ export function useProfileUpdate() {
         // Update session with new data from the response
         console.log("🔄 Updating session with new profile data:", data.data);
         console.log("🔍 Current session before update:", session);
-        
+
         try {
           const updateResult = await update({
             ...session,
@@ -62,13 +66,13 @@ export function useProfileUpdate() {
               verified: data.data.verified,
             },
           });
-          
+
           console.log("🔍 Update result:", updateResult);
           console.log("✅ Session updated successfully");
-          
+
           // Wait a bit for session to propagate
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
           return true;
         } catch (updateError) {
           console.error("❌ Session update error:", updateError);
@@ -79,13 +83,15 @@ export function useProfileUpdate() {
       }
     } catch (error) {
       console.error("❌ Profile update error:", error);
-      
+
       let errorMessage = "Terjadi kesalahan yang tidak diketahui";
       if (error instanceof Error) {
         if (error.message.includes("422")) {
-          errorMessage = "Data yang dikirim tidak valid. Periksa format username dan nomor telepon.";
+          errorMessage =
+            "Data yang dikirim tidak valid. Periksa format username dan nomor telepon.";
         } else if (error.message.includes("403")) {
-          errorMessage = "Akses ditolak. Anda mungkin sudah memperbarui profil sebelumnya.";
+          errorMessage =
+            "Akses ditolak. Anda mungkin sudah memperbarui profil sebelumnya.";
         } else if (error.message.includes("401")) {
           errorMessage = "Sesi sudah kedaluwarsa. Silakan login kembali.";
         } else if (error.message.includes("500")) {
@@ -94,7 +100,7 @@ export function useProfileUpdate() {
           errorMessage = error.message;
         }
       }
-      
+
       setError(errorMessage);
       return false;
     } finally {

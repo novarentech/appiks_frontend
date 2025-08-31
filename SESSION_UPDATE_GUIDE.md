@@ -7,13 +7,14 @@ Implementasi untuk mengupdate session NextAuth setelah berhasil update profile u
 ## 📋 Response Update Profile
 
 Response dari API update profile:
+
 ```json
 {
   "success": true,
   "message": "Success update user profile",
   "data": {
     "name": "Paramita Maria Safitri S.I.Kom",
-    "phone": "083123124123", 
+    "phone": "083123124123",
     "username": "kasnd",
     "identifier": "0000000000",
     "verified": true,
@@ -29,13 +30,15 @@ Response dari API update profile:
 File: `src/hooks/useProfileUpdate.ts`
 
 ```typescript
-const updateProfile = async (profileData: UpdateProfileData): Promise<boolean> => {
+const updateProfile = async (
+  profileData: UpdateProfileData
+): Promise<boolean> => {
   // ... API call logic
 
   if (data.success) {
     // Update session dengan data baru dari response
     console.log("🔄 Updating session with new profile data:", data.data);
-    
+
     await update({
       ...session,
       user: {
@@ -46,7 +49,7 @@ const updateProfile = async (profileData: UpdateProfileData): Promise<boolean> =
         verified: data.data.verified,
       },
     });
-    
+
     console.log("✅ Session updated successfully");
     return true;
   }
@@ -75,7 +78,7 @@ callbacks: {
     // Handle session update (ketika update() dipanggil dari client)
     if (trigger === "update" && session) {
       console.log("🔄 JWT Callback - Session update triggered:", session);
-      
+
       // Update token dengan data session baru
       if (session.user) {
         token.username = session.user.username || token.username;
@@ -83,7 +86,7 @@ callbacks: {
         token.name = session.user.name || token.name;
         token.verified = session.user.verified ?? token.verified;
       }
-      
+
       console.log("✅ JWT Callback - Token updated");
     }
 
@@ -137,7 +140,7 @@ const Component = () => {
   const handleUpdateProfile = async () => {
     const success = await updateProfile({
       username: "new_username",
-      phone: "081234567890"
+      phone: "081234567890",
     });
 
     if (success) {
@@ -150,10 +153,10 @@ const Component = () => {
     <div>
       <p>Username: {session?.user?.username}</p>
       <p>Phone: {session?.user?.phone}</p>
-      <p>Verified: {session?.user?.verified ? 'Yes' : 'No'}</p>
-      
+      <p>Verified: {session?.user?.verified ? "Yes" : "No"}</p>
+
       <button onClick={handleUpdateProfile} disabled={isLoading}>
-        {isLoading ? 'Updating...' : 'Update Profile'}
+        {isLoading ? "Updating..." : "Update Profile"}
       </button>
     </div>
   );
