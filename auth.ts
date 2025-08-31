@@ -9,24 +9,10 @@ import {
 } from "@/lib/auth";
 import type { LoginCredentials, CustomUser } from "@/types/auth";
 
-interface CustomSession {
-  user: {
-    id: string;
-    username: string;
-    verified: boolean;
-    token: string;
-    expiresIn: string;
-    name?: string;
-    phone?: string;
-    email?: string;
-    image?: string;
-  };
-  expires: string;
-}
-
 export const { auth, handlers, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
+      name: "credentials",
       credentials: {
         username: {
           label: "Username",
@@ -87,13 +73,27 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       // Handle session update (when update() is called from client)
       if (trigger === "update" && session) {
         console.log("🔄 JWT Callback - Session update triggered:", session);
+        console.log("🔍 JWT Callback - Current token before update:", {
+          username: token.username,
+          phone: token.phone,
+          name: token.name,
+          verified: token.verified
+        });
         
         // Update token with new session data
         if (session.user) {
-          token.username = session.user.username || token.username;
-          token.phone = session.user.phone || token.phone;
-          token.name = session.user.name || token.name;
-          token.verified = session.user.verified ?? token.verified;
+          // Type assertion untuk custom user properties
+          const sessionUser = session.user as {
+            username?: string;
+            phone?: string;
+            name?: string;
+            verified?: boolean;
+          };
+          
+          token.username = sessionUser.username || token.username;
+          token.phone = sessionUser.phone || token.phone;
+          token.name = sessionUser.name || token.name;
+          token.verified = sessionUser.verified ?? token.verified;
         }
         
         console.log("✅ JWT Callback - Token updated:", {
@@ -136,7 +136,23 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (token && session.user) {
-        const customSession = session as CustomSession;
+        // Use type assertion instead of any
+        interface ExtendedSession {
+          user: {
+            id: string;
+            username: string;
+            verified: boolean;
+            token: string;
+            expiresIn: string;
+            name?: string;
+            phone?: string;
+            email?: string;
+            image?: string;
+          };
+          expires: string;
+        }
+
+        const customSession = session as ExtendedSession;
         customSession.user.id = token.id as string;
         customSession.user.username = token.username as string;
         customSession.user.verified = token.verified as boolean;
@@ -153,10 +169,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   },
   session: {
     strategy: "jwt",
-    maxAge: 24 * 60 * 60,
+    maxAge: 24 * 60 * 60, // 24 hours
   },
   secret: process.env.NEXTAUTH_SECRET,
 });
 
-// Export handlers untuk API routes
+// Export handlers for API routes
 export const { GET, POST } = handlers;

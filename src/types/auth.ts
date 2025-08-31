@@ -1,6 +1,15 @@
-import { DefaultSession } from "next-auth";
+import { DefaultSession, User as NextAuthUser } from "next-auth";
 
-// Extend the built-in session types
+// Custom user interface that extends NextAuth User
+export interface CustomUser extends NextAuthUser {
+  username: string;
+  verified: boolean;
+  token: string;
+  expiresIn: string;
+  phone?: string;
+}
+
+// Extend the built-in session types for NextAuth v5
 declare module "next-auth" {
   interface Session {
     user: {
@@ -25,19 +34,8 @@ declare module "next-auth" {
   }
 }
 
-// Extend the built-in JWT types
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    username: string;
-    verified: boolean;
-    token: string;
-    expiresIn: string;
-    name?: string;
-    phone?: string;
-    refreshToken?: string;
-  }
-}
+// Note: NextAuth v5 uses @auth/core for JWT types
+// We'll handle JWT typing through callbacks
 
 // API Response Types
 export interface LoginResponse {
@@ -74,7 +72,6 @@ export interface JWTPayload {
 export interface UpdateProfileData {
   username: string;
   phone: string;
-  verified: true;
 }
 
 export interface UpdateProfileResponse {
@@ -87,9 +84,6 @@ export interface UpdateProfileResponse {
     identifier: string;
     verified: boolean;
     role: string;
-    mentor_id: number;
-    room_id: number;
-    school_id: number;
   };
 }
 
@@ -103,7 +97,7 @@ export interface UserProfileResponse {
     identifier: string;
     verified: boolean;
     role: string;
-    mentor : {
+    mentor: {
       identifier: string;
       mentor_id: number;
       name: string;
@@ -114,14 +108,22 @@ export interface UserProfileResponse {
       username: string;
       verified: boolean;
     };
-    room:{
+    room: {
       id: number;
       name: string;
       school_id: number;
-    }
+    };
     school: {
       id: number;
       name: string;
     };
+  };
+}
+
+export interface CheckUsernameResponse {
+  success: boolean;
+  message: string;
+  data: {
+    username: boolean;
   };
 }

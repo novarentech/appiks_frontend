@@ -27,6 +27,7 @@ interface CustomSession {
 export const { auth, handlers, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
+      name: "credentials",
       credentials: {
         username: {
           label: "Username",
@@ -71,8 +72,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
-      // Handle initial login
+    async jwt({ token, user }) {
       if (user) {
         const customUser = user as CustomUser;
         token.id = customUser.id;
@@ -82,26 +82,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.expiresIn = customUser.expiresIn;
         token.name = customUser.name;
         token.phone = customUser.phone;
-      }
-
-      // Handle session update (when update() is called from client)
-      if (trigger === "update" && session) {
-        console.log("🔄 JWT Callback - Session update triggered:", session);
-        
-        // Update token with new session data
-        if (session.user) {
-          token.username = session.user.username || token.username;
-          token.phone = session.user.phone || token.phone;
-          token.name = session.user.name || token.name;
-          token.verified = session.user.verified ?? token.verified;
-        }
-        
-        console.log("✅ JWT Callback - Token updated:", {
-          username: token.username,
-          phone: token.phone,
-          name: token.name,
-          verified: token.verified
-        });
       }
 
       if (token.expiresIn && isTokenExpiredByDate(token.expiresIn as string)) {
@@ -153,10 +133,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   },
   session: {
     strategy: "jwt",
-    maxAge: 24 * 60 * 60,
+    maxAge: 24 * 60 * 60, // 24 hours
   },
   secret: process.env.NEXTAUTH_SECRET,
 });
-
-// Export handlers untuk API routes
-export const { GET, POST } = handlers;

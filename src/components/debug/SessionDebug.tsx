@@ -1,9 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useUserProfile } from "@/hooks/useUserProfile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
 
 export function SessionDebug() {
   const { data: session, status } = useSession();

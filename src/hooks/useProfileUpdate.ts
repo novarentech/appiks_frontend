@@ -2,47 +2,21 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { updateProfileAPI, validateToken } from "@/lib/auth";
-import type { UpdateProfileData } from "@/types/auth";
+import type { UpdateProfileResponse } from "@/types/auth";
 
-interface UseProfileUpdateReturn {
-  isLoading: boolean;
-  error: string | null;
-  updateProfile: (profileData: {
-    username: string;
-    phone: string;
-  }) => Promise<boolean>;
+interface UpdateProfileData {
+  username: string;
+  phone: string;
 }
 
-export function useProfileUpdate(): UseProfileUpdateReturn {
+export function useProfileUpdate() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { data: session, update } = useSession();
-  const router = useRouter();
 
-  const updateProfile = async (profileData: {
-    username: string;
-    phone: string;
-  }): Promise<boolean> => {
+  const updateProfile = async (profileData: UpdateProfileData): Promise<boolean> => {
     if (!session?.user?.token) {
-      setError("Session tidak ditemukan");
-      return false;
-    }
-
-    console.log("🔄 Starting profile update...", {
-      username: profileData.username,
-      phone: profileData.phone,
-      hasToken: !!session.user.token,
-      tokenPrefix: session.user.token?.substring(0, 10) + "...",
-    });
-
-    // Validate token before making the request
-    const tokenValidation = validateToken(session.user.token);
-    console.log("🔍 Token validation:", tokenValidation);
-
-    if (!tokenValidation.isValid) {
-      setError(`Token tidak valid: ${tokenValidation.error}`);
+      setError("Token tidak ditemukan");
       return false;
     }
 
@@ -50,65 +24,77 @@ export function useProfileUpdate(): UseProfileUpdateReturn {
     setError(null);
 
     try {
-      const updateData: UpdateProfileData = {
-        username: profileData.username,
-        phone: profileData.phone,
-        verified: true,
-      };
+      console.log("🔄 Updating profile with data:", profileData);
 
-      console.log("📤 Sending update request...", updateData);
+      // Use internal API route instead of direct backend call
+      const response = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(profileData),
+      });
 
-      const response = await updateProfileAPI(updateData, session.user.token);
+      console.log("📥 API Response status:", response.status);
 
-      if (response.success) {
-        // Update session dengan data terbaru dari response API
-        await update({
-          ...session,
-          user: {
-            ...session.user,
-            username: response.data.username,
-            verified: response.data.verified,
-            // Tambahkan data lain yang mungkin berguna
-            name: response.data.name,
-            phone: response.data.phone,
-          },
-        });
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("❌ API Error:", errorData);
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
 
-        console.log("✅ Session updated successfully:", {
-          username: response.data.username,
-          verified: response.data.verified,
-          phone: response.data.phone,
-        });
+      const data: UpdateProfileResponse = await response.json();
+      console.log("✅ Profile updated successfully:", data);
 
-        // Redirect ke dashboard
-        router.push("/dashboard");
-        return true;
+      if (data.success) {
+        // Update session with new data from the response
+        console.log("🔄 Updating session with new profile data:", data.data);
+        console.log("🔍 Current session before update:", session);
+        
+        try {
+          const updateResult = await update({
+            ...session,
+            user: {
+              ...session.user,
+              username: data.data.username,
+              phone: data.data.phone,
+              name: data.data.name,
+              verified: data.data.verified,
+            },
+          });
+          
+          console.log("🔍 Update result:", updateResult);
+          console.log("✅ Session updated successfully");
+          
+          // Wait a bit for session to propagate
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          return true;
+        } catch (updateError) {
+          console.error("❌ Session update error:", updateError);
+          throw new Error("Failed to update session");
+        }
       } else {
-        console.error("❌ Profile update failed:", response);
-        setError(response.message || "Gagal memperbarui profil");
-        return false;
+        throw new Error(data.message || "Profile update failed");
       }
     } catch (error) {
       console.error("❌ Profile update error:", error);
-
+      
       let errorMessage = "Terjadi kesalahan yang tidak diketahui";
-
       if (error instanceof Error) {
-        // Handle specific HTTP errors
-        if (error.message.includes("403")) {
-          errorMessage =
-            "Akses ditolak. Token mungkin tidak valid atau sudah kedaluwarsa.";
+        if (error.message.includes("422")) {
+          errorMessage = "Data yang dikirim tidak valid. Periksa format username dan nomor telepon.";
+        } else if (error.message.includes("403")) {
+          errorMessage = "Akses ditolak. Anda mungkin sudah memperbarui profil sebelumnya.";
         } else if (error.message.includes("401")) {
           errorMessage = "Sesi sudah kedaluwarsa. Silakan login kembali.";
-        } else if (error.message.includes("400")) {
-          errorMessage = "Data yang dikirim tidak valid.";
         } else if (error.message.includes("500")) {
-          errorMessage = "Terjadi kesalahan pada server.";
+          errorMessage = "Terjadi kesalahan pada server. Silakan coba lagi.";
         } else {
           errorMessage = error.message;
         }
       }
-
+      
       setError(errorMessage);
       return false;
     } finally {
@@ -117,8 +103,8 @@ export function useProfileUpdate(): UseProfileUpdateReturn {
   };
 
   return {
+    updateProfile,
     isLoading,
     error,
-    updateProfile,
   };
 }
