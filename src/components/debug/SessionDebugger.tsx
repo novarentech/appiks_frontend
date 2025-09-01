@@ -33,20 +33,26 @@ export function SessionDebugger() {
           <strong>Name:</strong> {session.user?.name || "N/A"}
         </p>
         <p>
-          <strong>Phone:</strong>{" "}
-          {(session.user as { phone?: string })?.phone || "N/A"}
+          <strong>Role:</strong>{" "}
+          {(session.user as { role?: string })?.role || "N/A"}
+        </p>
+        <p>
+          <strong>Room:</strong>{" "}
+          {(session.user as { room?: string })?.room || "N/A"}
+        </p>
+        <p>
+          <strong>Mentor:</strong>{" "}
+          {(session.user as { mentor?: string })?.mentor || "N/A"}
+        </p>
+        <p>
+          <strong>School:</strong>{" "}
+          {(session.user as { school?: string })?.school || "N/A"}
         </p>
         <p>
           <strong>Verified:</strong>{" "}
           {(session.user as { verified?: boolean })?.verified
             ? "✅ Yes"
             : "❌ No"}
-        </p>
-        <p>
-          <strong>ID:</strong> {session.user?.id || "N/A"}
-        </p>
-        <p>
-          <strong>Email:</strong> {session.user?.email || "N/A"}
         </p>
       </div>
 

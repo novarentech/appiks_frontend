@@ -25,9 +25,6 @@ export function SessionDebug() {
             <strong>Status:</strong> {status}
           </div>
           <div>
-            <strong>User ID:</strong> {session.user.id}
-          </div>
-          <div>
             <strong>Username:</strong> {session.user.username}
           </div>
           <div>
@@ -44,7 +41,16 @@ export function SessionDebug() {
             <strong>Name:</strong> {session.user.name || "Not set"}
           </div>
           <div>
-            <strong>Phone:</strong> {session.user.phone || "Not set"}
+            <strong>Role:</strong> {session.user.role || "Not set"}
+          </div>
+          <div>
+            <strong>Room:</strong> {session.user.room || "Not set"}
+          </div>
+          <div>
+            <strong>Mentor:</strong> {session.user.mentor || "Not set"}
+          </div>
+          <div>
+            <strong>School:</strong> {session.user.school || "Not set"}
           </div>
           <div>
             <strong>Token (first 20 chars):</strong>{" "}

@@ -13,13 +13,15 @@ interface CustomSession {
   user: {
     id: string;
     username: string;
+    name: string;
     verified: boolean;
     token: string;
     expiresIn: string;
-    name?: string;
-    phone?: string;
-    email?: string;
-    image?: string;
+    room: string;
+    mentor: string;
+    school: string;
+    phone: string;
+    role: string;
   };
   expires: string;
 }
@@ -60,6 +62,11 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               verified: userInfo.verified,
               token: response.data.token,
               expiresIn: response.data.expiresIn,
+              name: userInfo.name,
+              room: userInfo.room,
+              mentor: userInfo.mentor,
+              school: userInfo.school,
+              role: userInfo.role,
             };
           }
 
@@ -82,6 +89,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.expiresIn = customUser.expiresIn;
         token.name = customUser.name;
         token.phone = customUser.phone;
+        token.room = customUser.room;
+        token.mentor = customUser.mentor;
+        token.school = customUser.school;
+        token.role = customUser.role;
       }
 
       if (token.expiresIn && isTokenExpiredByDate(token.expiresIn as string)) {
@@ -102,6 +113,11 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               token.expiresIn = refreshResponse.data.expiresIn;
               token.username = newUserInfo.username;
               token.verified = newUserInfo.verified;
+              token.name = newUserInfo.name;
+              token.room = newUserInfo.room;
+              token.mentor = newUserInfo.mentor;
+              token.school = newUserInfo.school;
+              token.role = newUserInfo.role;
             }
           } else {
             throw new Error("Token refresh failed");
@@ -124,6 +140,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         customSession.user.expiresIn = token.expiresIn as string;
         customSession.user.name = token.name as string;
         customSession.user.phone = token.phone as string;
+        customSession.user.room = token.room as string;
+        customSession.user.mentor = token.mentor as string;
+        customSession.user.school = token.school as string;
+        customSession.user.role = token.role as string;
       }
       return session;
     },

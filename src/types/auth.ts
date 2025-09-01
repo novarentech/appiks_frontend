@@ -7,6 +7,10 @@ export interface CustomUser extends NextAuthUser {
   token: string;
   expiresIn: string;
   phone?: string;
+  room?: string;
+  mentor?: string;
+  school?: string;
+  role: string;
 }
 
 // Extend the built-in session types for NextAuth v5
@@ -20,6 +24,10 @@ declare module "next-auth" {
       expiresIn: string;
       name?: string;
       phone?: string;
+      room?: string;
+      mentor?: string;
+      school?: string;
+      role: string;
     } & DefaultSession["user"];
   }
 
@@ -31,6 +39,10 @@ declare module "next-auth" {
     expiresIn: string;
     name?: string;
     phone?: string;
+    room?: string;
+    mentor?: string;
+    school?: string;
+    role: string;
   }
 }
 
@@ -64,6 +76,11 @@ export interface LoginCredentials {
 export interface JWTPayload {
   username: string;
   verified: boolean;
+  name?: string;
+  room?: string;
+  mentor?: string;
+  school?: string;
+  role: string;
   exp: number;
   iat: number;
   [key: string]: unknown;
