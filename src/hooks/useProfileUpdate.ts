@@ -7,6 +7,7 @@ import type { UpdateProfileResponse } from "@/types/auth";
 interface UpdateProfileData {
   username: string;
   phone: string;
+  password: string;
 }
 
 export function useProfileUpdate() {

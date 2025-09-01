@@ -31,6 +31,8 @@ interface ProfileData {
   kelas: string;
   namaSekolah: string;
   noTelp: string;
+  password: string;
+  verifyPassword: string;
   avatar?: string;
 }
 
@@ -54,6 +56,38 @@ const FillData = () => {
     null
   );
 
+  // Password validation function
+  const validatePassword = (password: string) => {
+    const minLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+
+    return {
+      minLength,
+      hasUpperCase,
+      hasLowerCase,
+      hasNumber,
+      isValid: minLength && hasUpperCase && hasLowerCase && hasNumber,
+    };
+  };
+
+  // Username validation function
+  const validateUsername = (username: string) => {
+    const minLength = username.length >= 3;
+    const maxLength = username.length <= 20;
+    const validChars = /^[a-zA-Z0-9_]+$/.test(username);
+    const notStartWithNumber = !/^\d/.test(username);
+
+    return {
+      minLength,
+      maxLength,
+      validChars,
+      notStartWithNumber,
+      isValid: minLength && maxLength && validChars && notStartWithNumber,
+    };
+  };
+
   const [profileData, setProfileData] = useState<ProfileData>({
     fullName: "",
     username: "",
@@ -62,6 +96,8 @@ const FillData = () => {
     kelas: "",
     namaSekolah: "",
     noTelp: "",
+    password: "",
+    verifyPassword: "",
     avatar: "/avatar-placeholder.jpg",
   });
 
@@ -78,6 +114,8 @@ const FillData = () => {
         kelas: apiProfileData.room.name || "",
         namaSekolah: apiProfileData.school.name || "",
         noTelp: apiProfileData.phone || "",
+        password: "",
+        verifyPassword: "",
         avatar: "/avatar-placeholder.jpg",
       };
 
@@ -98,6 +136,8 @@ const FillData = () => {
         kelas: "Kelas XI IPA 6",
         namaSekolah: "SMA Negeri 01 Yogyakarta",
         noTelp: "",
+        password: "",
+        verifyPassword: "",
         avatar: "/avatar-placeholder.jpg",
       };
       setProfileData(initialData);
@@ -122,6 +162,7 @@ const FillData = () => {
     const success = await updateProfile({
       username: editData.username,
       phone: editData.noTelp,
+      password: editData.password,
     });
 
     if (success) {
@@ -184,9 +225,17 @@ const FillData = () => {
   // Check if there are any changes and if form is valid
   const hasChanges = JSON.stringify(profileData) !== JSON.stringify(editData);
   const usernameChanged = profileData.username !== editData.username;
+  const passwordsMatch = editData.password === editData.verifyPassword;
+  const passwordValidation = validatePassword(editData.password);
+  const usernameValidation = validateUsername(editData.username);
   const isFormValid =
     editData.username.trim() !== "" &&
     editData.noTelp.trim() !== "" &&
+    editData.password.trim() !== "" &&
+    editData.verifyPassword.trim() !== "" &&
+    usernameValidation.isValid &&
+    passwordValidation.isValid &&
+    passwordsMatch &&
     (!usernameChanged || (isUsernameAvailable === true && !usernameError)); // Username must be available if changed
 
   // Show loading state while fetching profile data
@@ -327,9 +376,13 @@ const FillData = () => {
                   className={`pr-10 transition-colors ${
                     isChecking
                       ? "border-gray-300"
+                      : editData.username.trim() === "" ||
+                        !usernameValidation.isValid
+                      ? "border-red-300 focus:border-red-500"
                       : usernameError || isUsernameAvailable === false
                       ? "border-red-300 focus:border-red-500"
-                      : isUsernameAvailable === true
+                      : isUsernameAvailable === true &&
+                        usernameValidation.isValid
                       ? "border-green-300 focus:border-green-500"
                       : "border-gray-300"
                   }`}
@@ -358,7 +411,7 @@ const FillData = () => {
                 </div>
               </div>
 
-              {/* Status Message */}
+              {/* Status Message - Only for availability check */}
               {(isChecking ||
                 usernameError ||
                 isUsernameAvailable !== null) && (
@@ -387,15 +440,57 @@ const FillData = () => {
                 </p>
               )}
 
-              {/* Username Rules */}
-              <div className="text-xs text-gray-500 space-y-1">
-                <p>Username harus:</p>
-                <ul className="list-disc list-inside space-y-0.5 ml-2">
-                  <li>Minimal 3 karakter</li>
-                  <li>Hanya boleh menggunakan huruf, angka, dan underscore</li>
-                  <li>Tidak boleh dimulai dengan angka</li>
-                </ul>
-              </div>
+              {/* Username Validation Rules */}
+              {editData.username.trim() !== "" &&
+                !usernameValidation.isValid && (
+                  <div className="text-xs">
+                    <p className="text-red-500 font-medium mb-1">
+                      Username harus memenuhi kriteria berikut:
+                    </p>
+                    <ul className="space-y-1">
+                      <li
+                        className={
+                          usernameValidation.minLength
+                            ? "text-green-600"
+                            : "text-red-500"
+                        }
+                      >
+                        Minimal 3 karakter{" "}
+                        {usernameValidation.minLength ? "✓" : "✗"}
+                      </li>
+                      <li
+                        className={
+                          usernameValidation.maxLength
+                            ? "text-green-600"
+                            : "text-red-500"
+                        }
+                      >
+                        Maksimal 20 karakter{" "}
+                        {usernameValidation.maxLength ? "✓" : "✗"}
+                      </li>
+                      <li
+                        className={
+                          usernameValidation.validChars
+                            ? "text-green-600"
+                            : "text-red-500"
+                        }
+                      >
+                        Hanya huruf, angka, dan underscore{" "}
+                        {usernameValidation.validChars ? "✓" : "✗"}
+                      </li>
+                      <li
+                        className={
+                          usernameValidation.notStartWithNumber
+                            ? "text-green-600"
+                            : "text-red-500"
+                        }
+                      >
+                        Tidak boleh dimulai dengan angka{" "}
+                        {usernameValidation.notStartWithNumber ? "✓" : "✗"}
+                      </li>
+                    </ul>
+                  </div>
+                )}
             </div>
 
             {/* No Telp - Editable */}
@@ -418,6 +513,105 @@ const FillData = () => {
                 <p className="text-sm text-red-500">
                   Nomor telepon wajib diisi
                 </p>
+              )}
+            </div>
+
+            {/* Password - Editable */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">
+                Password *
+              </Label>
+              <Input
+                value={editData.password}
+                onChange={(e) => handleInputChange("password", e.target.value)}
+                placeholder="Masukkan password"
+                type="password"
+                className={
+                  editData.password.trim() === "" || !passwordValidation.isValid
+                    ? "border-red-300 focus:border-red-500"
+                    : ""
+                }
+              />
+              {editData.password.trim() === "" && (
+                <p className="text-sm text-red-500">Password wajib diisi</p>
+              )}
+              {editData.password.trim() !== "" &&
+                !passwordValidation.isValid && (
+                  <div className="text-xs text-red-500 space-y-1">
+                    <p className="font-medium">
+                      Password harus memenuhi kriteria:
+                    </p>
+                    <ul className="list-disc list-inside space-y-0.5 ml-2">
+                      <li
+                        className={
+                          passwordValidation.minLength
+                            ? "text-green-600"
+                            : "text-red-500"
+                        }
+                      >
+                        Minimal 8 karakter{" "}
+                        {passwordValidation.minLength ? "✓" : "✗"}
+                      </li>
+                      <li
+                        className={
+                          passwordValidation.hasUpperCase
+                            ? "text-green-600"
+                            : "text-red-500"
+                        }
+                      >
+                        Mengandung huruf besar (A-Z){" "}
+                        {passwordValidation.hasUpperCase ? "✓" : "✗"}
+                      </li>
+                      <li
+                        className={
+                          passwordValidation.hasLowerCase
+                            ? "text-green-600"
+                            : "text-red-500"
+                        }
+                      >
+                        Mengandung huruf kecil (a-z){" "}
+                        {passwordValidation.hasLowerCase ? "✓" : "✗"}
+                      </li>
+                      <li
+                        className={
+                          passwordValidation.hasNumber
+                            ? "text-green-600"
+                            : "text-red-500"
+                        }
+                      >
+                        Mengandung angka (0-9){" "}
+                        {passwordValidation.hasNumber ? "✓" : "✗"}
+                      </li>
+                    </ul>
+                  </div>
+                )}
+            </div>
+
+            {/* Verify Password - Editable */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">
+                Konfirmasi Password *
+              </Label>
+              <Input
+                value={editData.verifyPassword}
+                onChange={(e) =>
+                  handleInputChange("verifyPassword", e.target.value)
+                }
+                placeholder="Konfirmasi password"
+                type="password"
+                className={
+                  editData.verifyPassword.trim() === "" || !passwordsMatch
+                    ? "border-red-300 focus:border-red-500"
+                    : ""
+                }
+              />
+              {editData.verifyPassword.trim() === "" && (
+                <p className="text-sm text-red-500">
+                  Konfirmasi password wajib diisi
+                </p>
+              )}
+              {editData.verifyPassword.trim() !== "" && !passwordsMatch && (
+                <p className="text-sm text-red-500">Password tidak cocok</p>
               )}
             </div>
           </div>
@@ -480,6 +674,10 @@ const FillData = () => {
                     • No Telp: {profileData.noTelp} → {editData.noTelp}
                   </div>
                 )}
+                {profileData.password !== editData.password &&
+                  editData.password.trim() !== "" && (
+                    <div>• Password: akan diperbarui</div>
+                  )}
               </div>
             </div>
           )}

@@ -89,6 +89,7 @@ export interface JWTPayload {
 export interface UpdateProfileData {
   username: string;
   phone: string;
+  password: string;
 }
 
 export interface UpdateProfileResponse {

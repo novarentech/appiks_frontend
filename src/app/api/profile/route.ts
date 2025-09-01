@@ -13,9 +13,9 @@ export async function PATCH(request: Request) {
 
   const body = await request.json();
 
-  if (!body.username || !body.phone) {
+  if (!body.username || !body.phone || !body.password) {
     return NextResponse.json(
-      { success: false, message: "Username and phone are required" },
+      { success: false, message: "Username, phone, and password are required" },
       { status: 422 }
     );
   }
@@ -32,6 +32,7 @@ export async function PATCH(request: Request) {
     body: JSON.stringify({
       username: body.username,
       phone: body.phone,
+      password: body.password,
     }),
   });
 
