@@ -103,7 +103,7 @@ const FillData = () => {
 
   const [editData, setEditData] = useState<ProfileData>(profileData);
 
-  // Update profile data when API data is loaded
+  // Update profile data when API data is loaded - this has highest priority
   useEffect(() => {
     if (apiProfileData) {
       const updatedData: ProfileData = {
@@ -125,16 +125,16 @@ const FillData = () => {
     }
   }, [apiProfileData]);
 
-  // Update initial data when session is available
+  // Initialize with empty data if no API data is available yet
   useEffect(() => {
-    if (session?.user) {
+    if (session?.user && !apiProfileData && !isLoadingProfile) {
       const initialData = {
-        fullName: "Marsha Bilqis Nasywaa",
+        fullName: "",
         username: session.user.username || "",
-        nisn: "123456",
-        mentor: "Budi Santoso",
-        kelas: "Kelas XI IPA 6",
-        namaSekolah: "SMA Negeri 01 Yogyakarta",
+        nisn: "",
+        mentor: "",
+        kelas: "",
+        namaSekolah: "",
         noTelp: "",
         password: "",
         verifyPassword: "",
@@ -143,7 +143,7 @@ const FillData = () => {
       setProfileData(initialData);
       setEditData(initialData);
     }
-  }, [session]);
+  }, [session, apiProfileData, isLoadingProfile]);
 
   const handleSaveClick = () => {
     setShowSaveModal(true);
