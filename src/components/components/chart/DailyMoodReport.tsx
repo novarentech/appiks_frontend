@@ -72,17 +72,22 @@ export default function DailyMoodReport() {
           </h4>
           <div className="space-y-3">
             {todayMoodData.map((item, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                  ></div>
-                  <span className="text-sm text-gray-600">{item.name}</span>
-                </div>
-                <span className="text-lg font-semibold text-gray-700">
-                  {item.value}
-                </span>
+              <div
+            key={index}
+            className={`flex items-center justify-between ${
+              index !== todayMoodData.length - 1 ? "border-b border-gray-200 pb-3" : ""
+            }`}
+              >
+            <div className="flex items-center space-x-3">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: item.color }}
+              ></div>
+              <span className="text-sm text-gray-600">{item.name}</span>
+            </div>
+            <span className="text-lg font-semibold text-gray-700">
+              {item.value}
+            </span>
               </div>
             ))}
           </div>

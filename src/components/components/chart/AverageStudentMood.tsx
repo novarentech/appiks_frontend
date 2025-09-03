@@ -154,6 +154,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 export default function AverageStudentMood() {
   const [selectedPoint, setSelectedPoint] = useState<MoodData | null>(null);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleChartClick = (data: any) => {
     if (data && data.activePayload && data.activePayload.length > 0) {
       setSelectedPoint(data.activePayload[0].payload);
