@@ -1,11 +1,16 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
-import { UserProfile } from "@/components/auth/UserProfile";
 import { StudentRedirectGuard } from "@/components/guards/StudentRedirectGuard";
+import { AdminDashboard } from "@/components/dashboards/AdminDashboard";
+import { TeacherDashboard } from "@/components/dashboards/TeacherDashboard";
+import { CounselorDashboard } from "@/components/dashboards/CounselorDashboard";
+import { HeadTeacherDashboard } from "@/components/dashboards/HeadTeacherDashboard";
+import { SuperDashboard } from "@/components/dashboards/SuperDashboard";
+import { StudentDashboard } from "@/components/dashboards/StudentDashboard";
 
 export default function DashboardPage() {
-  const { isLoading, isAuthenticated, isVerified } = useAuth();
+  const { isLoading, isAuthenticated, isVerified, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -28,18 +33,39 @@ export default function DashboardPage() {
     );
   }
 
-  return (
-    <StudentRedirectGuard>
-      <div className="container mx-auto py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-gray-600 mt-2">Welcome to your dashboard</p>
-        </div>
+  // Role-based dashboard rendering
+  const renderDashboard = () => {
+    switch (user?.role) {
+      case "student":
+        return <StudentDashboard />;
+      case "admin":
+        return <AdminDashboard />;
+      case "teacher":
+        return <TeacherDashboard />;
+      case "counselor":
+        return <CounselorDashboard />;
+      case "head_teacher":
+        return <HeadTeacherDashboard />;
+      case "super":
+        return <SuperDashboard />;
+      default:
+        return (
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">Unknown Role</h1>
+            <p className="text-gray-600 mt-2">
+              Your role &quot;{user?.role}&quot; is not recognized. Please
+              contact administrator.
+            </p>
+          </div>
+        );
+    }
+  };
 
-        <div className="flex justify-center">
-          <UserProfile />
-        </div>
-      </div>
-    </StudentRedirectGuard>
-  );
+  // Student menggunakan guard khusus
+  if (user?.role === "student") {
+    return <StudentRedirectGuard>{renderDashboard()}</StudentRedirectGuard>;
+  }
+
+  // Role lain langsung render dashboard
+  return renderDashboard();
 }

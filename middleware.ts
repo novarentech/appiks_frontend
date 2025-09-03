@@ -4,6 +4,30 @@ import type { NextRequest } from "next/server";
 
 const protectedRoutes = ["/dashboard", "/profile", "/checkin", "/videos"];
 
+// Role-based route permissions
+const rolePermissions = {
+  student: [
+    "/dashboard",
+    "/profile",
+    "/checkin",
+    "/videos",
+    "/education-content",
+  ],
+  admin: ["/dashboard", "/profile", "/videos", "/education-content"],
+  teacher: ["/dashboard", "/profile", "/videos", "/education-content"],
+  counselor: ["/dashboard", "/profile", "/videos", "/education-content"],
+  head_teacher: ["/dashboard", "/profile", "/videos", "/education-content"],
+  super: ["/dashboard", "/profile", "/videos", "/education-content"],
+};
+
+// Helper function to check if user has permission for route
+function hasRoutePermission(userRole: string, pathname: string): boolean {
+  const permissions = rolePermissions[userRole as keyof typeof rolePermissions];
+  if (!permissions) return false;
+
+  return permissions.some((route) => pathname.startsWith(route));
+}
+
 // Cache untuk mood record check (untuk menghindari API call berulang)
 const moodRecordCache = new Map<
   string,
@@ -115,7 +139,17 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
       }
 
-      // 2. If verified user tries to access fill-data → redirect away
+      // 2. Check role-based route permissions for verified users
+      if (user.verified && isProtectedRoute) {
+        if (!hasRoutePermission(user.role, pathname)) {
+          console.log(
+            `🚫 Access denied: ${user.role} trying to access ${pathname}`
+          );
+          return NextResponse.redirect(new URL("/dashboard", request.url));
+        }
+      }
+
+      // 3. If verified user tries to access fill-data → redirect away
       if (user.verified && pathname === "/fill-data") {
         console.log("✅ Redirecting verified user away from fill-data");
 
@@ -130,7 +164,7 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
-      // 3. If authenticated user tries to access login → redirect based on role/verified
+      // 4. If authenticated user tries to access login → redirect based on role/verified
       if (pathname === "/login") {
         console.log("✅ Redirecting authenticated user from login");
 
@@ -149,7 +183,7 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
-      // 4. Special handling for students - CRITICAL SECTION
+      // 5. Special handling for students - CRITICAL SECTION
       if (user.role === "student" && user.verified && user.token) {
         console.log("🎓 Processing student navigation:", {
           pathname,
