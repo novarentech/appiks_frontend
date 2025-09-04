@@ -23,31 +23,31 @@ import { useState } from "react";
 const moodPatternData7Days = [
   { date: "27 Aug", mood: 2, isToday: true },
   { date: "28 Aug", mood: 3, isToday: false },
-  { date: "29 Aug", mood: 2.5, isToday: false },
-  { date: "30 Aug", mood: 3.5, isToday: false },
+  { date: "29 Aug", mood: 2, isToday: false },
+  { date: "30 Aug", mood: 3, isToday: false },
   { date: "31 Aug", mood: 3, isToday: false },
   { date: "1 Sep", mood: 2, isToday: false },
-  { date: "2 Sep", mood: 2.5, isToday: false },
+  { date: "2 Sep", mood: 2, isToday: false },
 ];
 
 const moodPatternData30Days = [
   { date: "1 Aug", mood: 2, isToday: false },
-  { date: "3 Aug", mood: 2.5, isToday: false },
+  { date: "3 Aug", mood: 2, isToday: false },
   { date: "5 Aug", mood: 3, isToday: false },
   { date: "7 Aug", mood: 4, isToday: false },
   { date: "9 Aug", mood: 2, isToday: false },
   { date: "11 Aug", mood: 3, isToday: false },
   { date: "13 Aug", mood: 2, isToday: false },
-  { date: "14 Aug", mood: 2.5, isToday: false },
+  { date: "14 Aug", mood: 2, isToday: false },
   { date: "16 Aug", mood: 3, isToday: false },
   { date: "18 Aug", mood: 4, isToday: false },
   { date: "20 Aug", mood: 3, isToday: false },
-  { date: "22 Aug", mood: 2.5, isToday: false },
+  { date: "22 Aug", mood: 2, isToday: false },
   { date: "24 Aug", mood: 2, isToday: false },
   { date: "26 Aug", mood: 4, isToday: false },
   { date: "27 Aug", mood: 2, isToday: true },
   { date: "28 Aug", mood: 3, isToday: false },
-  { date: "29 Aug", mood: 2.5, isToday: false },
+  { date: "29 Aug", mood: 2, isToday: false },
   { date: "31 Aug", mood: 3, isToday: false },
 ];
 
@@ -92,12 +92,6 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
             ? "Netral"
             : "Gembira"}
         </p>
-        {label === "27 Aug" && (
-          <div className="mt-2 p-2 bg-yellow-50 rounded">
-            <p className="text-xs text-yellow-700">🟡 Sedih</p>
-            <p className="text-xs text-red-600">🔴 &quot;Tidak Aman&quot;</p>
-          </div>
-        )}
       </div>
     );
   }
