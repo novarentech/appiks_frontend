@@ -110,6 +110,11 @@ const roleBasedNavigation = {
       icon: Home,
     },
     {
+      title: "Data Siswa",
+      url: "/dashboard/data-siswa",
+      icon: Users,
+    },
+    {
       title: "My Students",
       url: "#",
       icon: Users,
@@ -404,7 +409,7 @@ const roleBasedNavigation = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
   const userRole = user?.role || "admin";
-  
+
   const navigation =
     roleBasedNavigation[userRole as keyof typeof roleBasedNavigation] ||
     roleBasedNavigation.admin;
@@ -465,7 +470,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser/>
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
