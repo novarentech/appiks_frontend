@@ -65,12 +65,7 @@ export default function DashboardDataSiswaPage() {
       <CouncelorPanel />
 
       {/* Table Curhatan Siswa */}
-      <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Daftar Curhatan Siswa</h2>
-          <ConfidentTable onResponseSubmit={handleResponseSubmit} />
-        </div>
-      </div>
+      <ConfidentTable onResponseSubmit={handleResponseSubmit} />
     </div>
   );
 }
