@@ -138,7 +138,7 @@ const getMoodEmoji = (mood: string) => {
   }
 };
 
-export default function StudentDataTable({
+export default function TeacherStudentData({
   onStudentSelect,
 }: StudentDataTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -339,7 +339,6 @@ export default function StudentDataTable({
               size="sm"
               className="text-white bg-teal-500 hover:bg-teal-600 text-xs px-3 py-1 h-8"
               asChild
-              onClick={() => onStudentSelect && onStudentSelect(student)}
             >
               <Link href="/" className="flex items-center justify-center">
                 <FaWhatsapp className="w-3 h-3 mr-1" />
