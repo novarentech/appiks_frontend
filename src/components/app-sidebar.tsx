@@ -9,6 +9,7 @@ import {
   BarChart3,
   UserCheck,
   Shield,
+  Calendar,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -188,6 +189,11 @@ const roleBasedNavigation = {
       title: "Curhatan Siswa",
       url: "/dashboard/curhatan-siswa",
       icon: MessageCircle,
+    },
+    {
+      title: "Jadwal Konseling",
+      url: "/dashboard/counseling-schedule",
+      icon: Calendar,
     },
     {
       title: "Student Cases",
