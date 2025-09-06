@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { recordMood } from "@/lib/api";
+import { MoodRecordResponse } from "@/types/api";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -84,10 +86,11 @@ const UNSAFE_RECOMMENDATIONS = [
     color: "from-yellow-100 to-yellow-50",
     icon: "/icon/ico-quotes.svg",
   },
-    {
+  {
     id: 9,
     title: "Curhat",
-    subtitle: "Tempat aman buat cerita apa aja. Yuk, ceritain isi hati kamu di sini ! ",
+    subtitle:
+      "Tempat aman buat cerita apa aja. Yuk, ceritain isi hati kamu di sini ! ",
     color: "from-emerald-100 to-emerald-50",
     icon: "/icon/ico-vent.svg",
   },
@@ -124,6 +127,14 @@ const MOOD_OPTIONS = [
   { key: "sedih", label: "Sedih", emoji: "😢", icon: "/icon/ico-sad.svg" },
   { key: "marah", label: "Marah", emoji: "😡", icon: "/icon/ico-angry.svg" },
 ] as const;
+
+// Mapping from mood keys to API status values
+const MOOD_TO_API_STATUS: Record<MoodKey, string> = {
+  gembira: "happy",
+  netral: "neutral",
+  sedih: "sad",
+  marah: "angry",
+} as const;
 
 // Types
 type MoodKey = (typeof MOOD_OPTIONS)[number]["key"];
@@ -178,29 +189,53 @@ export default function CheckIn() {
   const [isLoading, setIsLoading] = useState(false);
   const [mood, setMood] = useState<MoodKey | null>(null);
   const [selectedRec, setSelectedRec] = useState<number | null>(null);
+  const [moodResponse, setMoodResponse] = useState<MoodRecordResponse | null>(
+    null
+  );
+  const [error, setError] = useState<string | null>(null);
 
   // Memoized values
-  const selectedMoodData = useMemo(
-    () => (mood ? MOOD_MAP[mood] : null),
-    [mood]
-  );
+  const selectedMoodData = useMemo(() => {
+    if (!mood) return null;
 
-  const currentRecommendations = useMemo(
-    () => selectedMoodData?.isSafe ? SAFE_RECOMMENDATIONS : UNSAFE_RECOMMENDATIONS,
-    [selectedMoodData?.isSafe]
-  );
+    // If we have API response, use its status to determine safety
+    if (moodResponse?.data) {
+      const localMoodData = MOOD_MAP[mood];
+      return {
+        ...localMoodData,
+        status: moodResponse.data.status,
+        isSafe: moodResponse.data.isSafe,
+        statusIcon: moodResponse.data.isSafe ? CircleCheck : XCircle,
+        color: moodResponse.data.isSafe ? "text-green-600" : "text-red-600",
+        iconPath: moodResponse.data.isSafe
+          ? "/icon/ico-save.svg"
+          : "/icon/ico-unsave.svg",
+      };
+    }
 
-  const currentRoutes = useMemo(
-    () => selectedMoodData?.isSafe ? SAFE_ROUTES : UNSAFE_ROUTES,
-    [selectedMoodData?.isSafe]
-  );
+    // Fallback to local mapping if no API response yet
+    return MOOD_MAP[mood];
+  }, [mood, moodResponse]);
 
-  const recommendationTitle = useMemo(
-    () => selectedMoodData?.isSafe 
-      ? "Rekomendasi Konten Untukmu" 
-      : "Yuk, Kenali & Kelola Emosimu di Sini",
-    [selectedMoodData?.isSafe]
-  );
+  const currentRecommendations = useMemo(() => {
+    // Use API response if available, otherwise fallback to local mapping
+    const isSafe = moodResponse?.data?.isSafe ?? selectedMoodData?.isSafe;
+    return isSafe ? SAFE_RECOMMENDATIONS : UNSAFE_RECOMMENDATIONS;
+  }, [selectedMoodData?.isSafe, moodResponse?.data?.isSafe]);
+
+  const currentRoutes = useMemo(() => {
+    // Use API response if available, otherwise fallback to local mapping
+    const isSafe = moodResponse?.data?.isSafe ?? selectedMoodData?.isSafe;
+    return isSafe ? SAFE_ROUTES : UNSAFE_ROUTES;
+  }, [selectedMoodData?.isSafe, moodResponse?.data?.isSafe]);
+
+  const recommendationTitle = useMemo(() => {
+    // Use API response if available, otherwise fallback to local mapping
+    const isSafe = moodResponse?.data?.isSafe ?? selectedMoodData?.isSafe;
+    return isSafe
+      ? "Rekomendasi Konten Untukmu"
+      : "Yuk, Kenali & Kelola Emosimu di Sini";
+  }, [selectedMoodData?.isSafe, moodResponse?.data?.isSafe]);
 
   const headerTitle = useMemo(
     () => (currentStep === 1 ? "Mood Check-In" : "Hasil"),
@@ -231,6 +266,8 @@ export default function CheckIn() {
     setMood(moodKey);
     // Reset selected recommendation when mood changes
     setSelectedRec(null);
+    // Clear any previous errors
+    setError(null);
   }, []);
 
   const handleRecSelect = useCallback((recId: number) => {
@@ -251,10 +288,12 @@ export default function CheckIn() {
     setMood(null);
     setSelectedRec(null);
     setCurrentStep(1);
+    setMoodResponse(null);
+    setError(null);
     router.push(route);
   }, [selectedRec, router, currentRoutes]);
 
-  const goNext = useCallback(() => {
+  const goNext = useCallback(async () => {
     if (currentStep === 1 && !mood) return;
     if (currentStep === 2 && !selectedRec) return;
 
@@ -264,10 +303,33 @@ export default function CheckIn() {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      setCurrentStep((s) => Math.min(s + 1, STEPS.length));
+    setError(null);
+
+    try {
+      // Record mood when moving from step 1 to step 2
+      if (currentStep === 1 && mood) {
+        const apiStatus = MOOD_TO_API_STATUS[mood];
+        console.log("Recording mood:", { mood, apiStatus });
+
+        const response = await recordMood(apiStatus);
+        console.log("Mood API response:", response);
+
+        setMoodResponse(response);
+
+        if (!response.success) {
+          throw new Error(response.message || "Failed to record mood");
+        }
+      }
+
+      setTimeout(() => {
+        setCurrentStep((s) => Math.min(s + 1, STEPS.length));
+        setIsLoading(false);
+      }, 500);
+    } catch (err) {
+      console.error("Error recording mood:", err);
+      setError(err instanceof Error ? err.message : "Failed to record mood");
       setIsLoading(false);
-    }, 500);
+    }
   }, [currentStep, mood, selectedRec, handleFinish]);
 
   // Render components
@@ -320,37 +382,71 @@ export default function CheckIn() {
     </div>
   );
 
-  const renderQuoteCard = () => (
-    <div className="mt-6 sm:mt-8">
-      <div className="mx-auto rounded-xl border p-4 sm:p-6 bg-gradient-to-br from-yellow-50/70 to-orange-100/60 dark:from-yellow-950/30 dark:to-orange-950/30 shadow-sm">
-        <div className="flex flex-col sm:flex-row items-center md:items-start gap-4">
-          <div className="size-25 rounded-lg bg-yellow-100 dark:bg-yellow-900/60 flex items-center justify-center flex-shrink-0 shadow">
-            <span className="text-3xl">⭐</span>
+  const renderQuoteCard = () => {
+    // If no API message, show default quote
+    if (!moodResponse?.data?.pesan) {
+      return (
+        <div className="mt-6 sm:mt-8">
+          <div className="mx-auto rounded-xl border p-4 sm:p-6 bg-gradient-to-br from-yellow-50/70 to-orange-100/60 dark:from-yellow-950/30 dark:to-orange-950/30 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center md:items-start gap-4">
+              <div className="size-25 rounded-lg bg-yellow-100 dark:bg-yellow-900/60 flex items-center justify-center flex-shrink-0 shadow">
+                <span className="text-3xl">⭐</span>
+              </div>
+              <div className="flex-1 md:text-left">
+                <div className="text-lg font-semibold">Quote of the Day</div>
+                <blockquote className="text-sm text-muted-foreground leading-relaxed">
+                  <q>
+                    The only way to do great work is to love what you do. If you
+                    haven&apos;t found it yet, keep looking. Don&apos;t settle.
+                  </q>
+                </blockquote>
+                <cite className="text-xs text-muted-foreground italic">
+                  — Steve Jobs
+                </cite>
+              </div>
+              <button
+                className="ml-auto sm:ml-4 p-2 text-muted-foreground hover:text-primary transition-colors rounded-lg hover:bg-background/60"
+                aria-label="Refresh quote"
+                title="Refresh quote"
+                onClick={handleRefreshQuote}
+              >
+                <span className="text-xl">↻</span>
+              </button>
+            </div>
           </div>
-          <div className="flex-1 md:text-left">
-            <div className="text-lg font-semibold">Quote of the Day</div>
-            <blockquote className="text-sm text-muted-foreground leading-relaxed">
-              <q>
-                The only way to do great work is to love what you do. If you
-                haven&apos;t found it yet, keep looking. Don&apos;t settle.
-              </q>
-            </blockquote>
-            <cite className="text-xs text-muted-foreground italic">
-              — Steve Jobs
-            </cite>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-6 sm:mt-8">
+        <div className="mx-auto rounded-xl border p-4 sm:p-6 bg-gradient-to-br from-yellow-50/70 to-orange-100/60 dark:from-yellow-950/30 dark:to-orange-950/30 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-center md:items-start gap-4">
+            <div className="size-25 rounded-lg bg-yellow-100 dark:bg-yellow-900/60 flex items-center justify-center flex-shrink-0 shadow">
+              <span className="text-3xl">⭐</span>
+            </div>
+            <div className="flex-1 md:text-left">
+              <div className="text-lg font-semibold">Quote of the Day</div>
+              <blockquote className="text-sm text-muted-foreground leading-relaxed">
+                <q>{moodResponse.data.pesan}</q>
+              </blockquote>
+              <cite className="text-xs text-muted-foreground italic">
+                — Steve Jobs
+              </cite>
+            </div>
+            <button
+              className="ml-auto sm:ml-4 p-2 text-muted-foreground hover:text-primary transition-colors rounded-lg hover:bg-background/60"
+              aria-label="Refresh quote"
+              title="Refresh quote"
+              onClick={handleRefreshQuote}
+            >
+              <span className="text-xl">↻</span>
+            </button>
           </div>
-          <button
-            className="ml-auto sm:ml-4 p-2 text-muted-foreground hover:text-primary transition-colors rounded-lg hover:bg-background/60"
-            aria-label="Refresh quote"
-            title="Refresh quote"
-            onClick={handleRefreshQuote}
-          >
-            <span className="text-xl">↻</span>
-          </button>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderRecommendations = () => (
     <div className="mt-6 sm:mt-8 text-left">
@@ -442,6 +538,15 @@ export default function CheckIn() {
               )}
             </div>
           </div>
+
+          {/* Display API response message if available */}
+          {moodResponse?.data?.pesan && (
+            <div className="mt-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-sm text-blue-800 dark:text-blue-300">
+                {moodResponse.data.pesan}
+              </p>
+            </div>
+          )}
         </div>
 
         {renderQuoteCard()}
@@ -484,6 +589,19 @@ export default function CheckIn() {
               {headerDescription}
             </p>
           </header>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mx-auto max-w-4xl">
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+                <div className="flex items-center gap-2">
+                  <XCircle className="w-5 h-5" />
+                  <span className="font-medium">Error</span>
+                </div>
+                <p className="mt-1 text-sm">{error}</p>
+              </div>
+            </div>
+          )}
 
           {/* Step content card */}
           <div className="mx-auto w-full max-w-4xl">

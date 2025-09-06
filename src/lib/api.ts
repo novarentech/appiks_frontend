@@ -1,4 +1,5 @@
 import { getSession } from "next-auth/react";
+import { MoodRecordResponse } from "@/types/api";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "https://appiks-be.disyfa.cloud/api";
@@ -85,6 +86,26 @@ export async function authDelete(endpoint: string) {
 
   if (!response.ok) {
     throw new Error(`DELETE ${endpoint} failed with status ${response.status}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Record mood data
+ */
+export async function recordMood(status: string): Promise<MoodRecordResponse> {
+  const response = await fetch("/api/mood-record", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(`Failed to record mood: ${response.status} - ${errorData}`);
   }
 
   return response.json();
