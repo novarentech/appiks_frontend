@@ -99,14 +99,14 @@ const UNSAFE_RECOMMENDATIONS = [
 const SAFE_ROUTES: Record<number, string> = {
   1: "/game",
   2: "/videos",
-  3: "/survey",
+  3: "/survey-walkthrough",
   4: "/quote",
 } as const;
 
 const UNSAFE_ROUTES: Record<number, string> = {
   5: "/self-help",
   6: "/anger-management",
-  7: "/survey",
+  7: "/survey-walkthrough",
   8: "/quote",
   9: "/vent",
 } as const;
