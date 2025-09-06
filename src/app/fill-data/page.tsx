@@ -1,7 +1,6 @@
 "use client";
 
 import { FillData } from "@/components/auth/FillData";
-import { SessionDebug } from "@/components/debug/SessionDebug";
 import { useVerificationRedirect } from "@/hooks/useVerificationRedirect";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
