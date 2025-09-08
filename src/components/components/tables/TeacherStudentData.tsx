@@ -340,7 +340,7 @@ export default function TeacherStudentData({
               className="text-white bg-teal-500 hover:bg-teal-600 text-xs px-3 py-1 h-8"
               asChild
             >
-              <Link href="/" className="flex items-center justify-center">
+              <Link href="https://wa.me/+628156508128" className="flex items-center justify-center">
                 <FaWhatsapp className="w-3 h-3 mr-1" />
                 Chat WA
               </Link>

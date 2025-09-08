@@ -1,23 +1,70 @@
 "use client";
 
-import { UserProfile } from "@/components/auth/UserProfile";
-import { useAuth } from "@/hooks/useAuth";
+import { motion } from "framer-motion";
+import { WelcomeCard } from "../components/card/WelcomeCard";
+import { QuoteCard } from "../components/card/QuoteCard";
+import { StreakCard } from "../components/card/StreakCard";
+import { TipsCard } from "../components/card/TipsCard";
+import { NotificationCard } from "../components/card/NotificationCard";
+import { MoodCalendar } from "../components/card/MoodCalendar";
 
 export function StudentDashboard() {
-  const { user } = useAuth();
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    show: { y: 0, opacity: 1 },
+  };
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold">Student Dashboard</h1>
-        <p className="text-gray-600 mt-2">
-          Welcome back, {user?.name || user?.username}
-        </p>
-      </div>
+    <motion.div
+      className="min-h-screen p-4 container mx-auto max-w-7xl"
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+    >
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
+        {/* Left Column */}
+        <motion.div className="space-y-6" variants={itemVariants}>
+          {/* Welcome Card - Full Width */}
+          <motion.div variants={itemVariants}>
+            <WelcomeCard />
+          </motion.div>
 
-      <div className="flex justify-center">
-        <UserProfile />
+          {/* Quote Card */}
+          <motion.div variants={itemVariants}>
+            <QuoteCard />
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <StreakCard />
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <TipsCard />
+          </motion.div>
+        </motion.div>
+
+        {/* Right Column */}
+        <motion.div className="space-y-6" variants={itemVariants}>
+          {/* Notifications */}
+          <motion.div variants={itemVariants}>
+            <NotificationCard />
+          </motion.div>
+
+          {/* Calendar */}
+          <motion.div variants={itemVariants}>
+            <MoodCalendar />
+          </motion.div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
