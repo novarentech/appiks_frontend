@@ -1,5 +1,13 @@
 import { DefaultSession, User as NextAuthUser } from "next-auth";
 
+// User roles enum
+export type UserRole =
+  | "siswa"
+  | "guru_wali"
+  | "guru_bk"
+  | "kepala_sekolah"
+  | "admin";
+
 // Custom user interface that extends NextAuth User
 export interface CustomUser extends NextAuthUser {
   username: string;
