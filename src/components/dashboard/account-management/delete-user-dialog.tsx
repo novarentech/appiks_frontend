@@ -48,7 +48,7 @@ export function DeleteUserDialog({
           <div className="mx-auto p-4 bg-red-100 rounded-full w-fit">
             <AlertTriangle className="h-8 w-8 text-red-600" />
           </div>
-          <DialogTitle className="text-2xl font-bold text-red-600">
+          <DialogTitle className="text-2xl font-bold text-red-600 text-center">
             Hapus Pengguna
           </DialogTitle>
         </DialogHeader>
