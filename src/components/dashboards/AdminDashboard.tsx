@@ -2,9 +2,9 @@
 
 import { Card, CardContent } from "../ui/card";
 import AdminPanel from "../components/panel/adminPanel";
-import NewContentCard from "../components/card/newUser";
-import NewUserCard from "../components/card/newUser";
 import { Edit3, UserPlus } from "lucide-react";
+import NewContentCard from "../components/card/newContent";
+import NewUserCard from "../components/card/newUser";
 
 const quickActions = [
   {
