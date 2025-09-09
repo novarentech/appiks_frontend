@@ -9,6 +9,8 @@ import {
   BarChart3,
   Shield,
   Calendar,
+  UserCog,
+  BookText,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -50,71 +52,15 @@ const roleBasedNavigation: Record<string, NavigationItem[]> = {
       icon: Home,
     },
     {
-      title: "User Management",
-      url: "#",
-      icon: Users,
-      items: [
-        {
-          title: "All Users",
-          url: "/dashboard/users",
-        },
-        {
-          title: "Students",
-          url: "/dashboard/students",
-        },
-        {
-          title: "Teachers",
-          url: "/dashboard/teachers",
-        },
-        {
-          title: "Roles & Permissions",
-          url: "/dashboard/roles",
-        },
-      ],
+      title: "Kelola Akun",
+      url: "/dashboard/account-management",
+      icon: UserCog,
     },
     {
-      title: "School Management",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "School Settings",
-          url: "/dashboard/school-settings",
-        },
-        {
-          title: "Classes",
-          url: "/dashboard/classes",
-        },
-        {
-          title: "Curriculum",
-          url: "/dashboard/curriculum",
-        },
-      ],
-    },
-    {
-      title: "Reports & Analytics",
-      url: "#",
-      icon: BarChart3,
-      items: [
-        {
-          title: "User Reports",
-          url: "/dashboard/reports/users",
-        },
-        {
-          title: "Mental Health Overview",
-          url: "/dashboard/reports/mental-health",
-        },
-        {
-          title: "System Usage",
-          url: "/dashboard/reports/usage",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "/dashboard/settings",
-      icon: Settings,
-    },
+      title: "Kelola Konten",
+      url: "/dashboard/content-management",
+      icon: BookText,
+    }
   ],
   teacher: [
     {
