@@ -7,7 +7,6 @@ import {
   MessageCircle,
   Settings,
   BarChart3,
-  UserCheck,
   Shield,
   Calendar,
 } from "lucide-react";
@@ -29,8 +28,21 @@ import {
 } from "@/components/ui/sidebar";
 import { NavUser } from "./components/profile/nav-user";
 
+// Type definitions
+interface NavigationSubItem {
+  title: string;
+  url: string;
+}
+
+interface NavigationItem {
+  title: string;
+  url: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  items?: NavigationSubItem[];
+}
+
 // Role-based navigation configuration
-const roleBasedNavigation = {
+const roleBasedNavigation: Record<string, NavigationItem[]> = {
   admin: [
     {
       title: "Dashboard",
@@ -114,65 +126,7 @@ const roleBasedNavigation = {
       title: "Data Siswa",
       url: "/dashboard/data-siswa",
       icon: Users,
-    },
-    {
-      title: "My Students",
-      url: "#",
-      icon: Users,
-      items: [
-        {
-          title: "Class Overview",
-          url: "/dashboard/my-students",
-        },
-        {
-          title: "Mood Tracking",
-          url: "/dashboard/student-moods",
-        },
-        {
-          title: "Student Progress",
-          url: "/dashboard/student-progress",
-        },
-      ],
-    },
-    {
-      title: "Classes",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "My Classes",
-          url: "/dashboard/classes",
-        },
-        {
-          title: "Lesson Plans",
-          url: "/dashboard/lessons",
-        },
-        {
-          title: "Assignments",
-          url: "/dashboard/assignments",
-        },
-      ],
-    },
-    {
-      title: "Reports",
-      url: "#",
-      icon: BarChart3,
-      items: [
-        {
-          title: "Class Analytics",
-          url: "/dashboard/class-analytics",
-        },
-        {
-          title: "Student Reports",
-          url: "/dashboard/student-reports",
-        },
-      ],
-    },
-    {
-      title: "Communication",
-      url: "/dashboard/messages",
-      icon: MessageCircle,
-    },
+    }
   ],
   counselor: [
     {
@@ -194,69 +148,7 @@ const roleBasedNavigation = {
       title: "Jadwal Konseling",
       url: "/dashboard/counseling-schedule",
       icon: Calendar,
-    },
-    {
-      title: "Student Cases",
-      url: "#",
-      icon: Users,
-      items: [
-        {
-          title: "Active Cases",
-          url: "/dashboard/active-cases",
-        },
-        {
-          title: "New Referrals",
-          url: "/dashboard/referrals",
-        },
-        {
-          title: "Follow-ups",
-          url: "/dashboard/follow-ups",
-        },
-      ],
-    },
-    {
-      title: "Mental Health",
-      url: "#",
-      icon: UserCheck,
-      items: [
-        {
-          title: "Mood Tracking",
-          url: "/dashboard/mood-tracking",
-        },
-        {
-          title: "Crisis Alerts",
-          url: "/dashboard/crisis-alerts",
-        },
-        {
-          title: "Intervention Tools",
-          url: "/dashboard/interventions",
-        },
-      ],
-    },
-    {
-      title: "Sessions",
-      url: "#",
-      icon: MessageCircle,
-      items: [
-        {
-          title: "Schedule",
-          url: "/dashboard/schedule",
-        },
-        {
-          title: "Session Notes",
-          url: "/dashboard/session-notes",
-        },
-        {
-          title: "Resources",
-          url: "/dashboard/resources",
-        },
-      ],
-    },
-    {
-      title: "Reports",
-      url: "/dashboard/counselor-reports",
-      icon: BarChart3,
-    },
+    }
   ],
   head_teacher: [
     {
@@ -426,7 +318,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
   const userRole = user?.role || "admin";
 
-  const navigation =
+  const navigation: NavigationItem[] =
     roleBasedNavigation[userRole as keyof typeof roleBasedNavigation] ||
     roleBasedNavigation.admin;
 
@@ -470,7 +362,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </SidebarMenuButton>
                   {item.items?.length ? (
                     <SidebarMenuSub>
-                      {item.items.map((subItem) => (
+                      {item.items.map((subItem: NavigationSubItem) => (
                         <SidebarMenuSubItem key={subItem.title}>
                           <SidebarMenuSubButton asChild>
                             <a href={subItem.url}>{subItem.title}</a>
