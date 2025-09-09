@@ -9,20 +9,16 @@ import { Button } from "@/components/ui/button";
 import { useQuote } from "@/hooks/useQuote";
 import { QuoteAccessGuard } from "@/components/guards/QuoteAccessGuard";
 
-type QuotePageProps = {
-  imageSrc?: string;
-  quoteType?: string;
-};
-
-export default function QuoteScreen({
-  imageSrc = "/image/bg-quote.webp",
-  quoteType = "secure",
-}: QuotePageProps) {
+export default function QuotePage() {
   const [visible, setVisible] = useState(false);
   const [isExiting] = useState(false);
   const [isGoingToDashboard, setIsGoingToDashboard] = useState(false);
   const shouldReduceMotion = useReducedMotion();
   const router = useRouter();
+
+  // Constants for the quote page
+  const imageSrc = "/image/bg-quote.webp";
+  const quoteType = "secure";
 
   // Use the quote hook to fetch data from API
   const {
