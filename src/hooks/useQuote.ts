@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import type { QuoteResponse, Quote } from "@/types/api";
+import type { Quote } from "@/types/api";
 
 interface UseQuoteReturn {
   isLoading: boolean;
@@ -11,7 +11,7 @@ interface UseQuoteReturn {
   refetch: () => Promise<void>;
 }
 
-export function useQuote(type: string = "secure"): UseQuoteReturn {
+export function useQuote(): UseQuoteReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quote, setQuote] = useState<Quote | null>(null);
@@ -28,10 +28,10 @@ export function useQuote(type: string = "secure"): UseQuoteReturn {
     setError(null);
 
     try {
-      console.log("🔄 Fetching quote with type:", type);
+      console.log("🔄 Fetching quote from mood API");
 
-      // ✅ Use internal API route
-      const response = await fetch(`/api/quote/type/${type}`, {
+      // ✅ Use internal API route for mood-based quotes
+      const response = await fetch("/api/quote/mood", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -43,13 +43,21 @@ export function useQuote(type: string = "secure"): UseQuoteReturn {
         throw new Error(errorData.message || "Gagal mengambil quote");
       }
 
-      const data: QuoteResponse = await response.json();
+      const data = await response.json();
+      console.log("📋 API Response:", data);
 
-      if (data.success && data.data && data.data.length > 0) {
-        // Get random quote from the array
-        const randomIndex = Math.floor(Math.random() * data.data.length);
-        setQuote(data.data[randomIndex]);
-        console.log("✅ Quote loaded:", data.data[randomIndex]);
+      if (data.success && data.data) {
+        // Handle both single object and array response
+        if (Array.isArray(data.data)) {
+          // If data is array, get random quote
+          const randomIndex = Math.floor(Math.random() * data.data.length);
+          setQuote(data.data[randomIndex]);
+          console.log("✅ Quote loaded (from array):", data.data[randomIndex]);
+        } else {
+          // If data is single object, use it directly
+          setQuote(data.data);
+          console.log("✅ Quote loaded (single):", data.data);
+        }
       } else {
         setError(data.message || "Tidak ada quote tersedia");
       }
@@ -87,7 +95,7 @@ export function useQuote(type: string = "secure"): UseQuoteReturn {
       setError("Sesi tidak ditemukan");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.user?.token, type]);
+  }, [session?.user?.token]);
 
   return {
     isLoading,

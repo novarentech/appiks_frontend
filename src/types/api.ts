@@ -32,5 +32,5 @@ export interface Quote {
 export interface QuoteResponse {
   success: boolean;
   message: string;
-  data: Quote[];
+  data: Quote[] | Quote;
 }

@@ -18,14 +18,9 @@ export default function QuotePage() {
 
   // Constants for the quote page
   const imageSrc = "/image/bg-quote.webp";
-  const quoteType = "secure";
 
   // Use the quote hook to fetch data from API
-  const {
-    isLoading: isQuoteLoading,
-    error: quoteError,
-    quote,
-  } = useQuote(quoteType);
+  const { isLoading: isQuoteLoading, error: quoteError, quote } = useQuote();
 
   useEffect(() => {
     // Preload image and show with animation

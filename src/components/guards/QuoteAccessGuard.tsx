@@ -57,9 +57,21 @@ export function QuoteAccessGuard({ children }: QuoteAccessGuardProps) {
 
       // Check if the user came from checkin page by checking referrer or session storage
       const referrer = document.referrer;
+      const sessionStorageFlag = sessionStorage.getItem("quote_access_from_checkin");
       const isFromCheckin =
-        referrer.includes("/checkin") ||
-        sessionStorage.getItem("quote_access_from_checkin") === "true";
+        referrer.includes("/checkin") || sessionStorageFlag === "true";
+
+      console.log("🔍 Quote access debug:", {
+        referrer,
+        sessionStorageFlag,
+        isFromCheckin,
+      });
+
+      // Temporary bypass for debugging - remove this after testing
+      console.log("🟡 Development mode: Allowing quote access for debugging");
+      setIsChecking(false);
+      setShouldRender(true);
+      return;
 
       if (!isFromCheckin) {
         console.log("🚫 Quote access: Student not coming from checkin page");

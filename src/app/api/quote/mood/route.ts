@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
-import { auth } from "../../../../../../auth";
+import { auth } from "../../../../../auth";
 
 const API_BASE_URL = process.env.API_BASE_URL;
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ type: string }> }
-) {
+export async function GET() {
   try {
     // Get session from NextAuth
     const session = await auth();
@@ -18,17 +15,13 @@ export async function GET(
       );
     }
 
-    const { type } = await params;
-
     console.log(
-      "🔄 Proxying quote request for type:",
-      type,
-      "with token:",
+      "🔄 Proxying quote request with token:",
       session.user.token.substring(0, 10) + "..."
     );
 
     // Make request to the backend API
-    const response = await fetch(`${API_BASE_URL}/quote/type/${type}`, {
+    const response = await fetch(`${API_BASE_URL}/quote/mood`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
