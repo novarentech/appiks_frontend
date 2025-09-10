@@ -10,17 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { DataTable } from "@/components/ui/data-table";
+import CurhatReplyDialog from "@/components/dialogs/CurhatReplyDialog";
+import CurhatViewDialog from "@/components/dialogs/CurhatViewDialog";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState, useEffect } from "react";
-import { Eye, MessageCircle, ArrowUpDown, X, Send } from "lucide-react";
+import { Eye, MessageCircle, ArrowUpDown } from "lucide-react";
 
 // Types
 interface Curhat {
@@ -136,7 +131,6 @@ export default function ConfidentTable({
   const [selectedCurhat, setSelectedCurhat] = useState<Curhat | null>(null);
   const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [replyText, setReplyText] = useState("");
 
   // Get unique values for filters
   const uniqueStatus = [...new Set(curhatData.map((item) => item.status))];
@@ -186,26 +180,12 @@ export default function ConfidentTable({
 
   const handleReply = (curhat: Curhat) => {
     setSelectedCurhat(curhat);
-    setReplyText("");
     setIsReplyDialogOpen(true);
   };
 
   const handleView = (curhat: Curhat) => {
     setSelectedCurhat(curhat);
     setIsViewDialogOpen(true);
-  };
-
-  const handleSubmitReply = () => {
-    if (selectedCurhat && replyText.trim()) {
-      // Call callback if provided
-      if (onResponseSubmit) {
-        onResponseSubmit(selectedCurhat.id, replyText);
-      }
-
-      setIsReplyDialogOpen(false);
-      setSelectedCurhat(null);
-      setReplyText("");
-    }
   };
 
   // Column definitions
@@ -449,124 +429,19 @@ export default function ConfidentTable({
         showPageSizeSelector={false}
       />
 
-      {/* Reply Dialog */}
-      <Dialog open={isReplyDialogOpen} onOpenChange={setIsReplyDialogOpen}>
-        <DialogContent className="max-w-5xl w-[95vw] max-h-[85vh] overflow-hidden flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <MessageCircle className="w-5 h-5 text-blue-600" />
-              <DialogTitle>Balas Curhat</DialogTitle>
-            </div>
-          </DialogHeader>
+      {/* Dialogs */}
+      <CurhatReplyDialog
+        curhat={selectedCurhat}
+        isOpen={isReplyDialogOpen}
+        onClose={() => setIsReplyDialogOpen(false)}
+        onSubmit={onResponseSubmit || (() => {})}
+      />
 
-          <div className="flex-1 overflow-y-auto">
-            {selectedCurhat && (
-              <div className="space-y-6 px-1">
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-xl mb-3">
-                    {selectedCurhat.judul}
-                  </h4>
-                  <p className="text-gray-700 mb-4 leading-relaxed text-base">
-                    {selectedCurhat.deskripsi}
-                  </p>
-                  <div className="text-sm text-gray-500">
-                    Dari: {selectedCurhat.siswa.nama} •{" "}
-                    {selectedCurhat.waktuDibuat}
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <label className="block text-base font-medium text-gray-700">
-                    Tanggapan Anda
-                  </label>
-                  <textarea
-                    value={replyText}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                      setReplyText(e.target.value)
-                    }
-                    placeholder="Tulis Tanggapan yang Bijaksana dan Membantu"
-                    className="flex min-h-[160px] w-full rounded-md border border-input bg-transparent px-4 py-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="flex-shrink-0 border-t pt-4 mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsReplyDialogOpen(false)}
-            >
-              <X className="w-4 h-4 mr-2" />
-              Batal
-            </Button>
-            <Button
-              onClick={handleSubmitReply}
-              disabled={!replyText.trim()}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Send className="w-4 h-4 mr-2" />
-              Kirim
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* View Response Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-4xl w-[95vw] max-h-[85vh] overflow-hidden flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <Eye className="w-5 h-5 text-teal-600" />
-              <DialogTitle>Lihat Balasan</DialogTitle>
-            </div>
-          </DialogHeader>
-
-          <div className="flex-1 overflow-y-auto">
-            {selectedCurhat && (
-              <div className="space-y-6 px-1">
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <h4 className="font-semibold text-xl mb-3">
-                    {selectedCurhat.judul}
-                  </h4>
-                  <p className="text-gray-700 mb-4 leading-relaxed text-base">
-                    {selectedCurhat.deskripsi}
-                  </p>
-                  <div className="text-sm text-gray-500">
-                    Dari: {selectedCurhat.siswa.nama} •{" "}
-                    {selectedCurhat.waktuDibuat}
-                  </div>
-                </div>
-
-                {selectedCurhat.balasan && (
-                  <div className="bg-teal-50 p-6 rounded-lg border border-teal-200">
-                    <h5 className="font-medium text-teal-800 mb-3 text-lg">
-                      Tanggapan Anda
-                    </h5>
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-base">
-                      {selectedCurhat.balasan}
-                    </p>
-                    {selectedCurhat.waktuDibalas && (
-                      <div className="text-sm text-teal-600 mt-4">
-                        Dibalas pada: {selectedCurhat.waktuDibalas}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="flex-shrink-0 border-t pt-4 mt-4">
-            <Button
-              onClick={() => setIsViewDialogOpen(false)}
-              className="bg-teal-600 hover:bg-teal-700"
-            >
-              Tutup
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CurhatViewDialog
+        curhat={selectedCurhat}
+        isOpen={isViewDialogOpen}
+        onClose={() => setIsViewDialogOpen(false)}
+      />
     </div>
   );
 }
