@@ -107,7 +107,7 @@ export default function SplashScreen({
                 {subtitle}
               </p>
 
-              <div className="mt-12 mx-auto max-w-3xl rounded-xl border border-white/20 bg-white/10 p-6 md:p-8 backdrop-blur-md shadow-lg">
+              <div className="mt-12 mx-auto max-w-3xl rounded-xl border border-slate-50 bg-white/10 p-6 md:p-8 backdrop-blur-md shadow-lg">
                 <h3 className="text-lg md:text-2xl font-semibold text-white">
                   Quote of the Day
                 </h3>

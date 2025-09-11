@@ -16,19 +16,13 @@ export default function QuotePage() {
   const shouldReduceMotion = useReducedMotion();
   const router = useRouter();
 
-  // Constants for the quote page
-  const imageSrcSecure = "/image/bg-quote-safe.webp";
   const imageSrcInsecure = "/image/bg-quote-unsafe.webp";
 
   // Use the quote hook to fetch data from API
   const { isLoading: isQuoteLoading, error: quoteError, quote } = useQuote();
 
   // Determine image source based on quote type
-  const imageSrc = quote?.type === "secure" 
-    ? imageSrcSecure 
-    : quote?.type === "insecure" 
-      ? imageSrcInsecure 
-      : imageSrcInsecure;
+  const imageSrc = imageSrcInsecure;
 
   useEffect(() => {
     // Preload image and show with animation
@@ -82,7 +76,7 @@ export default function QuotePage() {
             </div>
 
             <div className="max-w-5xl w-full px-6 text-center">
-              <div className="mt-12 mx-auto max-w-3xl rounded-xl border border-white/20 bg-white/10 p-6 md:p-8 backdrop-blur-md shadow-lg">
+              <div className="mt-12 mx-auto max-w-3xl rounded-xl border border-slate-50 bg-white/10 p-6 md:p-8 backdrop-blur-md shadow-lg">
                 <h1 className="text-lg md:text-2xl font-semibold text-white">
                   Quote of the Day
                 </h1>
