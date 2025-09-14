@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "@fontsource/plus-jakarta-sans";
 import "./globals.css";
 import AuthProvider from "@/components/providers/AuthProvider";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -21,6 +22,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <main className="w-full min-h-screen flex flex-col">{children}</main>
+          <Toaster position="top-right" richColors />
         </AuthProvider>
       </body>
     </html>

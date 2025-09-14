@@ -18,6 +18,7 @@ import { ContentItem } from "../content-management-table";
 import { Editor } from "@/components/blocks/editor-00/editor";
 import { EditorState, SerializedEditorState } from "lexical";
 import Image from "next/image";
+import { toast } from "sonner";
 
 interface CreateArticleDialogProps {
   open: boolean;
@@ -61,13 +62,44 @@ export function CreateArticleDialog({
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Check file size (5MB limit)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        toast.error(
+          `Ukuran file terlalu besar. Maksimal 5MB. File Anda: ${(
+            file.size /
+            1024 /
+            1024
+          ).toFixed(2)}MB`
+        );
+        // Reset the input
+        event.target.value = "";
+        return;
+      }
+
+      // Check file format
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+      ];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(
+          "Format file tidak didukung. Hanya JPG, PNG, dan WebP yang diperbolehkan."
+        );
+        // Reset the input
+        event.target.value = "";
+        return;
+      }
+
       setUploadedImage(file);
     }
   };
 
   const handleSubmit = async () => {
     if (!title.trim() || !overview.trim() || !content.trim()) {
-      alert("Mohon lengkapi semua field yang wajib diisi");
+      toast.error("Mohon lengkapi semua field yang wajib diisi");
       return;
     }
 
@@ -95,6 +127,9 @@ export function CreateArticleDialog({
       };
 
       onSuccess(newArticle);
+
+      // Show success toast
+      toast.success("Artikel berhasil dibuat!");
 
       // Reset form
       setTitle("");
@@ -149,9 +184,9 @@ export function CreateArticleDialog({
                           alt="Preview"
                           width={400}
                           height={200}
-                          className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
+                          className="w-full aspect-video object-cover rounded-lg border-2 border-gray-200"
                         />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                        <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
                           <button
                             onClick={() => setUploadedImage(null)}
                             className="opacity-0 group-hover:opacity-100 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-all duration-200"
@@ -189,7 +224,7 @@ export function CreateArticleDialog({
                           id="image-upload"
                           type="file"
                           className="hidden"
-                          accept="image/*"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
                           onChange={handleImageUpload}
                         />
                       </div>
