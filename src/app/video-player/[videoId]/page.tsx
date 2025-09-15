@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,12 +46,6 @@ export default function VideoPlayerPage() {
   const [showFullDescription, setShowFullDescription] = useState(false);
 
   const video = videoData[videoId as keyof typeof videoData];
-
-  useEffect(() => {
-    if (!video) {
-      router.push("/video-recommendations");
-    }
-  }, [video, router]);
 
   // Auth check
   if (isLoading) {
