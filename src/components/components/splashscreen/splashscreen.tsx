@@ -16,18 +16,58 @@ type SplashProps = {
   onFinish?: () => void;
 };
 
+interface QuoteData {
+  text: string;
+  author: string;
+}
+
 export default function SplashScreen({
   imageSrc = "/image/bgSplashScreen.webp",
   title = "Hai, Selamat Datang di Appiks!",
   subtitle = "Platform untuk Mencegah Intoleransi dan Kekerasan di Sekolah melalui Pemantauan Emosi & Edukasi Positif.",
-  quote = '"Percayalah pada dirimu sendiri dan semua yang ada dalam dirimu. Ketahuilah bahwa ada sesuatu di dalam dirimu yang lebih besar daripada rintangan apa pun."',
-  author = "Christian D. Larson",
+  quote:
+    fallbackQuote = '"Percayalah pada dirimu sendiri dan semua yang ada dalam dirimu. Ketahuilah bahwa ada sesuatu di dalam dirimu yang lebih besar daripada rintangan apa pun."',
+  author: fallbackAuthor = "Christian D. Larson",
   duration = 3000,
   showOnce = true,
   onFinish,
 }: SplashProps) {
-  const [visible, setVisible] = useState(false); 
+  const [visible, setVisible] = useState(false);
+  const [quoteData, setQuoteData] = useState<QuoteData>({
+    text: fallbackQuote,
+    author: fallbackAuthor,
+  });
+  const [isLoadingQuote, setIsLoadingQuote] = useState(true);
   const shouldReduceMotion = useReducedMotion();
+
+  // Fetch quote from API
+  useEffect(() => {
+    const fetchQuote = async () => {
+      try {
+        setIsLoadingQuote(true);
+        const response = await fetch("/api/quote/mood");
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            setQuoteData({
+              text: data.data.text || fallbackQuote,
+              author: data.data.author || fallbackAuthor,
+            });
+          }
+        } else {
+          console.warn("Failed to fetch quote, using fallback");
+        }
+      } catch (error) {
+        console.error("Error fetching quote:", error);
+        // Keep fallback values
+      } finally {
+        setIsLoadingQuote(false);
+      }
+    };
+
+    fetchQuote();
+  }, [fallbackQuote, fallbackAuthor]);
 
   useEffect(() => {
     const img = new window.Image();
@@ -38,7 +78,7 @@ export default function SplashScreen({
   }, [imageSrc]);
 
   useEffect(() => {
-    if (!visible) return;
+    if (!visible || isLoadingQuote) return;
 
     if (showOnce) {
       try {
@@ -55,7 +95,7 @@ export default function SplashScreen({
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [visible, duration, showOnce, onFinish]);
+  }, [visible, isLoadingQuote, duration, showOnce, onFinish]);
 
   function handleExitComplete() {
     if (showOnce) {
@@ -66,9 +106,7 @@ export default function SplashScreen({
     onFinish?.();
   }
 
-  const transition = shouldReduceMotion
-    ? { duration: 0.1 }
-    : { duration: 0.7 };
+  const transition = shouldReduceMotion ? { duration: 0.1 } : { duration: 0.7 };
 
   return (
     <>
@@ -111,8 +149,24 @@ export default function SplashScreen({
                 <h3 className="text-lg md:text-2xl font-semibold text-white">
                   Quote of the Day
                 </h3>
-                <p className="mt-4 text-sm md:text-base text-white/90">{quote}</p>
-                <div className="mt-4 text-sm italic text-white/80">– {author} –</div>
+                {isLoadingQuote ? (
+                  <div className="mt-4">
+                    <div className="animate-pulse">
+                      <div className="h-4 bg-white/20 rounded w-3/4 mx-auto mb-2"></div>
+                      <div className="h-4 bg-white/20 rounded w-1/2 mx-auto mb-4"></div>
+                      <div className="h-3 bg-white/20 rounded w-1/3 mx-auto"></div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="mt-4 text-sm md:text-base text-white/90">
+                      {quoteData.text}
+                    </p>
+                    <div className="mt-4 text-sm italic text-white/80">
+                      – {quoteData.author} –
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
