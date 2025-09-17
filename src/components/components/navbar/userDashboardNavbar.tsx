@@ -84,16 +84,8 @@ const NavbarUserDashboard = ({
   menu = [
     { title: "Dashboard", url: "/dashboard" },
     {
-      title: "Rekap Mood",
-      url: "/dashboard/mood-recap",
-    },
-    {
       title: "Konten",
       url: "/dashboard/content",
-    },
-    {
-      title: "History laporan",
-      url: "/dashboard/history-report",
     },
   ],
 }: NavbarProps) => {
@@ -134,7 +126,7 @@ const NavbarUserDashboard = ({
   return (
     <>
       {/* Desktop Menu */}
-      <nav className="fixed top-5 left-0 right-0 z-50 hidden justify-between lg:flex border rounded-full py-4 px-10 bg-background/95 backdrop-blur-sm container mx-auto">
+      <nav className="fixed top-5 left-0 right-0 z-50 hidden justify-between lg:flex border rounded-full py-4 px-10 bg-background backdrop-blur-sm container mx-auto">
         <div className="flex items-center gap-6">
           {/* Logo */}
           <Link
