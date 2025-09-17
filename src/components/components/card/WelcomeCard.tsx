@@ -3,9 +3,64 @@
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+
+interface MoodData {
+  type: 'happy' | 'neutral' | 'sad' | 'angry';
+  status: 'secure' | 'insecure';
+}
 
 export function WelcomeCard() {
   const { user } = useAuth();
+  const [moodData, setMoodData] = useState<MoodData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMoodData = async () => {
+      try {
+        const response = await fetch('/api/mood-record/today');
+        const result = await response.json();
+        
+        if (result.success) {
+          setMoodData(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching mood data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMoodData();
+  }, []);
+
+  const getMoodText = (type: string) => {
+    const moodMap = {
+      happy: 'Senang',
+      neutral: 'Netral',
+      sad: 'Sedih',
+      angry: 'Marah'
+    };
+    return moodMap[type as keyof typeof moodMap] || 'Tidak diketahui';
+  };
+
+  const getMoodIcon = (type: string) => {
+    const iconMap = {
+      happy: '/icon/ico-happy.svg',
+      neutral: '/icon/ico-neutral.svg',
+      sad: '/icon/ico-sad.svg',
+      angry: '/icon/ico-angry.svg'
+    };
+    return iconMap[type as keyof typeof iconMap] || '/icon/ico-happy.svg';
+  };
+
+  const getStatusColor = (status: string) => {
+    return status === 'secure' ? 'bg-green-500' : 'bg-red-500';
+  };
+
+  const getStatusText = (status: string) => {
+    return status === 'secure' ? 'Aman' : 'Tidak Aman';
+  };
 
   return (
     <motion.div
@@ -43,31 +98,37 @@ export function WelcomeCard() {
                 transition={{ duration: 0.2 }}
                 className="flex-shrink-0"
               >
-                <Image
-                  src="/icon/ico-happy.svg"
-                  alt="Happy Emoji"
-                  width={32}
-                  height={32}
-                  className="sm:w-10 sm:h-10"
-                />
+                {loading ? (
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-full animate-pulse"></div>
+                ) : (
+                  <Image
+                    src={getMoodIcon(moodData?.type || 'happy')}
+                    alt="Mood Icon"
+                    width={32}
+                    height={32}
+                    className="sm:w-10 sm:h-10"
+                  />
+                )}
               </motion.div>
               <div className="min-w-0">
                 <h3 className="font-semibold text-sm sm:text-lg truncate">
                   Mood Check-in Hari Ini
                 </h3>
-                <p className="text-indigo-100 text-xs sm:text-sm">Gembira</p>
+                <p className="text-indigo-100 text-xs sm:text-sm">
+                  {loading ? 'Memuat...' : getMoodText(moodData?.type || 'happy')}
+                </p>
               </div>
             </div>
             <div className="text-center flex-shrink-0">
               <p className="text-indigo-100 text-xs sm:text-sm">Status Kamu</p>
               <motion.div
-                className="bg-green-500 px-2 sm:px-3 py-1 rounded-full"
+                className={`${loading ? 'bg-gray-400' : getStatusColor(moodData?.status || 'secure')} px-2 sm:px-3 py-1 rounded-full`}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.3, duration: 0.3 }}
               >
                 <p className="font-semibold text-white text-xs sm:text-sm">
-                  Aman
+                  {loading ? 'Memuat...' : getStatusText(moodData?.status || 'secure')}
                 </p>
               </motion.div>
             </div>
