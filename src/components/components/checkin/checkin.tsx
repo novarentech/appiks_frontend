@@ -108,7 +108,7 @@ const UNSAFE_ROUTES: Record<number, string> = {
   6: "/survey-walkthrough",
   7: "/anger-management",
   8: "/quote",
-  9: "/vent",
+  9: "/share-thing",
 } as const;
 
 const MOOD_OPTIONS = [

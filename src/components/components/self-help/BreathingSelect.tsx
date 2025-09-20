@@ -11,21 +11,21 @@ const breathingOptions = [
     label: "Pendek",
     duration: "1.5 Menit",
     color: "border-teal-200 bg-teal-50 hover:border-teal-400",
-    icon: "/icon/play-green.svg",
+    icon: "/icon/ico-play-green.webp",
   },
   {
     key: "medium",
     label: "Sedang",
     duration: "4 Menit",
     color: "border-sky-200 bg-sky-50 hover:border-sky-400",
-    icon: "/icon/play-blue.svg",
+    icon: "/icon/ico-play-blue.webp",
   },
   {
     key: "long",
     label: "Panjang",
     duration: "12 Menit",
     color: "border-pink-200 bg-pink-50 hover:border-pink-400",
-    icon: "/icon/play-pink.svg",
+    icon: "/icon/ico-play-pink.webp",
   },
 ];
 
@@ -43,10 +43,10 @@ export default function BreathingSelect() {
         </div>
         <div className="flex justify-center mb-8">
           <Image
-            src="/img/mascot-gratitude.png"
+            src="/image/mascot-gratitude.webp"
             alt="maskot"
-            width={140}
-            height={140}
+            width={200}
+            height={200}
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
