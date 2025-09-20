@@ -17,7 +17,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import SplashWrapper from "@/components/features/splashscreen/SplashWrapper";
 
 export default function DashboardLayout({
   children,
@@ -40,12 +39,12 @@ export default function DashboardLayout({
   // Student menggunakan layout existing dengan navbar
   if (user?.role === "student") {
     return (
-      <SplashWrapper>
+      <div>
         <NavbarUserDashboard />
         <div className="min-h-screen container mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 py-10 sm:py-16 lg:py-20">
           {children}
         </div>
-      </SplashWrapper>
+      </div>
     );
   }
 
