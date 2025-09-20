@@ -14,11 +14,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Save, X, Upload } from "lucide-react";
-import { ContentItem } from "../content-management-table";
-import { Editor } from "@/components/blocks/editor-00/editor";
+import { Editor } from "@/components/blocks/editor-00/Editor";
 import { EditorState, SerializedEditorState } from "lexical";
 import Image from "next/image";
 import { toast } from "sonner";
+import { ContentItem } from "../ContentManagementTable";
 
 interface EditArticleDialogProps {
   open: boolean;

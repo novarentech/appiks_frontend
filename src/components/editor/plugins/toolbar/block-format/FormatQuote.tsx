@@ -2,8 +2,8 @@ import { $createQuoteNode } from "@lexical/rich-text"
 import { $setBlocksType } from "@lexical/selection"
 import { $getSelection } from "lexical"
 
-import { useToolbarContext } from "@/components/editor/context/toolbar-context"
-import { blockTypeToBlockName } from "@/components/editor/plugins/toolbar/block-format/block-format-data"
+import { useToolbarContext } from "@/components/editor/context/ToolbarContext"
+import { blockTypeToBlockName } from "@/components/editor/plugins/toolbar/block-format/BlockFormatData"
 import { SelectItem } from "@/components/ui/select"
 
 const BLOCK_FORMAT_VALUE = "quote"

@@ -1,6 +1,6 @@
 "use client";
 
-import CouncelorPanel from "@/components/dashboard/panels/CouncelorPanel";
+import CounselorPanel from "@/components/dashboard/panels/CouncelorPanel";
 import ConfidentTable from "@/components/data-display/tables/ConfidentTable";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";

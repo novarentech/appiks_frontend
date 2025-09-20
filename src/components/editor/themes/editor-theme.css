@@ -1,0 +1,148 @@
+/* Editor Theme CSS for Lexical Editor */
+
+/* Base styles */
+.EditorTheme__root {
+  position: relative;
+}
+
+.EditorTheme__editorContainer {
+  position: relative;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+}
+
+.EditorTheme__editor {
+  min-height: 150px;
+  outline: none;
+}
+
+/* Code block styles */
+.EditorTheme__code {
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  padding: 8px;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+/* Token styles for code highlighting */
+.EditorTheme__tokenComment {
+  color: #6a737d;
+}
+
+.EditorTheme__tokenPunctuation {
+  color: #24292e;
+}
+
+.EditorTheme__tokenProperty {
+  color: #005cc5;
+}
+
+.EditorTheme__tokenSelector {
+  color: #6f42c1;
+}
+
+.EditorTheme__tokenOperator {
+  color: #d73a49;
+}
+
+.EditorTheme__tokenAttr {
+  color: #005cc5;
+}
+
+.EditorTheme__tokenVariable {
+  color: #e36209;
+}
+
+.EditorTheme__tokenFunction {
+  color: #6f42c1;
+}
+
+/* Table styles */
+.EditorTheme__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.EditorTheme__tableCell {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.EditorTheme__tableCellHeader {
+  background-color: #f6f8fa;
+  font-weight: bold;
+}
+
+.EditorTheme__tableCellActionButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.EditorTheme__tableCellActionButtonContainer {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+}
+
+.EditorTheme__tableCellResizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: ew-resize;
+  background: transparent;
+}
+
+.EditorTheme__tableCellResizer:hover {
+  background: #ccc;
+}
+
+/* Link styles */
+.EditorTheme__link {
+  color: #0366d6;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Character limit styles */
+.EditorTheme__characterLimit {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #ffdddd;
+  color: #d73a49;
+  padding: 2px 5px;
+  font-size: 12px;
+  border-radius: 3px;
+}
+
+/* Selection styles */
+.EditorTheme__tableSelection {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.EditorTheme__tableSelected {
+  outline: 2px solid #0366d6;
+  outline-offset: 2px;
+}
+
+/* Other utility styles */
+.EditorTheme__placeholder {
+  color: #999;
+  overflow: hidden;
+  position: absolute;
+  text-overflow: ellipsis;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  user-select: none;
+  white-space: nowrap;
+  pointer-events: none;
+}

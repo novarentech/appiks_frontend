@@ -7,7 +7,7 @@ import {
   SELECTION_CHANGE_COMMAND,
 } from "lexical"
 
-import { useToolbarContext } from "@/components/editor/context/toolbar-context"
+import { useToolbarContext } from "@/components/editor/context/ToolbarContext"
 
 export function useUpdateToolbarHandler(
   callback: (selection: BaseSelection) => void

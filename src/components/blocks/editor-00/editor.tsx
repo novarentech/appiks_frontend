@@ -7,11 +7,11 @@ import {
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin"
 import { EditorState, SerializedEditorState } from "lexical"
 
-import { editorTheme } from "@/components/editor/themes/editor-theme"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
-import { nodes } from "./nodes"
-import { Plugins } from "./plugins"
+import { nodes } from "./Nodes"
+import { Plugins } from "./Plugins"
+import { editorTheme } from "@/components/editor/themes/EditorTheme"
 
 const editorConfig: InitialConfigType = {
   namespace: "Editor",

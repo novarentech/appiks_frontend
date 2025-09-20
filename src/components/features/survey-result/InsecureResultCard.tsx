@@ -3,9 +3,9 @@
 import { motion } from "framer-motion";
 import { InsecureSurveyResultData } from "@/types/survey";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { ProfileDisplay } from "./profile-display";
-import { InfoCard } from "./info-card";
-import { NotesCard } from "./notes-card";
+import { ProfileDisplay } from "./ProfileDisplay";
+import { InfoCard } from "./InfoCard";
+import { NotesCard } from "./NotesCard";
 
 interface InsecureResultCardProps {
   resultData: InsecureSurveyResultData;

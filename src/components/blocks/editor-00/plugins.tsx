@@ -16,20 +16,19 @@ import { Separator } from "@/components/ui/separator";
 
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { BlockFormatDropDown } from "@/components/editor/plugins/toolbar/block-format-toolbar-plugin";
-import { FormatParagraph } from "@/components/editor/plugins/toolbar/block-format/format-paragraph";
-import { FormatHeading } from "@/components/editor/plugins/toolbar/block-format/format-heading";
-import { FormatNumberedList } from "@/components/editor/plugins/toolbar/block-format/format-numbered-list";
-import { FormatBulletedList } from "@/components/editor/plugins/toolbar/block-format/format-bulleted-list";
-import { FormatCheckList } from "@/components/editor/plugins/toolbar/block-format/format-check-list";
-import { FormatQuote } from "@/components/editor/plugins/toolbar/block-format/format-quote";
-import { ToolbarPlugin } from "@/components/editor/plugins/toolbar/toolbar-plugin";
-import { ContentEditable } from "@/components/editor/ui/content-editable";
-import { editorTheme } from "@/components/editor/themes/editor-theme";
-import { FontFormatToolbarPlugin } from "@/components/editor/plugins/toolbar/font-format-toolbar-plugin";
-import { HistoryToolbarPlugin } from "@/components/editor/plugins/toolbar/history-toolbar-plugin";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
-import { ElementFormatToolbarPlugin } from "@/components/editor/plugins/toolbar/element-format-toolbar-plugin";
+import { editorTheme } from "@/components/editor/themes/EditorTheme";
+import { ToolbarPlugin } from "@/components/editor/plugins/toolbar/ToolbarPlugin";
+import { BlockFormatDropDown } from "@/components/editor/plugins/toolbar/BlockFormatToolbarPlugin";
+import { FormatParagraph } from "@/components/editor/plugins/toolbar/block-format/FormatParagraph";
+import { FormatHeading } from "@/components/editor/plugins/toolbar/block-format/FormatHeading";
+import { FormatNumberedList } from "@/components/editor/plugins/toolbar/block-format/FormatNumberedList";
+import { FormatBulletedList } from "@/components/editor/plugins/toolbar/block-format/FormatBulletedList";
+import { FormatCheckList } from "@/components/editor/plugins/toolbar/block-format/FormatCheckList";
+import { FormatQuote } from "@/components/editor/plugins/toolbar/block-format/FormatQuote";
+import { ElementFormatToolbarPlugin } from "@/components/editor/plugins/toolbar/ElementFormatToolbarPlugin";
+import { FontFormatToolbarPlugin } from "@/components/editor/plugins/toolbar/FontFormatToolbarPlugin";
+import { HistoryToolbarPlugin } from "@/components/editor/plugins/toolbar/HistoryToolbarPlugin";
+import { ContentEditable } from "@/components/editor/ui/ContentEditable";
 
 const editorConfig: InitialConfigType = {
   namespace: "Editor",
@@ -120,7 +119,7 @@ export function Plugins() {
           ErrorBoundary={LexicalErrorBoundary}
         />
         <TabIndentationPlugin />
-        <HistoryPlugin />
+        <HistoryToolbarPlugin />
         <ListPlugin />
         <CheckListPlugin />
         {/* rest of the plugins */}

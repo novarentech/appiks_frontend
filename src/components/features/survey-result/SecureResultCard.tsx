@@ -3,11 +3,11 @@
 import { motion } from "framer-motion";
 import { SecureSurveyResultData } from "@/types/survey";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { ProfileDisplay } from "./profile-display";
-import { ProfileMixCard } from "./profile-mix-card";
-import { InfoCard } from "./info-card";
-import { CareerPathCard } from "./career-path-card";
-import { NotesCard } from "./notes-card";
+import { ProfileDisplay } from "./ProfileDisplay";
+import { ProfileMixCard } from "./ProfileMixCard";
+import { InfoCard } from "./InfoCard";
+import { CareerPathCard } from "./CareerPathCard";
+import { NotesCard } from "./NotesCard";
 
 interface SecureResultCardProps {
   resultData: SecureSurveyResultData;

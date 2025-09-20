@@ -21,9 +21,9 @@ import {
   IndentIncreaseIcon,
 } from "lucide-react"
 
-import { useToolbarContext } from "@/components/editor/context/toolbar-context"
-import { useUpdateToolbarHandler } from "@/components/editor/hooks/use-update-toolbar"
-import { getSelectedNode } from "@/components/editor/utils/get-selected-node"
+import { useToolbarContext } from "@/components/editor/context/ToolbarContext"
+import { useUpdateToolbarHandler } from "@/components/editor/hooks/useUpdateToolbar"
+import { getSelectedNode } from "@/components/editor/utils/GetSelectedNode"
 import { Separator } from "@/components/ui/separator"
 import {
   ToggleGroup,

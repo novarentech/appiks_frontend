@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { ContentItem } from "../content-management-table";
+import { ContentItem } from "../ContentManagementTable";
 
 interface DeleteContentDialogProps {
   open: boolean;
