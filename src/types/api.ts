@@ -34,3 +34,18 @@ export interface QuoteResponse {
   message: string;
   data: Quote[] | Quote;
 }
+
+// Bulk Import API types
+export interface BulkTemplateResponse {
+  success: boolean;
+  message: string;
+  data: {
+    link: string;
+  };
+}
+
+export interface BulkImportResponse {
+  success: boolean;
+  message: string;
+  data: string;
+}

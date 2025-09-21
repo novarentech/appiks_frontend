@@ -25,6 +25,8 @@ import { AddEditUserDialog } from "@/components/dashboard/account-management/Add
 import { ViewUserDialog } from "@/components/dashboard/account-management/view-user-dialog";
 import { DeleteUserDialog } from "@/components/dashboard/account-management/DeleteUserDialog";
 import { BulkImportDialog } from "@/components/dashboard/account-management/BulkImportDialog";
+import { uploadBulkImportFile } from "@/lib/api";
+import { toast } from "sonner";
 
 // Mock data for demonstration
 const mockUsers: User[] = [
@@ -232,9 +234,17 @@ export default function AccountManagementPage() {
     setAddEditDialog({ open: false });
   };
 
-  const handleBulkImport = (file: File) => {
-    // Handle bulk import logic here
-    console.log("Importing file:", file);
+  const handleBulkImport = async (file: File) => {
+    try {
+      const response = await uploadBulkImportFile(file);
+      console.log("Import successful:", response.data);
+      toast.success("Import data berhasil!");
+      // Here you would typically refresh the user list
+    } catch (error) {
+      console.error("Import error:", error);
+      toast.error("Terjadi kesalahan saat mengimpor data");
+      throw error; // Re-throw to let the dialog handle the error
+    }
   };
 
   const tabConfig = [

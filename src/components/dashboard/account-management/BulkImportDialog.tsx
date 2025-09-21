@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { UserRole } from "@/types/auth";
+import { getBulkImportTemplate } from "@/lib/api";
+import { toast } from "sonner";
 import {
   Upload,
   FileSpreadsheet,
@@ -37,6 +39,7 @@ export function BulkImportDialog({
   const [dragActive, setDragActive] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false);
 
   const getRoleLabel = (role: UserRole) => {
     switch (role) {
@@ -130,14 +133,23 @@ export function BulkImportDialog({
     }
   };
 
-  const handleDownloadTemplate = () => {
-    // This would typically download a template file
-    const link = document.createElement("a");
-    link.href = `/templates/template-${role}.xlsx`;
-    link.download = `template-${getRoleLabel(role)
-      .toLowerCase()
-      .replace(" ", "-")}.xlsx`;
-    link.click();
+  const handleDownloadTemplate = async () => {
+    setIsDownloadingTemplate(true);
+    try {
+      const response = await getBulkImportTemplate();
+      const link = document.createElement("a");
+      link.href = response.data.link;
+      link.download = `template-${getRoleLabel(role)
+        .toLowerCase()
+        .replace(" ", "-")}.xlsx`;
+      link.click();
+    } catch (error) {
+      toast.error("Terjadi kesalahan saat mengunduh template");
+      setUploadError("Terjadi kesalahan saat mengunduh template");
+      console.error("Download template error:", error);
+    } finally {
+      setIsDownloadingTemplate(false);
+    }
   };
 
   return (
@@ -176,10 +188,20 @@ export function BulkImportDialog({
           <Button
             variant="outline"
             onClick={handleDownloadTemplate}
+            disabled={isDownloadingTemplate}
             className="w-full border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50"
           >
-            <Download className="w-4 h-4 mr-2" />
-            Download Template Excel
+            {isDownloadingTemplate ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Mengunduh...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4 mr-2" />
+                Download Template Excel
+              </>
+            )}
           </Button>
 
           {/* Error Message */}

@@ -1,5 +1,5 @@
 import { getSession } from "next-auth/react";
-import { MoodRecordResponse } from "@/types/api";
+import { MoodRecordResponse, BulkTemplateResponse, BulkImportResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
 
 /**
@@ -84,6 +84,49 @@ export async function authDelete(endpoint: string) {
 
   if (!response.ok) {
     throw new Error(`DELETE ${endpoint} failed with status ${response.status}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Get bulk import template
+ */
+export async function getBulkImportTemplate(): Promise<BulkTemplateResponse> {
+  const response = await authenticatedFetch(`/user/bulk/template`, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error(`GET /user/bulk/template failed with status ${response.status}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Upload bulk import file
+ */
+export async function uploadBulkImportFile(file: File): Promise<BulkImportResponse> {
+  const session = await getSession();
+
+  if (!session?.user?.token) {
+    throw new Error("No authentication token available");
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${API_BASE_URL}/user/bulk`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${session.user.token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`POST /user/bulk failed with status ${response.status}`);
   }
 
   return response.json();
