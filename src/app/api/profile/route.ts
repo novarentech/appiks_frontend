@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "../../../../auth";
 import { API_BASE_URL } from "@/lib/config";
-import { withCSRFProtection } from "@/lib/csrf";
+import { withCSRFProtectionNoParams } from "@/lib/csrf";
 import {
   handleAuthenticationError,
   handleExternalApiError,
@@ -88,4 +88,4 @@ const handler = async (request: NextRequest) => {
   }
 };
 
-export const PATCH = withCSRFProtection(handler);
+export const PATCH = withCSRFProtectionNoParams(handler);

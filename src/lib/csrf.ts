@@ -13,7 +13,7 @@ export function generateCSRFToken(): string {
  */
 export function createCSRFToken(): string {
   const token = generateCSRFToken();
-  const hmac = crypto.createHmac('sha256', CSRF_SECRET);
+  const hmac = crypto.createHmac('sha256', CSRF_SECRET as string);
   hmac.update(token);
   const signature = hmac.digest('hex');
   
@@ -31,7 +31,7 @@ export function verifyCSRFToken(token: string): boolean {
       return false;
     }
     
-    const hmac = crypto.createHmac('sha256', CSRF_SECRET);
+    const hmac = crypto.createHmac('sha256', CSRF_SECRET as string);
     hmac.update(tokenValue);
     const expectedSignature = hmac.digest('hex');
     
@@ -47,11 +47,17 @@ export function verifyCSRFToken(token: string): boolean {
 
 import { NextRequest } from 'next/server';
 
+interface RouteContext<T = Record<string, string | string[]>> {
+  params: Promise<T>;
+}
+
 /**
  * Middleware to check CSRF token for API routes
  */
-export function withCSRFProtection<T = Record<string, unknown>>(handler: (req: NextRequest, context: T) => Promise<Response>) {
-  return async (req: NextRequest, context: T): Promise<Response> => {
+export function withCSRFProtection<T = Record<string, string | string[]>>(
+  handler: (req: NextRequest, context: RouteContext<T>) => Promise<Response>
+) {
+  return async (req: NextRequest, context: RouteContext<T>): Promise<Response> => {
     // Skip CSRF check for GET, HEAD, OPTIONS requests
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
       return handler(req, context);
@@ -75,5 +81,38 @@ export function withCSRFProtection<T = Record<string, unknown>>(handler: (req: N
     }
     
     return handler(req, context);
+  };
+}
+
+/**
+ * Wrapper for routes that don't have dynamic parameters
+ */
+export function withCSRFProtectionNoParams(
+  handler: (req: NextRequest) => Promise<Response>
+) {
+  return async (req: NextRequest): Promise<Response> => {
+    // Skip CSRF check for GET, HEAD, OPTIONS requests
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+      return handler(req);
+    }
+    
+    // Get CSRF token from headers
+    const csrfToken = req.headers.get('x-csrf-token') || req.headers.get('x-xsrf-token');
+    
+    if (!csrfToken) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'CSRF token missing' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (!verifyCSRFToken(csrfToken)) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Invalid CSRF token' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    return handler(req);
   };
 }
