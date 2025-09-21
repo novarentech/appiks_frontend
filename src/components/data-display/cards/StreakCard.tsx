@@ -106,8 +106,8 @@ export function StreakCard() {
               <Image
                 src="/icon/ico-fire.webp"
                 alt="Fire Icon"
-                width={120}
-                height={120}
+                width={300}
+                height={300}
                 className="sm:w-[180px] sm:h-[180px]"
               />
             </motion.div>
