@@ -3,14 +3,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import NavbarUserDashboard from "@/components/layout/DashboardNavbar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import DynamicBreadcrumb from "@/components/layout/DynamicBreadcrumb";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
@@ -57,23 +50,7 @@ export default function DashboardLayout({
           <div className="flex items-center gap-2 px-3">
             <SidebarTrigger />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>
-                    {user?.role
-                      ? `${user.role.charAt(0).toUpperCase()}${user.role.slice(
-                          1
-                        )} Panel`
-                      : "Dashboard"}
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+            <DynamicBreadcrumb />
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>

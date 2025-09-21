@@ -10,7 +10,6 @@ import {
   Calendar,
   UserCog,
   BookText,
-  File,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -78,7 +77,7 @@ const roleBasedNavigation: Record<string, NavigationItem[]> = {
     },
     {
       title: "Data Siswa",
-      url: "/dashboard/data-siswa",
+      url: "/dashboard/student-data",
       icon: Users,
     },
   ],
@@ -90,12 +89,12 @@ const roleBasedNavigation: Record<string, NavigationItem[]> = {
     },
     {
       title: "Data Siswa",
-      url: "/dashboard/data-siswa",
+      url: "/dashboard/student-data",
       icon: Users,
     },
     {
       title: "Curhatan Siswa",
-      url: "/dashboard/curhatan-siswa",
+      url: "/dashboard/student-share",
       icon: MessageCircle,
     },
     {
@@ -114,11 +113,6 @@ const roleBasedNavigation: Record<string, NavigationItem[]> = {
       title: "Data Sekolah",
       url: "/dashboard/school-data",
       icon: UserCog,
-    },
-    {
-      title: "Data Laporan",
-      url: "/dashboard/report-data",
-      icon: File,
     },
   ],
   super: [
