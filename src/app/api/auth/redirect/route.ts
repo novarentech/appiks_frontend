@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth.config";
-
-const API_BASE_URL = process.env.API_BASE_URL;
+import { API_BASE_URL } from "@/lib/config";
+import {
+  APIError
+} from "@/lib/error-handler";
 
 interface RedirectResponse {
   redirect: string;
@@ -99,6 +101,13 @@ export async function GET(): Promise<NextResponse<RedirectResponse>> {
       }
     } catch (apiError) {
       console.error("❌ Error calling mood record API:", apiError);
+      if (apiError instanceof APIError) {
+        return NextResponse.json({
+          redirect: "/dashboard",
+          reason: "Mood API call failed",
+        });
+      }
+      
       return NextResponse.json({
         redirect: "/dashboard",
         reason: "Mood API call failed",

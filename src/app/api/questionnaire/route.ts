@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const API_BASE_URL =  process.env.API_BASE_URL;
+import { API_BASE_URL } from "@/lib/config";
+import {
+  handleAuthenticationError,
+  handleExternalApiError,
+  handleInternalError,
+  APIError
+} from "@/lib/error-handler";
 
 export async function GET(req: NextRequest) {
   try {
@@ -9,10 +14,7 @@ export async function GET(req: NextRequest) {
     const token = authHeader?.replace("Bearer ", "");
 
     if (!token) {
-      return NextResponse.json(
-        { success: false, message: "Authentication required" },
-        { status: 401 }
-      );
+      return handleAuthenticationError("Authentication required");
     }
 
     const response = await fetch(`${API_BASE_URL}/api/questionnaire`, {
@@ -24,7 +26,12 @@ export async function GET(req: NextRequest) {
     });
 
     if (!response.ok) {
-      throw new Error(`External API error: ${response.status}`);
+      const errorText = await response.text();
+      return handleExternalApiError(
+        `External API error: ${response.status}`,
+        response.status,
+        { externalError: errorText }
+      );
     }
 
     const data = await response.json();
@@ -45,14 +52,17 @@ export async function GET(req: NextRequest) {
       data: data.data,
     });
   } catch (error) {
-    console.error("Questionnaire API error:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message:
-          error instanceof Error ? error.message : "Internal server error",
-      },
-      { status: 500 }
-    );
+    if (error instanceof APIError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+          ...(error.details && { details: error.details }),
+        },
+        { status: error.statusCode }
+      );
+    }
+    
+    return handleInternalError(error);
   }
 }

@@ -8,9 +8,7 @@ import {
   UpdateProfileResponse,
   UserProfileResponse,
 } from "@/types/auth";
-
-const API_BASE_URL =
-  process.env.API_BASE_URL || "https://appiks-be.disyfa.cloud/api";
+import { API_BASE_URL, TOKEN_REFRESH_THRESHOLD_MINUTES } from "@/lib/config";
 
 /**
  * Decode JWT token and extract user information
@@ -76,15 +74,15 @@ export function isTokenExpiredByDate(expiresIn: string): boolean {
 }
 
 /**
- * Check if token needs refresh (expires in next 5 minutes)
+ * Check if token needs refresh (expires in next threshold minutes)
  */
 export function shouldRefreshToken(expiresIn: string): boolean {
   try {
     const expiryDate = new Date(expiresIn);
     const currentDate = new Date();
-    const fiveMinutesFromNow = new Date(currentDate.getTime() + 5 * 60 * 1000); // 5 minutes
+    const thresholdMinutesFromNow = new Date(currentDate.getTime() + TOKEN_REFRESH_THRESHOLD_MINUTES * 60 * 1000);
 
-    return expiryDate <= fiveMinutesFromNow;
+    return expiryDate <= thresholdMinutesFromNow;
   } catch (error) {
     console.error("Error checking token refresh need:", error);
     return true;

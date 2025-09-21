@@ -174,7 +174,7 @@ export function MoodCalendar() {
             onClick={() => navigateMonth("prev")}
             className="text-white hover:bg-white/20 border-0"
           >
-            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </Button>
           <motion.div
             className="font-bold text-white text-lg sm:text-xl"
@@ -191,7 +191,7 @@ export function MoodCalendar() {
             onClick={() => navigateMonth("next")}
             className="text-white hover:bg-white/20 border-0"
           >
-            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </Button>
         </div>
       </div>

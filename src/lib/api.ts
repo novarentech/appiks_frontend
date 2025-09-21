@@ -1,8 +1,6 @@
 import { getSession } from "next-auth/react";
 import { MoodRecordResponse } from "@/types/api";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "https://appiks-be.disyfa.cloud/api";
+import { API_BASE_URL } from "@/lib/config";
 
 /**
  * Make authenticated API call
