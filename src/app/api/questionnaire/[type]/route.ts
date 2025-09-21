@@ -1,78 +1,67 @@
 import { NextRequest, NextResponse } from "next/server";
 import { API_BASE_URL } from "@/lib/config";
-import { withCSRFProtection } from "@/lib/csrf";
-import {
-  handleAuthenticationError,
-  handleValidationError,
-  handleExternalApiError,
-  handleInternalError,
-  APIError,
-  validateRequestBody
-} from "@/lib/error-handler";
 
 interface SubmitSurveyBody {
   answers: string[];
 }
 
-const handler = async (
+export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ type: string }> }
-) => {
+) {
   try {
     // Get token from Authorization header
     const authHeader = req.headers.get("authorization");
     const token = authHeader?.replace("Bearer ", "");
 
     if (!token) {
-      return handleAuthenticationError("Authentication required");
+      return NextResponse.json(
+        { success: false, message: "Authentication required" },
+        { status: 401 }
+      );
     }
 
     const { type } = await params;
 
     // Validate type
     if (type !== "secure" && type !== "insecure") {
-      return handleValidationError(
-        "Invalid type parameter. Must be 'secure' or 'insecure'",
-        { receivedType: type }
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid type parameter. Must be 'secure' or 'insecure'",
+        },
+        { status: 400 }
       );
     }
 
     // Parse request body
-    const body = await req.json();
+    const body: SubmitSurveyBody = await req.json();
 
-    // Validate request body
-    const validatedBody = validateRequestBody<SubmitSurveyBody>(body, {
-      answers: (value) => {
-        if (!value) return "Answers are required";
-        if (!Array.isArray(value)) return "Answers must be an array";
-        if (value.length === 0) return "Answers array cannot be empty";
-        if (value.some(answer => typeof answer !== 'string')) {
-          return "All answers must be strings";
-        }
-        return true;
-      },
-    });
+    if (!body.answers || !Array.isArray(body.answers)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid request body. 'answers' must be an array",
+        },
+        { status: 400 }
+      );
+    }
 
     // Submit to external API
     const response = await fetch(
-      `${API_BASE_URL}/questionnaire/${type}`,
+      `${API_BASE_URL}/api/questionnaire/${type}`,
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(validatedBody),
+        body: JSON.stringify(body),
       }
     );
 
     if (!response.ok) {
-      const errorText = await response.text();
-      return handleExternalApiError(
-        `Failed to submit questionnaire: ${response.status}`,
-        response.status,
-        { externalError: errorText }
-      );
+      throw new Error(`External API error: ${response.status}`);
     }
 
     const data = await response.json();
@@ -93,19 +82,14 @@ const handler = async (
       data: data.data,
     });
   } catch (error) {
-    if (error instanceof APIError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-          ...(error.details && { details: error.details }),
-        },
-        { status: error.statusCode }
-      );
-    }
-    
-    return handleInternalError(error);
+    console.error("Submit questionnaire API error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Internal server error",
+      },
+      { status: 500 }
+    );
   }
-};
-
-export const POST = withCSRFProtection(handler);
+}

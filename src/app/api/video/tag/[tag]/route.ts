@@ -1,12 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "../../../../../../auth";
 import { API_BASE_URL } from "@/lib/config";
-import {
-  handleAuthenticationError,
-  handleExternalApiError,
-  handleInternalError,
-  APIError
-} from "@/lib/error-handler";
 
 export async function GET(
   request: Request,
@@ -17,7 +11,10 @@ export async function GET(
     const session = await auth();
 
     if (!session?.user?.token) {
-      return handleAuthenticationError("No authentication token");
+      return NextResponse.json(
+        { success: false, message: "No authentication token" },
+        { status: 401 }
+      );
     }
 
     const { tag } = await params;
@@ -39,27 +36,19 @@ export async function GET(
         statusText: response.statusText,
         body: errorText,
       });
-      return handleExternalApiError(
-        "Failed to fetch videos by tag",
-        response.status,
-        { externalError: errorText }
+      return NextResponse.json(
+        { success: false, message: "Failed to fetch videos by tag" },
+        { status: response.status }
       );
     }
 
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    if (error instanceof APIError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-          ...(error.details && { details: error.details }),
-        },
-        { status: error.statusCode }
-      );
-    }
-    
-    return handleInternalError(error);
+    console.error("Error fetching videos by tag:", error);
+    return NextResponse.json(
+      { success: false, message: "Failed to fetch videos by tag" },
+      { status: 500 }
+    );
   }
 }

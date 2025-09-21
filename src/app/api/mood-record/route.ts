@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "../../../../auth";
 import { API_BASE_URL } from "@/lib/config";
-import { withCSRFProtectionNoParams } from "@/lib/csrf";
-import {
-  handleAuthenticationError,
-  handleExternalApiError,
-  handleInternalError,
-  APIError,
-  validateRequestBody
-} from "@/lib/error-handler";
 
 interface MoodRecordRequest {
   status: string;
@@ -23,29 +15,36 @@ interface MoodRecordResponse {
   };
 }
 
-const handler = async (request: NextRequest) => {
+export async function POST(request: NextRequest) {
   try {
     // Get session to authenticate user
     const session = await auth();
 
     if (!session?.user?.token) {
-      return handleAuthenticationError("No authentication token");
+      return NextResponse.json(
+        { error: "Unauthorized", message: "No authentication token" },
+        { status: 401 }
+      );
     }
 
     // Parse request body
-    const body = await request.json();
+    const body: MoodRecordRequest = await request.json();
 
-    // Validate request body
-    const validatedBody = validateRequestBody<MoodRecordRequest>(body, {
-      status: (value) => {
-        if (!value) return "Status is required";
-        const validStatuses = ["happy", "neutral", "sad", "angry"];
-        if (!validStatuses.includes(value as string)) {
-          return "Invalid status value. Must be one of: happy, neutral, sad, angry";
-        }
-        return true;
-      },
-    });
+    if (!body.status) {
+      return NextResponse.json(
+        { error: "Bad Request", message: "Status is required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate status values
+    const validStatuses = ["happy", "neutral", "sad", "angry"];
+    if (!validStatuses.includes(body.status)) {
+      return NextResponse.json(
+        { error: "Bad Request", message: "Invalid status value" },
+        { status: 400 }
+      );
+    }
 
     // Call external API
     const response = await fetch(`${API_BASE_URL}/mood_record`, {
@@ -54,17 +53,20 @@ const handler = async (request: NextRequest) => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session.user.token}`,
       },
-      body: JSON.stringify({ status: validatedBody.status }),
+      body: JSON.stringify({ status: body.status }),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
       console.error("External API error:", response.status, errorData);
 
-      return handleExternalApiError(
-        `Failed to record mood: ${response.status}`,
-        response.status,
-        { externalError: errorData }
+      return NextResponse.json(
+        {
+          error: "External API Error",
+          message: `Failed to record mood: ${response.status}`,
+          details: errorData,
+        },
+        { status: response.status }
       );
     }
 
@@ -82,19 +84,15 @@ const handler = async (request: NextRequest) => {
       },
     });
   } catch (error) {
-    if (error instanceof APIError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-          ...(error.details && { details: error.details }),
-        },
-        { status: error.statusCode }
-      );
-    }
-    
-    return handleInternalError(error);
-  }
-};
+    console.error("API route error:", error);
 
-export const POST = withCSRFProtectionNoParams(handler);
+    return NextResponse.json(
+      {
+        error: "Internal Server Error",
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      },
+      { status: 500 }
+    );
+  }
+}

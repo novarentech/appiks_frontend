@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server";
 import { auth } from "../../../../../auth";
 import { API_BASE_URL } from "@/lib/config";
-import {
-  handleAuthenticationError,
-  handleExternalApiError,
-  handleInternalError,
-  APIError
-} from "@/lib/error-handler";
 
 export async function GET() {
   try {
     const session = await auth();
 
     if (!session?.user?.token) {
-      return handleAuthenticationError("No authentication token");
+      return NextResponse.json(
+        { success: false, message: "No authentication token" },
+        { status: 401 }
+      );
     }
 
     // Make request to the backend API
@@ -33,10 +30,13 @@ export async function GET() {
         body: errorText,
       });
 
-      return handleExternalApiError(
-        `Backend error: ${response.status} ${response.statusText}`,
-        response.status,
-        { externalError: errorText }
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Backend error: ${response.status} ${response.statusText}`,
+          details: errorText,
+        },
+        { status: response.status }
       );
     }
 
@@ -44,17 +44,13 @@ export async function GET() {
 
     return NextResponse.json(data);
   } catch (error) {
-    if (error instanceof APIError) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-          ...(error.details && { details: error.details }),
-        },
-        { status: error.statusCode }
-      );
-    }
-    
-    return handleInternalError(error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Internal server error",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }

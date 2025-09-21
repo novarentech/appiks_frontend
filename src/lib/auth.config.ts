@@ -8,7 +8,6 @@ import {
   shouldRefreshToken,
 } from "@/lib/auth";
 import type { LoginCredentials, CustomUser } from "@/types/auth";
-import { NEXTAUTH_SECRET, TOKEN_MAX_AGE_SECONDS } from "@/lib/config";
 
 interface CustomSession {
   user: {
@@ -154,7 +153,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   },
   session: {
     strategy: "jwt",
-    maxAge: TOKEN_MAX_AGE_SECONDS, // 24 hours
+    maxAge: 24 * 60 * 60, // 24 hours
   },
-  secret: NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
 });
