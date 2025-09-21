@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Quote, Plus } from "lucide-react";
-import { ContentItem } from "../ContentManagementTable";
+import { ContentItem } from "@/components/data-display/tables/ContentManagementTable";
 
 interface CreateQuoteDialogProps {
   open: boolean;

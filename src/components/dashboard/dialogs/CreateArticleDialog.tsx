@@ -17,8 +17,8 @@ import { FileText, Upload, X } from "lucide-react";
 import { EditorState, SerializedEditorState } from "lexical";
 import Image from "next/image";
 import { toast } from "sonner";
-import { ContentItem } from "../ContentManagementTable";
 import { Editor } from "@/components/blocks/editor-00/editor";
+import { ContentItem } from "@/components/data-display/tables/ContentManagementTable";
 
 interface CreateArticleDialogProps {
   open: boolean;
