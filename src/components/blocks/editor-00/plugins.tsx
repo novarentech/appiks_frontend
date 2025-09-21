@@ -29,6 +29,7 @@ import { ElementFormatToolbarPlugin } from "@/components/editor/plugins/toolbar/
 import { FontFormatToolbarPlugin } from "@/components/editor/plugins/toolbar/FontFormatToolbarPlugin";
 import { HistoryToolbarPlugin } from "@/components/editor/plugins/toolbar/HistoryToolbarPlugin";
 import { ContentEditable } from "@/components/editor/ui/ContentEditable";
+import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin"
 
 const editorConfig: InitialConfigType = {
   namespace: "Editor",
@@ -119,7 +120,7 @@ export function Plugins() {
           ErrorBoundary={LexicalErrorBoundary}
         />
         <TabIndentationPlugin />
-        <HistoryToolbarPlugin />
+        <HistoryPlugin />
         <ListPlugin />
         <CheckListPlugin />
         {/* rest of the plugins */}
