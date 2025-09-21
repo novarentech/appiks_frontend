@@ -3,6 +3,32 @@ import { MoodRecordResponse, BulkTemplateResponse, BulkImportResponse } from "@/
 import { API_BASE_URL } from "@/lib/config";
 
 /**
+ * Get CSRF token from cookie
+ */
+export function getCSRFToken(): string | null {
+  if (typeof document === 'undefined') return null;
+  
+  const match = document.cookie.match(new RegExp('(^| )csrf_token=([^;]+)'));
+  return match ? match[2] : null;
+}
+
+/**
+ * Add CSRF token to headers
+ */
+export function addCSRFToken(headers: HeadersInit = {}): HeadersInit {
+  const csrfToken = getCSRFToken();
+  
+  if (csrfToken) {
+    return {
+      ...headers,
+      "x-csrf-token": csrfToken,
+    };
+  }
+  
+  return headers;
+}
+
+/**
  * Make authenticated API call
  */
 export async function authenticatedFetch(
@@ -136,11 +162,13 @@ export async function uploadBulkImportFile(file: File): Promise<BulkImportRespon
  * Record mood data
  */
 export async function recordMood(status: string): Promise<MoodRecordResponse> {
+  const headers = addCSRFToken({
+    "Content-Type": "application/json",
+  });
+
   const response = await fetch("/api/mood-record", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify({ status }),
   });
 

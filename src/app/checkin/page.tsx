@@ -3,6 +3,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { CheckinAccessGuard } from "@/components/auth/guards/CheckinAccessGuard";
 import CheckIn from "@/components/features/checkin/Checkin";
+import { CSRFTokenWrapper } from "@/components/wrappers/CSRFTokenWrapper";
 
 export default function CheckInPage() {
   const { isLoading, isAuthenticated, isVerified } = useAuth();
@@ -30,7 +31,9 @@ export default function CheckInPage() {
 
   return (
     <CheckinAccessGuard>
+      <CSRFTokenWrapper>
         <CheckIn />
+      </CSRFTokenWrapper>
     </CheckinAccessGuard>
   );
 }

@@ -295,7 +295,8 @@ export default function CheckIn() {
       // Setelah mood dipilih dan respons diterima, langsung ke step 2
       setCurrentStep(2);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to record mood");
+      const errorMessage = err instanceof Error ? err.message : "Failed to record mood";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -5,31 +5,27 @@ export async function GET() {
   try {
     const csrfToken = createCSRFToken();
     
-    // Set CSRF token in cookie for client-side access
+    // Create response with CSRF token in body
     const response = NextResponse.json({
-      success: true,
-      message: "CSRF token generated successfully",
-    });
-    
-    // Set HTTP-only cookie with the token
-    response.cookies.set({
-      name: "csrf_token",
-      value: csrfToken,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 3600, // 1 hour
-      path: "/",
-    });
-    
-    // Also include the token in the response body for client-side usage
-    return NextResponse.json({
       success: true,
       message: "CSRF token generated successfully",
       data: {
         csrfToken,
       },
     });
+    
+    // Set HTTP-only cookie with the token
+    response.cookies.set({
+      name: "csrf_token",
+      value: csrfToken,
+      httpOnly: false, // Changed to false so JavaScript can access it
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // Changed to lax for better compatibility
+      maxAge: 3600, // 1 hour
+      path: "/",
+    });
+    
+    return response;
   } catch (error) {
     console.error("CSRF token generation error:", error);
     return NextResponse.json(
