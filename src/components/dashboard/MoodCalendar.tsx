@@ -4,46 +4,39 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
-  Smile,
-  Meh,
-  Frown,
-  Angry,
 } from "lucide-react";
-import { motion } from "framer-motion";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 
 const moodConfig = {
   happy: {
-    emoji: "😊",
+    emoji: "/icon/ico-happy.webp",
     label: "Senang",
     color: "bg-green-100 text-green-800 border-green-200",
     hoverColor: "hover:bg-green-50",
-    icon: Smile,
     bgClass: "bg-green-500",
   },
   neutral: {
-    emoji: "😐",
+    emoji: "/icon/ico-neutral.webp",
     label: "Netral",
     color: "bg-gray-100 text-gray-800 border-gray-200",
     hoverColor: "hover:bg-gray-50",
-    icon: Meh,
     bgClass: "bg-gray-500",
   },
   sad: {
-    emoji: "😢",
+    emoji: "/icon/ico-sad.webp",
     label: "Sedih",
     color: "bg-blue-100 text-blue-800 border-blue-200",
     hoverColor: "hover:bg-blue-50",
-    icon: Frown,
     bgClass: "bg-blue-500",
   },
   angry: {
-    emoji: "😠",
+    emoji: "/icon/ico-angry.webp",
     label: "Marah",
     color: "bg-red-100 text-red-800 border-red-200",
     hoverColor: "hover:bg-red-50",
-    icon: Angry,
     bgClass: "bg-red-500",
   },
 };
@@ -53,31 +46,37 @@ type MoodType = keyof typeof moodConfig;
 export function MoodCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
+  const [moodData, setMoodData] = useState<Record<number, MoodType>>({});
 
-  // Mock mood data - simplified to only store mood type
-  const moodData: Record<number, MoodType> = {
-    1: "happy",
-    2: "neutral",
-    3: "sad",
-    4: "happy",
-    5: "happy",
-    8: "neutral",
-    9: "happy",
-    10: "angry",
-    11: "happy",
-    12: "neutral",
-    15: "happy",
-    16: "sad",
-    17: "sad",
-    18: "happy",
-    19: "happy",
-    20: "happy",
-    21: "happy",
-    24: "angry",
-    25: "neutral",
-    29: "happy",
-    30: "sad",
-  };
+  // Fetch API ketika bulan berubah
+  useEffect(() => {
+    const fetchMoods = async () => {
+      const month = `${currentDate.getFullYear()}-${String(
+        currentDate.getMonth() + 1
+      ).padStart(2, "0")}`;
+
+      try {
+        const res = await fetch(`/api/mood-record/${month}`);
+        const json = await res.json();
+
+        if (json.success && json.data) {
+          const mapped: Record<number, MoodType> = {};
+          json.data.forEach((item: { recorded: string; status: MoodType }) => {
+            const day = new Date(item.recorded).getDate();
+            mapped[day] = item.status;
+          });
+          setMoodData(mapped);
+        } else {
+          setMoodData({});
+        }
+      } catch (error) {
+        console.error("Error fetching moods:", error);
+        setMoodData({});
+      }
+    };
+
+    fetchMoods();
+  }, [currentDate]);
 
   // Generate calendar days
   const getDaysInMonth = (date: Date) => {
@@ -89,17 +88,12 @@ export function MoodCalendar() {
     const startingDayOfWeek = firstDay.getDay();
 
     const days = [];
-
-    // Add empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
-
-    // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(day);
     }
-
     return days;
   };
 
@@ -134,7 +128,7 @@ export function MoodCalendar() {
   const currentMonth = monthNames[currentDate.getMonth()];
   const currentYear = currentDate.getFullYear();
 
-  // Helper function to get mood stats
+  // Hitung statistik mood
   const getMoodStats = () => {
     const moodCounts = { happy: 0, neutral: 0, sad: 0, angry: 0 };
     Object.values(moodData).forEach((mood) => {
@@ -155,38 +149,33 @@ export function MoodCalendar() {
     >
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <motion.div
-              className="p-2 bg-white/20 rounded-full"
-              whileHover={{ rotate: 10 }}
-            >
-              <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </motion.div>
-            <div>
-              <h3 className="text-lg sm:text-xl font-bold text-white">
-                Kalender Mood
-              </h3>
-              <p className="text-purple-100 text-xs sm:text-sm">
-                {totalMoods} hari tercatat bulan ini
-              </p>
-            </div>
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          <motion.div
+            className="p-2 bg-white/20 rounded-full"
+            whileHover={{ rotate: 10 }}
+          >
+            <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          </motion.div>
+          <div>
+            <h3 className="text-lg sm:text-xl font-bold text-white">
+              Kalender Mood
+            </h3>
+            <p className="text-purple-100 text-xs sm:text-sm">
+              {totalMoods} hari tercatat bulan ini
+            </p>
           </div>
         </div>
 
-        {/* Month navigation */}
-        <div className="flex items-center justify-between">
-          <motion.div whileHover={{ scale: 1.05 }}>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigateMonth("prev")}
-              className="text-white hover:bg-white/20 border-0"
-            >
-              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-            </Button>
-          </motion.div>
-
+        {/* Navigasi bulan */}
+        <div className="flex items-center justify-between mt-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigateMonth("prev")}
+            className="text-white hover:bg-white/20 border-0"
+          >
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          </Button>
           <motion.div
             className="font-bold text-white text-lg sm:text-xl"
             key={`${currentMonth}-${currentYear}`}
@@ -196,24 +185,20 @@ export function MoodCalendar() {
           >
             {currentMonth} {currentYear}
           </motion.div>
-
-          <motion.div whileHover={{ scale: 1.05 }}>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigateMonth("next")}
-              className="text-white hover:bg-white/20 border-0"
-            >
-              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-            </Button>
-          </motion.div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigateMonth("next")}
+            className="text-white hover:bg-white/20 border-0"
+          >
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+          </Button>
         </div>
       </div>
 
+      {/* Kalender */}
       <div className="p-4 sm:p-6">
-        {/* Calendar grid */}
         <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-6">
-          {/* Week day headers */}
           {weekDays.map((day) => (
             <div
               key={day}
@@ -223,16 +208,13 @@ export function MoodCalendar() {
             </div>
           ))}
 
-          {/* Calendar days */}
           {days.map((day, index) => (
             <div key={index} className="relative aspect-square">
               {day ? (
                 <motion.button
                   className={`w-full h-full flex flex-col items-center justify-center text-sm relative rounded-lg sm:rounded-xl transition-all duration-200 border-2 ${
                     moodData[day]
-                      ? `${moodConfig[moodData[day]].hoverColor} ${
-                          moodConfig[moodData[day]].color
-                        }`
+                      ? `${moodConfig[moodData[day]].hoverColor} ${moodConfig[moodData[day]].color}`
                       : "hover:bg-gray-50 border-transparent text-gray-700"
                   }`}
                   onClick={() => setHoveredDay(hoveredDay === day ? null : day)}
@@ -244,7 +226,6 @@ export function MoodCalendar() {
                   onHoverStart={() => setHoveredDay(day)}
                   onHoverEnd={() => setHoveredDay(null)}
                 >
-                  {/* Hide date on mobile when there's mood data, show on desktop */}
                   <span
                     className={`font-medium text-xs sm:text-sm ${
                       moodData[day] ? "hidden sm:block sm:mb-1" : ""
@@ -254,16 +235,19 @@ export function MoodCalendar() {
                   </span>
                   {moodData[day] && (
                     <motion.div
-                      className="text-2xl sm:text-xl"
+                      className="w-6 h-6 sm:w-7 sm:h-7 relative"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ delay: index * 0.02 }}
                     >
-                      {moodConfig[moodData[day]].emoji}
+                      <Image
+                        src={moodConfig[moodData[day]].emoji}
+                        alt={moodConfig[moodData[day]].label}
+                        fill
+                        className="object-contain"
+                      />
                     </motion.div>
                   )}
-
-                  {/* Tooltip for hovered day */}
                   {hoveredDay === day && moodData[day] && (
                     <motion.div
                       className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap z-10"
@@ -281,27 +265,30 @@ export function MoodCalendar() {
           ))}
         </div>
 
-        {/* Mood Legend & Stats */}
+        {/* Legend & Stats */}
         <div className="space-y-3 sm:space-y-4">
-          {/* Legend */}
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3 text-xs sm:text-sm">
-            {Object.entries(moodConfig).map(([moodKey, config]) => {
-              return (
-                <motion.div
-                  key={moodKey}
-                  className="flex items-center space-x-1 sm:space-x-2 bg-gray-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full"
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <span className="text-base sm:text-lg">{config.emoji}</span>
-                  <span className="text-gray-700 font-medium text-xs sm:text-sm">
-                    {config.label}
-                  </span>
-                </motion.div>
-              );
-            })}
+            {Object.entries(moodConfig).map(([moodKey, config]) => (
+              <motion.div
+                key={moodKey}
+                className={`flex items-center space-x-1 sm:space-x-2 bg-gray-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full ${config.color} border ${config.hoverColor} cursor-pointer`}
+                whileHover={{ scale: 1.05 }}
+              >
+                <span className="relative w-5 h-5 sm:w-6 sm:h-6">
+                  <Image
+                    src={config.emoji}
+                    alt={config.label}
+                    fill
+                    className="object-contain"
+                  />
+                </span>
+                <span className="text-gray-700 font-medium text-xs sm:text-sm">
+                  {config.label}
+                </span>
+              </motion.div>
+            ))}
           </div>
 
-          {/* Mood Stats Bar */}
           {totalMoods > 0 && (
             <div className="space-y-2 sm:space-y-3">
               <div className="text-xs sm:text-sm font-medium text-gray-700 text-center">
@@ -311,7 +298,6 @@ export function MoodCalendar() {
                 {Object.entries(moodStats).map(([moodKey, count]) => {
                   const percentage = (count / totalMoods) * 100;
                   const config = moodConfig[moodKey as MoodType];
-
                   return percentage > 0 ? (
                     <motion.div
                       key={moodKey}
@@ -323,38 +309,6 @@ export function MoodCalendar() {
                     />
                   ) : null;
                 })}
-              </div>
-              <div className="flex justify-between text-xs text-gray-500 px-1">
-                <span className="text-xs sm:text-sm">
-                  Mood terbanyak:{" "}
-                  {Object.entries(moodStats).reduce((a, b) =>
-                    moodStats[a[0] as MoodType] > moodStats[b[0] as MoodType]
-                      ? a
-                      : b
-                  )[0] === "happy"
-                    ? "😊 Senang"
-                    : Object.entries(moodStats).reduce((a, b) =>
-                        moodStats[a[0] as MoodType] >
-                        moodStats[b[0] as MoodType]
-                          ? a
-                          : b
-                      )[0] === "neutral"
-                    ? "😐 Netral"
-                    : Object.entries(moodStats).reduce((a, b) =>
-                        moodStats[a[0] as MoodType] >
-                        moodStats[b[0] as MoodType]
-                          ? a
-                          : b
-                      )[0] === "sad"
-                    ? "😢 Sedih"
-                    : "😠 Marah"}
-                </span>
-                <span className="text-xs sm:text-sm font-medium">
-                  {Math.round(
-                    (Math.max(...Object.values(moodStats)) / totalMoods) * 100
-                  )}
-                  %
-                </span>
               </div>
             </div>
           )}
