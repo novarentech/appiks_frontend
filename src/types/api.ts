@@ -215,3 +215,16 @@ export interface SharingReplyRequest {
   text: string;
 }
 
+// Interface untuk request create sharing
+export interface SharingCreateRequest {
+  title: string;
+  description: string;
+}
+
+// Interface untuk response create sharing
+export interface SharingCreateResponse {
+  success: boolean;
+  message: string;
+  data: Sharing;
+}
+

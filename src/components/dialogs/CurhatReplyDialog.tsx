@@ -11,6 +11,7 @@ import {
 import { MessageCircle, X, Send } from "lucide-react";
 import { useState } from "react";
 import { Sharing } from "@/types/api";
+import { toast } from "sonner";
 
 interface CurhatReplyDialogProps {
   curhat: Sharing | null;
@@ -27,11 +28,19 @@ export default function CurhatReplyDialog({
 }: CurhatReplyDialogProps) {
   const [replyText, setReplyText] = useState("");
 
-  const handleSubmitReply = () => {
+  const handleSubmitReply = async () => {
     if (curhat && replyText.trim()) {
-      onSubmit(curhat.id, replyText);
-      setReplyText("");
-      onClose();
+      try {
+        await onSubmit(curhat.id, replyText);
+        toast.success("Balasan berhasil dikirim");
+        setReplyText("");
+        onClose();
+      } catch (error) {
+        toast.error("Gagal mengirim balasan");
+        console.error("Error replying to curhat:", error);
+      }
+    } else {
+      toast.error("Balasan tidak boleh kosong");
     }
   };
 

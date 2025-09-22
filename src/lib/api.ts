@@ -1,5 +1,5 @@
 import { getSession } from "next-auth/react";
-import { MoodRecordResponse, BulkTemplateResponse, BulkImportResponse, DashboardReportGraphResponse, DashboardMoodGraphResponse, DashboardStudentResponse, MoodPatternResponse, SharingListResponse, SharingDetailResponse, SharingReplyResponse } from "@/types/api";
+import { MoodRecordResponse, BulkTemplateResponse, BulkImportResponse, DashboardReportGraphResponse, DashboardMoodGraphResponse, DashboardStudentResponse, MoodPatternResponse, SharingListResponse, SharingDetailResponse, SharingReplyResponse, SharingCreateResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
 
 /**
@@ -232,6 +232,14 @@ export async function getSharingList(): Promise<SharingListResponse> {
  */
 export async function getSharingDetail(id: number): Promise<SharingDetailResponse> {
   const response = await authGet(`/sharing/${id}`);
+  return response;
+}
+
+/**
+ * Create new sharing/curhat
+ */
+export async function createSharing(data: { title: string; description: string }): Promise<SharingCreateResponse> {
+  const response = await authPost("/sharing", data);
   return response;
 }
 
