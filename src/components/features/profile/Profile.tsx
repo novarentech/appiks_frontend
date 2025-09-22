@@ -112,7 +112,7 @@ export default function Profile() {
         username: apiProfileData.username || "",
         email: session?.user?.email || "",
         phone: apiProfileData.phone
-          ? apiProfileData.phone.replace(/^\+62/, "")
+          ? apiProfileData.phone.replace(/62/, "")
           : "",
         nip: apiProfileData.identifier || "",
         role: apiProfileData.role || "",
@@ -651,7 +651,7 @@ export default function Profile() {
                     {editData.phone.trim() !== "" &&
                       phoneValidation.isValid && (
                         <p className="text-sm text-gray-500 mt-1">
-                          Format: +62{editData.phone}
+                          Format: 62{editData.phone}
                         </p>
                       )}
                   </>

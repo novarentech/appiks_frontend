@@ -126,7 +126,7 @@ const FillData = () => {
         kelas: apiProfileData.room.name || "",
         namaSekolah: apiProfileData.school.name || "",
         noTelp: apiProfileData.phone
-          ? apiProfileData.phone.replace(/^\+62/, "")
+          ? apiProfileData.phone.replace(/62/, "")
           : "",
         password: "",
         verifyPassword: "",
@@ -174,7 +174,7 @@ const FillData = () => {
     }
 
     // Format phone number with country code
-    const formattedPhone = editData.noTelp ? `+62${editData.noTelp}` : "";
+    const formattedPhone = editData.noTelp ? `62${editData.noTelp}` : "";
 
     const success = await updateProfile({
       username: editData.username,
@@ -573,7 +573,7 @@ const FillData = () => {
               )}
               {editData.noTelp.trim() !== "" && phoneValidation.isValid && (
                 <p className="text-sm text-gray-500">
-                  Format: +62{editData.noTelp}
+                  Format: 62{editData.noTelp}
                 </p>
               )}
             </div>

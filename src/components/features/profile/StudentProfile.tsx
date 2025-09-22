@@ -108,7 +108,7 @@ const StudentProfile = () => {
         kelas: apiProfileData.room?.name || "",
         namaSekolah: apiProfileData.school?.name || "",
         noTelp: apiProfileData.phone
-          ? apiProfileData.phone.replace(/^\+62/, "")
+          ? apiProfileData.phone.replace(/^62/, "")
           : "",
         avatar: "/avatar-placeholder.jpg",
       };
@@ -221,7 +221,7 @@ const StudentProfile = () => {
           username: data.data.username || editData.username,
           nisn: data.data.identifier || editData.nisn,
           noTelp: data.data.phone
-            ? data.data.phone.replace(/^\+62/, "")
+            ? data.data.phone.replace(/^62/, "")
             : editData.noTelp,
         };
         
@@ -542,7 +542,7 @@ const StudentProfile = () => {
               )}
               {editData.noTelp.trim() !== "" && phoneValidation.isValid && (
                 <p className="text-sm text-gray-500">
-                  Format: +62{editData.noTelp}
+                  Format: 62{editData.noTelp}
                 </p>
               )}
             </div>
