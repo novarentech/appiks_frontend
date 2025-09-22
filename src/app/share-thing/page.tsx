@@ -55,10 +55,10 @@ export default function GroundingPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
-            Afirmasi Diri (Self-Affirmation)
+            Curhat
           </h1>
           <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-            Kata-kata positif untuk membangun semangat dan kepercayaan dirimu
+            Ceritakan keluhanmu dengan jujur ya, supaya kami bisa lebih memahami perasaanmu
           </p>
         </div>
 
