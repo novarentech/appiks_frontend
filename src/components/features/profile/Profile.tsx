@@ -27,6 +27,7 @@ import { useUsernameCheck } from "@/hooks/useUsernameCheck";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { getInitials } from "@/lib/utils";
 
 interface ProfileData {
   name: string;
@@ -153,13 +154,6 @@ export default function Profile() {
     return accessMap[role] || ["Basic Access"];
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
 
   const handleEditClick = () => {
     setEditData(profileData);
