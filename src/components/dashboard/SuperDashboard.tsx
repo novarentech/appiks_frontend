@@ -1,6 +1,6 @@
 "use client";
 
-import SchoolAndClassChart from "../data-display/charts/SchoolAndClaass";
+import SchoolAndClassChart from "../data-display/charts/SchoolAndClass";
 import TuPanel from "./panels/TuPanel";
 
 

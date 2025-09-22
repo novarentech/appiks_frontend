@@ -7,8 +7,8 @@ import {
   XAxis,
   YAxis,
   ResponsiveContainer,
-  ReferenceLine,
   Tooltip,
+  CartesianGrid,
 } from "recharts";
 import { useState } from "react";
 
@@ -92,11 +92,7 @@ export default function SchoolAndClassChart() {
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={sekolahKelasData} onClick={handleChartClick}>
-                {/* Horizontal dotted grid lines */}
-                <ReferenceLine y={50} stroke="#d1d5db" strokeDasharray="2 2" />
-                <ReferenceLine y={100} stroke="#d1d5db" strokeDasharray="2 2" />
-                <ReferenceLine y={150} stroke="#d1d5db" strokeDasharray="2 2" />
-                <ReferenceLine y={200} stroke="#d1d5db" strokeDasharray="2 2" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
 
                 <XAxis
                   dataKey="month"
