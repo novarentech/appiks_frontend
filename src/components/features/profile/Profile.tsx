@@ -14,10 +14,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
-import { Edit, User, Mail, Shield, CheckCircle, Check, X, Loader2 } from "lucide-react";
+import {
+  Edit,
+  Mail,
+  Shield,
+  CheckCircle,
+  Check,
+  X,
+  Loader2,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUsernameCheck } from "@/hooks/useUsernameCheck";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface ProfileData {
   name: string;
@@ -30,7 +39,7 @@ interface ProfileData {
 
 // --- VALIDATION FUNCTIONS (SAMA DENGAN FillData) ---
 const validateUsername = (username: string) => {
-  const minLength = username.length >= 8;
+  const minLength = username.length >= 3;
   const maxLength = username.length <= 20;
   const validChars = /^[a-zA-Z0-9_]+$/.test(username);
   const notStartWithNumber = !/^\d/.test(username);
@@ -71,7 +80,9 @@ export default function Profile() {
     checkUsername,
     clearCheck,
   } = useUsernameCheck();
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(
+    null
+  );
 
   // Initialize profile data (in real app, this would come from the user object)
   const [profileData, setProfileData] = useState<ProfileData>({
@@ -106,13 +117,8 @@ export default function Profile() {
         "Atur Jadwal Konseling",
         "Balas Curhat Siswa",
       ],
-      admin: [
-        "Kelola Akun",
-        "Kelola Konten"
-      ],
-      headteacher: [
-        "Lihat Data Sekolah"
-      ],
+      admin: ["Kelola Akun", "Kelola Konten"],
+      headteacher: ["Lihat Data Sekolah"],
       super: [
         "Platform Administration",
         "Multi-School Management",
@@ -121,6 +127,14 @@ export default function Profile() {
       ],
     };
     return accessMap[role] || ["Basic Access"];
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
   };
 
   const handleEditClick = () => {
@@ -148,7 +162,7 @@ export default function Profile() {
     clearCheck();
 
     const timer = setTimeout(() => {
-      if (value.trim().length >= 3) {
+      if (value.trim().length >= 3 && validateUsername(value.trim()).isValid) {
         checkUsername(value.trim());
       }
     }, 500);
@@ -191,7 +205,7 @@ export default function Profile() {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.user.token}`,
+          Authorization: `Bearer ${session.user.token}`,
         },
         body: JSON.stringify({
           username: editData.username,
@@ -216,7 +230,7 @@ export default function Profile() {
           username: data.data.username || editData.username,
           phone: data.data.phone || editData.phone,
         };
-        
+
         setProfileData(updatedData);
         setEditData(updatedData);
         setIsConfirmDialogOpen(false);
@@ -254,7 +268,7 @@ export default function Profile() {
   const hasChanges =
     editData.username !== profileData.username ||
     editData.phone !== profileData.phone;
-    
+
   const usernameChanged = profileData.username !== editData.username;
   const usernameValidation = validateUsername(editData.username);
   const phoneValidation = validatePhone(editData.phone);
@@ -310,9 +324,11 @@ export default function Profile() {
         <Card className="lg:col-span-1">
           <CardContent className="p-6 text-center">
             <div className="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
-                <User className="w-8 h-8 text-white" />
-              </div>
+              <Avatar className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center">
+                <AvatarFallback className="text-lg bg-blue-500 text-white">
+                  {getInitials(profileData.name)}
+                </AvatarFallback>
+              </Avatar>
             </div>
 
             <h2 className="text-xl font-semibold text-gray-900 mb-1">
@@ -414,32 +430,28 @@ export default function Profile() {
                 )}
                 {isEditing && (
                   <>
-                    {(isChecking ||
-                      usernameError ||
-                      isUsernameAvailable !== null) && (
-                      <p
-                        className={`text-sm flex items-center gap-1 mt-1 ${
-                          isChecking
-                            ? "text-gray-500"
-                            : usernameError || isUsernameAvailable === false
-                            ? "text-red-500"
-                            : isUsernameAvailable === true
-                            ? "text-green-500"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        <span>
-                          {isChecking
-                            ? "Mengecek ketersediaan..."
-                            : usernameError
-                            ? usernameError
-                            : isUsernameAvailable === true
-                            ? "Username tersedia"
-                            : isUsernameAvailable === false
-                            ? "Username sudah digunakan"
-                            : ""}
-                        </span>
-                      </p>
+                    {editData.username.trim() !== "" && (
+                      <div className="mt-1">
+                        {isChecking ? (
+                          <div className="flex items-center gap-1 text-gray-500 text-sm">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <span>Mengecek ketersediaan...</span>
+                          </div>
+                        ) : usernameError || isUsernameAvailable === false ? (
+                          <div className="bg-red-50 border border-red-200 rounded-md px-3 py-2 text-sm text-red-700 flex items-center gap-2">
+                            <X className="w-4 h-4 text-red-500" />
+                            <span>
+                              {usernameError || "Username sudah digunakan"}
+                            </span>
+                          </div>
+                        ) : isUsernameAvailable === true &&
+                          usernameValidation.isValid ? (
+                          <div className="bg-green-50 border border-green-200 rounded-md px-3 py-2 text-sm text-green-700 flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            <span>Username tersedia</span>
+                          </div>
+                        ) : null}
+                      </div>
                     )}
                     {editData.username.trim() !== "" &&
                       !usernameValidation.isValid && (
@@ -455,7 +467,7 @@ export default function Profile() {
                                   : "text-red-500"
                               }
                             >
-                              Minimal 8 karakter{" "}
+                              Minimal 3 karakter{" "}
                               {usernameValidation.minLength ? "✓" : "✗"}
                             </li>
                             <li
@@ -486,7 +498,9 @@ export default function Profile() {
                               }
                             >
                               Tidak boleh dimulai dengan angka{" "}
-                              {usernameValidation.notStartWithNumber ? "✓" : "✗"}
+                              {usernameValidation.notStartWithNumber
+                                ? "✓"
+                                : "✗"}
                             </li>
                           </ul>
                         </div>
@@ -551,40 +565,42 @@ export default function Profile() {
                         Nomor telepon wajib diisi
                       </p>
                     )}
-                    {editData.phone.trim() !== "" && !phoneValidation.isValid && (
-                      <div className="text-xs mt-1">
-                        <p className="text-red-500 font-medium mb-1">
-                          Nomor telepon harus memenuhi kriteria berikut:
+                    {editData.phone.trim() !== "" &&
+                      !phoneValidation.isValid && (
+                        <div className="text-xs mt-1">
+                          <p className="text-red-500 font-medium mb-1">
+                            Nomor telepon harus memenuhi kriteria berikut:
+                          </p>
+                          <ul className="space-y-1">
+                            <li
+                              className={
+                                phoneValidation.isValidLength
+                                  ? "text-green-600"
+                                  : "text-red-500"
+                              }
+                            >
+                              9-13 digit (tanpa +62){" "}
+                              {phoneValidation.isValidLength ? "✓" : "✗"}
+                            </li>
+                            <li
+                              className={
+                                phoneValidation.startsWithValidDigit
+                                  ? "text-green-600"
+                                  : "text-red-500"
+                              }
+                            >
+                              Dimulai dengan 8 atau 9{" "}
+                              {phoneValidation.startsWithValidDigit ? "✓" : "✗"}
+                            </li>
+                          </ul>
+                        </div>
+                      )}
+                    {editData.phone.trim() !== "" &&
+                      phoneValidation.isValid && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          Format: +62{editData.phone}
                         </p>
-                        <ul className="space-y-1">
-                          <li
-                            className={
-                              phoneValidation.isValidLength
-                                ? "text-green-600"
-                                : "text-red-500"
-                            }
-                          >
-                            9-13 digit (tanpa +62){" "}
-                            {phoneValidation.isValidLength ? "✓" : "✗"}
-                          </li>
-                          <li
-                            className={
-                              phoneValidation.startsWithValidDigit
-                                ? "text-green-600"
-                                : "text-red-500"
-                            }
-                          >
-                            Dimulai dengan 8 atau 9{" "}
-                            {phoneValidation.startsWithValidDigit ? "✓" : "✗"}
-                          </li>
-                        </ul>
-                      </div>
-                    )}
-                    {editData.phone.trim() !== "" && phoneValidation.isValid && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        Format: +62{editData.phone}
-                      </p>
-                    )}
+                      )}
                   </>
                 )}
               </div>

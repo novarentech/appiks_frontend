@@ -73,7 +73,7 @@ const FillData = () => {
 
   // Username validation function
   const validateUsername = (username: string) => {
-    const minLength = username.length >= 8;
+    const minLength = username.length >= 3;
     const maxLength = username.length <= 20;
     const validChars = /^[a-zA-Z0-9_]+$/.test(username);
     const notStartWithNumber = !/^\d/.test(username);
@@ -220,7 +220,7 @@ const FillData = () => {
 
     // Set new timer for debounced checking
     const timer = setTimeout(() => {
-      if (value.trim().length >= 3) {
+      if (value.trim().length >= 3 && validateUsername(value.trim()).isValid) {
         checkUsername(value.trim());
       }
     }, 500); // 500ms delay
@@ -432,32 +432,27 @@ const FillData = () => {
               </div>
 
               {/* Status Message - Only for availability check */}
-              {(isChecking ||
-                usernameError ||
-                isUsernameAvailable !== null) && (
-                <p
-                  className={`text-sm flex items-center gap-1 ${
-                    isChecking
-                      ? "text-gray-500"
-                      : usernameError || isUsernameAvailable === false
-                      ? "text-red-500"
-                      : isUsernameAvailable === true
-                      ? "text-green-500"
-                      : "text-gray-500"
-                  }`}
-                >
-                  <span>
-                    {isChecking
-                      ? "Mengecek ketersediaan..."
-                      : usernameError
-                      ? usernameError
-                      : isUsernameAvailable === true
-                      ? "Username tersedia"
-                      : isUsernameAvailable === false
-                      ? "Username sudah digunakan"
-                      : ""}
-                  </span>
-                </p>
+              {editData.username.trim() !== "" && (
+                <div className="mt-1">
+                  {isChecking ? (
+                    <div className="flex items-center gap-1 text-gray-500 text-sm">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Mengecek ketersediaan...</span>
+                    </div>
+                  ) : usernameError || isUsernameAvailable === false ? (
+                    <div className="bg-red-50 border border-red-200 rounded-md px-3 py-2 text-sm text-red-700 flex items-center gap-2">
+                      <X className="w-4 h-4 text-red-500" />
+                      <span>
+                        {usernameError || "Username sudah digunakan"}
+                      </span>
+                    </div>
+                  ) : isUsernameAvailable === true && usernameValidation.isValid ? (
+                    <div className="bg-green-50 border border-green-200 rounded-md px-3 py-2 text-sm text-green-700 flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500" />
+                      <span>Username tersedia</span>
+                    </div>
+                  ) : null}
+                </div>
               )}
 
               {/* Username Validation Rules */}
@@ -475,7 +470,7 @@ const FillData = () => {
                             : "text-red-500"
                         }
                       >
-                        Minimal 8 karakter{" "}
+                        Minimal 3 karakter{" "}
                         {usernameValidation.minLength ? "✓" : "✗"}
                       </li>
                       <li

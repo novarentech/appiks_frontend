@@ -64,7 +64,8 @@ export function useUsernameCheck(): UseUsernameCheckReturn {
         }
       } catch (error) {
         console.error("❌ Username check error:", error);
-        setError("Terjadi kesalahan saat mengecek username");
+        setError("Username tidak tersedia");
+        setIsAvailable(false); // Set isAvailable to false when there's an error
         return false;
       } finally {
         setIsChecking(false);
