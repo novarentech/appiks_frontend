@@ -1,5 +1,5 @@
 import { getSession } from "next-auth/react";
-import { MoodRecordResponse, BulkTemplateResponse, BulkImportResponse, DashboardReportGraphResponse, DashboardMoodGraphResponse, DashboardStudentResponse, MoodPatternResponse } from "@/types/api";
+import { MoodRecordResponse, BulkTemplateResponse, BulkImportResponse, DashboardReportGraphResponse, DashboardMoodGraphResponse, DashboardStudentResponse, MoodPatternResponse, SharingListResponse, SharingDetailResponse, SharingReplyResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
 
 /**
@@ -217,4 +217,44 @@ export async function recordMood(status: string): Promise<MoodRecordResponse> {
 export async function getMoodPattern(username: string, type: "weekly" | "monthly"): Promise<MoodPatternResponse> {
   const response = await authGet(`/mood-record/pattern/${username}/${type}`);
   return response;
+}
+
+/**
+ * Get all sharing/curhat data
+ */
+export async function getSharingList(): Promise<SharingListResponse> {
+  const response = await authGet("/sharing");
+  return response;
+}
+
+/**
+ * Get sharing/curhat detail by ID
+ */
+export async function getSharingDetail(id: number): Promise<SharingDetailResponse> {
+  const response = await authGet(`/sharing/${id}`);
+  return response;
+}
+
+/**
+ * Reply to sharing/curhat
+ */
+export async function replySharing(id: number, text: string): Promise<SharingReplyResponse> {
+  const response = await authPatch(`/sharing/reply/${id}`, { text });
+  return response;
+}
+
+/**
+ * PATCH request with authentication
+ */
+export async function authPatch(endpoint: string, data: unknown) {
+  const response = await authenticatedFetch(endpoint, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`PATCH ${endpoint} failed with status ${response.status}`);
+  }
+
+  return response.json();
 }

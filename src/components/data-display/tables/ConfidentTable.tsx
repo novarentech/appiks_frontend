@@ -14,105 +14,13 @@ import { DataTable } from "@/components/ui/data-table";
 import CurhatReplyDialog from "@/components/dialogs/CurhatReplyDialog";
 import CurhatViewDialog from "@/components/dialogs/CurhatViewDialog";
 import { ColumnDef } from "@tanstack/react-table";
-import { useState, useEffect } from "react";
-import { Eye, MessageCircle, ArrowUpDown } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Eye, MessageCircle, ArrowUpDown, Loader2 } from "lucide-react";
+import { getInitials } from "@/lib/utils";
 
 // Types
-interface Curhat {
-  id: number;
-  siswa: {
-    nama: string;
-    nisn: string;
-    kelas: string;
-  };
-  judul: string;
-  deskripsi: string;
-  status: "terkirim" | "dibalas";
-  prioritas: "rendah" | "sedang" | "tinggi";
-  waktuDibuat: string;
-  balasan?: string;
-  waktuDibalas?: string;
-}
-
-// Sample data
-const curhatData: Curhat[] = [
-  {
-    id: 1,
-    siswa: {
-      nama: "Alex Allan",
-      nisn: "THD-64651",
-      kelas: "X IPA 1",
-    },
-    judul: "Masalah Dengan Teman Sekelas",
-    deskripsi:
-      "Saya merasa dikucilkan oleh teman-teman sekelas. Mereka sering berbisik-bisik ketika saya lewat dan tidak pernah mengajak saya bergabung dalam kegiatan kelompok.",
-    status: "dibalas",
-    prioritas: "tinggi",
-    waktuDibuat: "27/08/2025 08:00",
-    balasan:
-      "Terima kasih sudah berani bercerita dan terbuka tentang perasaanmu. Saya bisa memahami bahwa merasa dikucilkan pasti tidak nyaman dan membuat sedih. Kamu tidak sendirian menghadapi hal ini.\n\nLangkah pertama, mari kita coba pahami situasinya lebih dalam: kapan biasanya teman-temanmu bersikap seperti itu, dan bagaimana perasaanmu saat mengalaminya? Dari ceritamu, nanti kita bisa cari cara bersama agar kamu tetap merasa nyaman di kelas.\n\nKamu juga berhak untuk punya teman dan dilibatkan dalam kegiatan kelompok. Kita akan bahas strategi supaya kamu bisa lebih percaya diri berinteraksi, dan bila perlu saya juga bisa membantu mengomunikasikan hal ini ke guru wali kelas atau teman-temanmu secara bijaksana.",
-    waktuDibalas: "27/08/2025 14:30",
-  },
-  {
-    id: 2,
-    siswa: {
-      nama: "Anna Vincenti",
-      nisn: "WTC-78415",
-      kelas: "X IPA 1",
-    },
-    judul: "Kesulitan Belajar Matematika",
-    deskripsi:
-      "Saya sudah berusaha keras tapi nilai matematika saya selalu jelek. Saya takut tidak bisa naik kelas dan mengecewakan orang tua.",
-    status: "terkirim",
-    prioritas: "sedang",
-    waktuDibuat: "26/08/2025 15:30",
-  },
-  {
-    id: 3,
-    siswa: {
-      nama: "David Kim",
-      nisn: "MBQ-39617",
-      kelas: "X IPA 2",
-    },
-    judul: "Masalah Keluarga di Rumah",
-    deskripsi:
-      "Orang tua saya sering bertengkar dan saya merasa tertekan. Saya tidak bisa konsentrasi belajar karena situasi di rumah yang tidak kondusif.",
-    status: "terkirim",
-    prioritas: "tinggi",
-    waktuDibuat: "25/08/2025 20:15",
-  },
-  {
-    id: 4,
-    siswa: {
-      nama: "Falon Al-Sayed",
-      nisn: "XCU-35036",
-      kelas: "XI IPS 1",
-    },
-    judul: "Kecemasan Menghadapi Ujian",
-    deskripsi:
-      "Setiap kali ada ujian, saya merasa sangat cemas dan panik. Tangan saya berkeringat dan pikiran jadi kosong saat mengerjakan soal.",
-    status: "dibalas",
-    prioritas: "sedang",
-    waktuDibuat: "24/08/2025 10:00",
-    balasan:
-      "Kecemasan ujian adalah hal yang wajar dialami banyak siswa. Mari kita cari teknik relaksasi dan persiapan yang tepat untuk membantumu menghadapi ujian dengan lebih tenang.",
-    waktuDibalas: "24/08/2025 16:45",
-  },
-  {
-    id: 5,
-    siswa: {
-      nama: "Hiroshi Yamamoto",
-      nisn: "LZN-37419",
-      kelas: "XI IPS 1",
-    },
-    judul: "Bullying di Sekolah",
-    deskripsi:
-      "Saya sering dibully oleh kakak kelas. Mereka meminta uang jajan saya dan mengancam akan menyakiti saya jika saya tidak memberikannya.",
-    status: "terkirim",
-    prioritas: "tinggi",
-    waktuDibuat: "23/08/2025 07:45",
-  },
-];
+import { Sharing } from "@/types/api";
+import { getSharingList, replySharing } from "@/lib/api";
 
 interface ConfidentTableProps {
   onResponseSubmit?: (curhatId: number, response: string) => void;
@@ -124,36 +32,93 @@ export default function ConfidentTable({
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [prioritasFilter, setPrioritasFilter] = useState("all");
-  const [filteredData, setFilteredData] = useState(curhatData);
+  const [curhatData, setCurhatData] = useState<Sharing[]>([]);
+  const [filteredData, setFilteredData] = useState<Sharing[]>([]);
   const [currentPageSize, setCurrentPageSize] = useState(10);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Dialog states
-  const [selectedCurhat, setSelectedCurhat] = useState<Curhat | null>(null);
+  const [selectedCurhat, setSelectedCurhat] = useState<Sharing | null>(null);
   const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
+  // Fetch data from API
+  const fetchCurhatData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await getSharingList();
+
+      if (result.success) {
+        setCurhatData(result.data);
+        setFilteredData(result.data);
+      } else {
+        setError(result.message || "Gagal mengambil data");
+      }
+    } catch (err) {
+      setError("Terjadi kesalahan saat mengambil data");
+      console.error("Error fetching data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Reply to curhat
+  const replyToCurhat = useCallback(
+    async (id: number, text: string) => {
+      try {
+        const result = await replySharing(id, text);
+
+        if (result.success) {
+          // Refresh data after successful reply
+          await fetchCurhatData();
+          if (onResponseSubmit) {
+            onResponseSubmit(id, text);
+          }
+          return true;
+        } else {
+          setError(result.message || "Gagal mengirim balasan");
+          return false;
+        }
+      } catch (err) {
+        setError("Terjadi kesalahan saat mengirim balasan");
+        console.error("Error replying to curhat:", err);
+        return false;
+      }
+    },
+    [fetchCurhatData, onResponseSubmit]
+  );
+
+  // Initialize data
+  useEffect(() => {
+    fetchCurhatData();
+  }, [fetchCurhatData]);
+
   // Get unique values for filters
-  const uniqueStatus = [...new Set(curhatData.map((item) => item.status))];
-  const uniquePrioritas = [
-    ...new Set(curhatData.map((item) => item.prioritas)),
+  const uniqueStatus = [
+    ...new Set(curhatData.map((item) => (item.reply ? "dibalas" : "terkirim"))),
   ];
+  const uniquePrioritas = [...new Set(curhatData.map((item) => item.priority))];
 
   // Apply filters
   useEffect(() => {
     const filtered = curhatData.filter((item) => {
       const matchesSearch =
-        item.siswa.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.siswa.nisn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.judul.toLowerCase().includes(searchTerm.toLowerCase());
+        item.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.user.identifier.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.title.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus =
-        statusFilter === "all" || item.status === statusFilter;
+        statusFilter === "all" ||
+        (statusFilter === "terkirim" && !item.reply) ||
+        (statusFilter === "dibalas" && item.reply);
       const matchesPrioritas =
-        prioritasFilter === "all" || item.prioritas === prioritasFilter;
+        prioritasFilter === "all" || item.priority === prioritasFilter;
 
       return matchesSearch && matchesStatus && matchesPrioritas;
     });
     setFilteredData(filtered);
-  }, [searchTerm, statusFilter, prioritasFilter]);
+  }, [searchTerm, statusFilter, prioritasFilter, curhatData]);
 
   // Helper functions
   const getStatusBadge = (status: string) => {
@@ -178,20 +143,20 @@ export default function ConfidentTable({
     );
   };
 
-  const handleReply = (curhat: Curhat) => {
+  const handleReply = (curhat: Sharing) => {
     setSelectedCurhat(curhat);
     setIsReplyDialogOpen(true);
   };
 
-  const handleView = (curhat: Curhat) => {
+  const handleView = (curhat: Sharing) => {
     setSelectedCurhat(curhat);
     setIsViewDialogOpen(true);
   };
 
   // Column definitions
-  const columns: ColumnDef<Curhat>[] = [
+  const columns: ColumnDef<Sharing>[] = [
     {
-      accessorKey: "siswa.nama",
+      accessorKey: "user.name",
       header: ({ column }) => (
         <Button
           variant="ghost"
@@ -206,38 +171,22 @@ export default function ConfidentTable({
         <div className="min-w-[150px] flex items-center space-x-3">
           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
             <span className="text-sm font-medium text-blue-600">
-              {row.original.siswa.nama
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
+              {getInitials(row.original.user.name)}
             </span>
           </div>
-          <span className="font-medium truncate">
-            {row.original.siswa.nama}
-          </span>
+          <div className="flex flex-col">
+            <span className="font-medium truncate">
+              {row.original.user.name}
+            </span>
+            <span className="font-mono text-sm">
+              {row.original.user.identifier}
+            </span>
+          </div>
         </div>
       ),
     },
     {
-      accessorKey: "siswa.nisn",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-auto p-0 font-semibold"
-        >
-          NISN
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row }) => (
-        <div className="min-w-[120px]">
-          <span className="font-mono text-sm">{row.original.siswa.nisn}</span>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "siswa.kelas",
+      accessorKey: "user.room.name",
       header: ({ column }) => (
         <Button
           variant="ghost"
@@ -253,12 +202,12 @@ export default function ConfidentTable({
           variant="outline"
           className="bg-blue-50 text-blue-700 border-blue-200"
         >
-          {row.original.siswa.kelas}
+          {row.original.user.room?.name || "-"}
         </Badge>
       ),
     },
     {
-      accessorKey: "judul",
+      accessorKey: "title",
       header: ({ column }) => (
         <Button
           variant="ghost"
@@ -271,7 +220,7 @@ export default function ConfidentTable({
       ),
       cell: ({ row }) => (
         <div className="min-w-[200px] max-w-[300px]">
-          <div className="font-medium truncate">{row.original.judul}</div>
+          <div className="font-medium truncate">{row.original.title}</div>
         </div>
       ),
     },
@@ -287,20 +236,23 @@ export default function ConfidentTable({
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => (
-        <div className="flex items-center space-x-3">
-          <Badge className={getStatusBadge(row.original.status)}>
-            {row.original.status === "terkirim" ? "Terkirim" : "Dibalas"}
-          </Badge>
-          <Badge className={getPrioritasBadge(row.original.prioritas)}>
-            {row.original.prioritas.charAt(0).toUpperCase() +
-              row.original.prioritas.slice(1)}
-          </Badge>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const status = row.original.reply ? "dibalas" : "terkirim";
+        return (
+          <div className="flex items-center space-x-3">
+            <Badge className={getStatusBadge(status)}>
+              {status === "terkirim" ? "Terkirim" : "Dibalas"}
+            </Badge>
+            <Badge className={getPrioritasBadge(row.original.priority)}>
+              {row.original.priority.charAt(0).toUpperCase() +
+                row.original.priority.slice(1)}
+            </Badge>
+          </div>
+        );
+      },
     },
     {
-      accessorKey: "waktuDibuat",
+      accessorKey: "created_at",
       header: ({ column }) => (
         <Button
           variant="ghost"
@@ -311,11 +263,21 @@ export default function ConfidentTable({
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => (
-        <div className="text-sm text-gray-600 min-w-[120px]">
-          {row.original.waktuDibuat}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const date = new Date(row.original.created_at);
+        const formattedDate = date.toLocaleDateString("id-ID", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        return (
+          <div className="text-sm text-gray-600 min-w-[120px]">
+            {formattedDate}
+          </div>
+        );
+      },
     },
     {
       id: "actions",
@@ -324,7 +286,7 @@ export default function ConfidentTable({
         const curhat = row.original;
         return (
           <div className="flex gap-2">
-            {curhat.status === "terkirim" ? (
+            {!curhat.reply ? (
               <Button
                 variant="default"
                 size="sm"
@@ -353,6 +315,13 @@ export default function ConfidentTable({
 
   return (
     <div className="space-y-4">
+      {/* Error message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
       {/* Filter Controls */}
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
@@ -417,24 +386,35 @@ export default function ConfidentTable({
       </div>
 
       {/* Data Table */}
-      <DataTable
-        columns={columns}
-        data={filteredData}
-        searchColumn=""
-        searchPlaceholder=""
-        showColumnToggle={false}
-        showPagination={true}
-        pageSize={currentPageSize}
-        pageSizeOptions={[5, 10, 15, 25, 50]}
-        showPageSizeSelector={false}
-      />
+      {loading ? (
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={filteredData}
+          searchColumn=""
+          searchPlaceholder=""
+          showColumnToggle={false}
+          showPagination={true}
+          pageSize={currentPageSize}
+          pageSizeOptions={[5, 10, 15, 25, 50]}
+          showPageSizeSelector={false}
+        />
+      )}
 
       {/* Dialogs */}
       <CurhatReplyDialog
         curhat={selectedCurhat}
         isOpen={isReplyDialogOpen}
         onClose={() => setIsReplyDialogOpen(false)}
-        onSubmit={onResponseSubmit || (() => {})}
+        onSubmit={async (id, text) => {
+          const success = await replyToCurhat(id, text);
+          if (success) {
+            setIsReplyDialogOpen(false);
+          }
+        }}
       />
 
       <CurhatViewDialog

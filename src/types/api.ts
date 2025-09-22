@@ -159,3 +159,59 @@ export interface DashboardReportGraphResponse {
   };
 }
 
+// Interface untuk User dalam konteks sharing/curhat
+export interface SharingUser {
+  name: string;
+  phone: string;
+  username: string;
+  identifier: string;
+  verified: boolean;
+  role: string;
+  room?: {
+    id: number;
+    name: string;
+    code: string;
+    school_id: number;
+  };
+}
+
+// Interface untuk Curhat/Sharing
+export interface Sharing {
+  id: number;
+  user_id: number;
+  title: string;
+  description: string;
+  reply?: string;
+  replied_at?: string;
+  replied_by?: string;
+  priority: "rendah" | "tinggi";
+  created_at: string;
+  user: SharingUser;
+}
+
+// Interface untuk response API sharing list
+export interface SharingListResponse {
+  success: boolean;
+  message: string;
+  data: Sharing[];
+}
+
+// Interface untuk response API sharing detail
+export interface SharingDetailResponse {
+  success: boolean;
+  message: string;
+  data: Sharing;
+}
+
+// Interface untuk response API reply sharing
+export interface SharingReplyResponse {
+  success: boolean;
+  message: string;
+  data: Sharing;
+}
+
+// Interface untuk request reply sharing
+export interface SharingReplyRequest {
+  text: string;
+}
+

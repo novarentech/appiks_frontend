@@ -10,26 +10,10 @@ import {
 } from "@/components/ui/dialog";
 import { MessageCircle, X, Send } from "lucide-react";
 import { useState } from "react";
-
-// Types
-interface Curhat {
-  id: number;
-  siswa: {
-    nama: string;
-    nisn: string;
-    kelas: string;
-  };
-  judul: string;
-  deskripsi: string;
-  status: "terkirim" | "dibalas";
-  prioritas: "rendah" | "sedang" | "tinggi";
-  waktuDibuat: string;
-  balasan?: string;
-  waktuDibalas?: string;
-}
+import { Sharing } from "@/types/api";
 
 interface CurhatReplyDialogProps {
-  curhat: Curhat | null;
+  curhat: Sharing | null;
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (curhatId: number, response: string) => void;
@@ -71,12 +55,19 @@ export default function CurhatReplyDialog({
         <div className="flex-1 overflow-y-auto py-4">
           <div className="space-y-6 px-1">
             <div className="bg-gray-50 p-6 rounded-lg">
-              <h4 className="font-semibold text-xl mb-3">{curhat.judul}</h4>
+              <h4 className="font-semibold text-xl mb-3">{curhat.title}</h4>
               <p className="text-gray-700 mb-4 leading-relaxed text-base">
-                {curhat.deskripsi}
+                {curhat.description}
               </p>
               <div className="text-sm text-gray-500">
-                Dari: {curhat.siswa.nama} • {curhat.waktuDibuat}
+                Dari: {curhat.user.name} •{" "}
+                {new Date(curhat.created_at).toLocaleDateString("id-ID", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </div>
             </div>
 

@@ -22,12 +22,6 @@ export default function DashboardDataSiswaPage() {
     }
   }, [isLoading, isAuthenticated, isVerified, user, router]);
 
-  const handleResponseSubmit = (curhatId: number, response: string) => {
-    // Here you would typically make an API call to save the response
-    console.log(`Response to curhat ${curhatId}:`, response);
-    // You can add API integration here
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -65,7 +59,7 @@ export default function DashboardDataSiswaPage() {
       <CounselorPanel />
 
       {/* Table Curhatan Siswa */}
-      <ConfidentTable onResponseSubmit={handleResponseSubmit} />
+      <ConfidentTable />
     </div>
   );
 }
