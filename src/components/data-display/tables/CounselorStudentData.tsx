@@ -17,6 +17,7 @@ import { Eye, ArrowUpDown } from "lucide-react";
 import { getDashboardStudent } from "@/lib/api";
 import { Student as ApiStudent, DashboardStudentResponse } from "@/types/api";
 import { getInitials } from "@/lib/utils";
+import Link from "next/link";
 
 interface Student {
   id: number;
@@ -33,9 +34,7 @@ interface StudentDataTableProps {
   onStudentSelect?: (student: Student) => void;
 }
 
-export default function CounselorStudentData({
-  onStudentSelect,
-}: StudentDataTableProps) {
+export default function CounselorStudentData({}: StudentDataTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [kelasFilter, setKelasFilter] = useState("all");
   const [guruWaliFilter, setGuruWaliFilter] = useState("all");
@@ -51,25 +50,29 @@ export default function CounselorStudentData({
       try {
         setLoading(true);
         const response: DashboardStudentResponse = await getDashboardStudent();
-        
+
         // Transform API data to component format
-        const transformedData: Student[] = response.data.map((student: ApiStudent, index: number) => {
-          return {
-            id: index + 1,
-            name: student.name,
-            nisn: student.identifier,
-            kelas: student.room.name,
-            noTelp: student.phone,
-            guruWali: student.mentor.name,
-            aksi: "Lihat Pola Mood",
-            username: student.username,
-          };
-        });
-        
+        const transformedData: Student[] = response.data.map(
+          (student: ApiStudent, index: number) => {
+            return {
+              id: index + 1,
+              name: student.name,
+              nisn: student.identifier,
+              kelas: student.room.name,
+              noTelp: student.phone,
+              guruWali: student.mentor.name,
+              aksi: "Lihat Pola Mood",
+              username: student.username,
+            };
+          }
+        );
+
         setStudentsData(transformedData);
         setFilteredData(transformedData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch student data");
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch student data"
+        );
       } finally {
         setLoading(false);
       }
@@ -243,10 +246,14 @@ export default function CounselorStudentData({
             variant="outline"
             size="sm"
             className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs px-3 py-1 h-8"
-            onClick={() => onStudentSelect && onStudentSelect(student)}
           >
-            <Eye className="w-3 h-3 mr-1" />
-            Lihat Pola Mood
+            <Link
+              href={`/dashboard/mood-detail/${student.username}`}
+              className="flex items-center justify-center"
+            >
+              <Eye className="w-3 h-3 mr-1" />
+              Lihat Pola Mood
+            </Link>
           </Button>
         );
       },

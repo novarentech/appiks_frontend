@@ -68,7 +68,6 @@ const getMoodEmoji = (mood: string) => {
 };
 
 export default function TeacherStudentData({
-  onStudentSelect,
 }: StudentDataTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [kelasFilter, setKelasFilter] = useState("all");
@@ -86,29 +85,34 @@ export default function TeacherStudentData({
       try {
         setLoading(true);
         const response: DashboardStudentResponse = await getDashboardStudent();
-        
+
         // Transform API data to component format
-        const transformedData: Student[] = response.data.map((student: ApiStudent, index: number) => {
-          const moodStatus = student.lastmoodres?.status || "neutral";
-          const isSafeMood = moodStatus === "happy" || moodStatus === "neutral";
-          
-          return {
-            id: index + 1,
-            name: student.name,
-            nisn: student.identifier,
-            kelas: student.room.name,
-            statusMood: isSafeMood ? "Aman" : "Tidak Aman",
-            detailMood: getMoodLabel(moodStatus),
-            aksi: "Lihat Pola Mood",
-            phone: student.phone,
-            username: student.username,
-          };
-        });
-        
+        const transformedData: Student[] = response.data.map(
+          (student: ApiStudent, index: number) => {
+            const moodStatus = student.lastmoodres?.status || "neutral";
+            const isSafeMood =
+              moodStatus === "happy" || moodStatus === "neutral";
+
+            return {
+              id: index + 1,
+              name: student.name,
+              nisn: student.identifier,
+              kelas: student.room.name,
+              statusMood: isSafeMood ? "Aman" : "Tidak Aman",
+              detailMood: getMoodLabel(moodStatus),
+              aksi: "Lihat Pola Mood",
+              phone: student.phone,
+              username: student.username,
+            };
+          }
+        );
+
         setStudentsData(transformedData);
         setFilteredData(transformedData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch student data");
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch student data"
+        );
       } finally {
         setLoading(false);
       }
@@ -146,7 +150,13 @@ export default function TeacherStudentData({
       );
     });
     setFilteredData(filtered);
-  }, [searchTerm, kelasFilter, statusMoodFilter, detailMoodFilter, studentsData]);
+  }, [
+    searchTerm,
+    kelasFilter,
+    statusMoodFilter,
+    detailMoodFilter,
+    studentsData,
+  ]);
 
   // Helper function to get mood label in Indonesian
   const getMoodLabel = (mood: string) => {
@@ -323,7 +333,10 @@ export default function TeacherStudentData({
               className="text-white bg-teal-500 hover:bg-teal-600 text-xs px-3 py-1 h-8"
               asChild
             >
-              <Link href={`https://wa.me/${whatsappNumber}`} className="flex items-center justify-center">
+              <Link
+                href={`https://wa.me/${whatsappNumber}`}
+                className="flex items-center justify-center"
+              >
                 <FaWhatsapp className="w-3 h-3 mr-1" />
                 Chat WA
               </Link>
@@ -332,11 +345,14 @@ export default function TeacherStudentData({
               variant="outline"
               size="sm"
               className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs px-3 py-1 h-8"
-              onClick={() => onStudentSelect && onStudentSelect(student)}
             >
-              <Eye className="w-3 h-3 mr-1" />
-              <span className="hidden sm:inline">Lihat Pola Mood</span>
-              <span className="sm:hidden">Detail</span>
+              <Link
+                href={`/dashboard/mood-detail/${student.username}`}
+                className="flex items-center justify-center"
+              >
+                <Eye className="w-3 h-3 mr-1" />
+                <span className="hidden sm:inline">Lihat Pola Mood</span>
+              </Link>
             </Button>
           </div>
         );
@@ -347,13 +363,13 @@ export default function TeacherStudentData({
   // Format phone number for WhatsApp
   const formatPhoneForWhatsApp = (phone: string) => {
     // Remove all non-digit characters
-    const cleaned = phone.replace(/\D/g, '');
+    const cleaned = phone.replace(/\D/g, "");
     // If starts with 0, replace with 62
-    if (cleaned.startsWith('0')) {
+    if (cleaned.startsWith("0")) {
       return `62${cleaned.substring(1)}`;
     }
     // If starts with 62, return as is
-    if (cleaned.startsWith('62')) {
+    if (cleaned.startsWith("62")) {
       return cleaned;
     }
     // Default case
