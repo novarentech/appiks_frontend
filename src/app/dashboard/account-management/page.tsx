@@ -228,6 +228,7 @@ export default function AccountManagementPage() {
         createdAt: new Date().toLocaleDateString("id-ID"),
         nip: userData.nip,
         class: userData.class,
+        password: userData.password,
       };
       setUsers((prev) => [...prev, newUser]);
     }

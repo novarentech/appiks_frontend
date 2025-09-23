@@ -22,6 +22,7 @@ export interface User {
   createdAt: string;
   nip?: string; // For teachers and staff
   class?: string; // For students and teachers
+  password?: string; // Optional password field
 }
 
 interface UserDataTableProps {

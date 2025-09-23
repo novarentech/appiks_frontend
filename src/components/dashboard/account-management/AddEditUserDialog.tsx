@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/select";
 import { UserRole } from "@/types/auth";
 import { User } from "./user-table";
-import { UserPlus, UserPen, Loader2 } from "lucide-react";
+import { UserPlus, UserPen, Loader2, Check, X } from "lucide-react";
+import { useUsernameCheck } from "@/hooks/useUsernameCheck";
 
 interface AddEditUserDialogProps {
   open: boolean;
@@ -36,6 +37,7 @@ interface FormErrors {
   phone?: string;
   nip?: string;
   class?: string;
+  password?: string;
 }
 
 export function AddEditUserDialog({
@@ -51,22 +53,78 @@ export function AddEditUserDialog({
     phone: "",
     nip: "",
     class: "",
+    password: "",
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  
+  const {
+    isChecking,
+    isAvailable: isUsernameAvailable,
+    error: usernameError,
+    checkUsername,
+    clearCheck,
+  } = useUsernameCheck();
 
   const isEdit = !!user;
   const userRole = user?.role || role;
+
+  // Password validation function
+  const validatePassword = (password: string) => {
+    const minLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+
+    return {
+      minLength,
+      hasUpperCase,
+      hasLowerCase,
+      hasNumber,
+      isValid: minLength && hasUpperCase && hasLowerCase && hasNumber,
+    };
+  };
+
+  // Username validation function
+  const validateUsername = (username: string) => {
+    const minLength = username.length >= 3;
+    const maxLength = username.length <= 20;
+    const validChars = /^[a-zA-Z0-9_]+$/.test(username);
+    const notStartWithNumber = !/^\d/.test(username);
+
+    return {
+      minLength,
+      maxLength,
+      validChars,
+      notStartWithNumber,
+      isValid: minLength && maxLength && validChars && notStartWithNumber,
+    };
+  };
+
+  // Phone validation function
+  const validatePhone = (phone: string) => {
+    const digitsOnly = phone.replace(/\D/g, "");
+    const isValidLength = digitsOnly.length >= 9 && digitsOnly.length <= 13;
+    const startsWithValidDigit = /^[8-9]/.test(digitsOnly);
+
+    return {
+      isValidLength,
+      startsWithValidDigit,
+      isValid: isValidLength && startsWithValidDigit,
+    };
+  };
 
   useEffect(() => {
     if (user) {
       setFormData({
         fullName: user.fullName,
         username: user.username,
-        phone: user.phone,
+        phone: user.phone ? user.phone.replace(/62/, "") : "",
         nip: user.nip || "",
         class: user.class || "",
+        password: user.password || "",
       });
     } else {
       setFormData({
@@ -75,6 +133,7 @@ export function AddEditUserDialog({
         phone: "",
         nip: "",
         class: "",
+        password: "",
       });
     }
     setErrors({});
@@ -93,31 +152,89 @@ export function AddEditUserDialog({
     // Username validation
     if (!formData.username.trim()) {
       newErrors.username = "Username harus diisi";
-    } else if (formData.username.length < 3) {
-      newErrors.username = "Username minimal 3 karakter";
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      newErrors.username =
-        "Username hanya boleh mengandung huruf, angka, dan underscore";
+    } else {
+      const usernameValidation = validateUsername(formData.username);
+      if (!usernameValidation.isValid) {
+        newErrors.username = "Username tidak valid";
+      }
+      
+      // Check if username is available (only if username changed)
+      const usernameChanged = user?.username !== formData.username;
+      if (usernameChanged && (isUsernameAvailable === false || usernameError)) {
+        newErrors.username = usernameError || "Username sudah digunakan";
+      }
     }
 
     // Phone validation
     if (!formData.phone.trim()) {
       newErrors.phone = "Nomor telepon harus diisi";
-    } else if (!/^\d{10,13}$/.test(formData.phone)) {
-      newErrors.phone = "Nomor telepon harus 10-13 digit";
+    } else {
+      const phoneValidation = validatePhone(formData.phone);
+      if (!phoneValidation.isValid) {
+        newErrors.phone = "Nomor telepon tidak valid";
+      }
     }
 
-    // NIP validation for teachers
-    if (shouldShowNIP && formData.nip && !/^\d+$/.test(formData.nip)) {
-      newErrors.nip = "NIP hanya boleh mengandung angka";
+    // NIP/NISN validation
+    if (shouldShowNIP && formData.nip) {
+      if (!/^\d+$/.test(formData.nip)) {
+        newErrors.nip = userRole === "siswa" ? "NISN hanya boleh mengandung angka" : "NIP hanya boleh mengandung angka";
+      } else if (userRole === "siswa" && formData.nip.length !== 10) {
+        newErrors.nip = "NISN harus 10 digit";
+      }
+    }
+
+    // Password validation (optional)
+    if (formData.password && !validatePassword(formData.password).isValid) {
+      newErrors.password = "Password tidak valid";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // Handle username input with debounce
+  const handleUsernameChange = (value: string) => {
+    setFormData({ ...formData, username: value });
+
+    // Clear previous timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    // Clear previous check results
+    clearCheck();
+
+    // Set new timer for debounced checking
+    const timer = setTimeout(() => {
+      if (value.trim().length >= 3 && validateUsername(value.trim()).isValid) {
+        checkUsername(value.trim());
+      }
+    }, 500); // 500ms delay
+
+    setDebounceTimer(timer);
+  };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
+  }, [debounceTimer]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check if username is available (only if username changed and has been checked)
+    if (
+      user?.username !== formData.username &&
+      (isUsernameAvailable === false || usernameError)
+    ) {
+      // Username is not available or has error, don't proceed
+      return;
+    }
 
     if (!validateForm()) {
       return;
@@ -126,8 +243,12 @@ export function AddEditUserDialog({
     setIsSubmitting(true);
 
     try {
+      // Format phone number with country code
+      const formattedPhone = formData.phone ? `62${formData.phone}` : "";
+      
       const userData: Partial<User> = {
         ...formData,
+        phone: formattedPhone,
         role: userRole,
       };
 
@@ -160,8 +281,23 @@ export function AddEditUserDialog({
   };
 
   const shouldShowNIP =
-    userRole && ["guru_wali", "guru_bk", "kepala_sekolah"].includes(userRole);
+    userRole && ["guru_wali", "guru_bk", "kepala_sekolah", "siswa"].includes(userRole);
   const shouldShowClass = userRole && ["siswa", "guru_wali"].includes(userRole);
+    
+  // Check if form is valid
+  const usernameValidation = validateUsername(formData.username);
+  const phoneValidation = validatePhone(formData.phone);
+  const passwordValidation = validatePassword(formData.password);
+  const usernameChanged = user?.username !== formData.username;
+  
+  const isFormValid =
+    formData.fullName.trim() !== "" &&
+    formData.username.trim() !== "" &&
+    formData.phone.trim() !== "" &&
+    usernameValidation.isValid &&
+    phoneValidation.isValid &&
+    (!formData.password || passwordValidation.isValid) &&
+    (!usernameChanged || (isUsernameAvailable === true && !usernameError));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -209,20 +345,130 @@ export function AddEditUserDialog({
                 <Label htmlFor="username">
                   Username <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="username"
-                  value={formData.username}
-                  onChange={(e) =>
-                    setFormData({ ...formData, username: e.target.value })
-                  }
-                  placeholder="@username"
-                  className={`w-full ${
-                    errors.username ? "border-red-500" : ""
-                  }`}
-                />
+                
+                <div className="relative">
+                  <Input
+                    id="username"
+                    value={formData.username}
+                    onChange={(e) => handleUsernameChange(e.target.value)}
+                    placeholder="@username"
+                    disabled={isChecking}
+                    className={`pr-10 transition-colors ${
+                      isChecking
+                        ? "border-gray-300"
+                        : formData.username.trim() === "" ||
+                          !validateUsername(formData.username).isValid
+                        ? "border-red-300 focus:border-red-500"
+                        : usernameError || isUsernameAvailable === false
+                        ? "border-red-300 focus:border-red-500"
+                        : isUsernameAvailable === true &&
+                          validateUsername(formData.username).isValid
+                        ? "border-green-300 focus:border-green-500"
+                        : "border-gray-300"
+                    }`}
+                  />
+                  
+                  {/* Status Icon */}
+                  <div
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
+                      isChecking
+                        ? "text-gray-500"
+                        : usernameError || isUsernameAvailable === false
+                        ? "text-red-500"
+                        : isUsernameAvailable === true
+                        ? "text-green-500"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {isChecking ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : usernameError || isUsernameAvailable === false ? (
+                      <X className="w-4 h-4" />
+                    ) : isUsernameAvailable === true ? (
+                      <Check className="w-4 h-4" />
+                    ) : null}
+                  </div>
+                </div>
+                
                 {errors.username && (
                   <p className="text-sm text-red-500">{errors.username}</p>
                 )}
+                
+                {/* Status Message - Only for availability check */}
+                {formData.username.trim() !== "" && (
+                  <div className="mt-1">
+                    {isChecking ? (
+                      <div className="flex items-center gap-1 text-gray-500 text-sm">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <span>Mengecek ketersediaan...</span>
+                      </div>
+                    ) : usernameError || isUsernameAvailable === false ? (
+                      <div className="bg-red-50 border border-red-200 rounded-md px-3 py-2 text-sm text-red-700 flex items-center gap-2">
+                        <X className="w-4 h-4 text-red-500" />
+                        <span>
+                          {usernameError || "Username sudah digunakan"}
+                        </span>
+                      </div>
+                    ) : isUsernameAvailable === true && validateUsername(formData.username).isValid ? (
+                      <div className="bg-green-50 border border-green-200 rounded-md px-3 py-2 text-sm text-green-700 flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-500" />
+                        <span>Username tersedia</span>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+                
+                {/* Username Validation Rules */}
+                {formData.username.trim() !== "" &&
+                  !validateUsername(formData.username).isValid && (
+                    <div className="text-xs">
+                      <p className="text-red-500 font-medium mb-1">
+                        Username harus memenuhi kriteria berikut:
+                      </p>
+                      <ul className="space-y-1">
+                        <li
+                          className={
+                            validateUsername(formData.username).minLength
+                              ? "text-green-600"
+                              : "text-red-500"
+                          }
+                        >
+                          Minimal 3 karakter{" "}
+                          {validateUsername(formData.username).minLength ? "✓" : "✗"}
+                        </li>
+                        <li
+                          className={
+                            validateUsername(formData.username).maxLength
+                              ? "text-green-600"
+                              : "text-red-500"
+                          }
+                        >
+                          Maksimal 20 karakter{" "}
+                          {validateUsername(formData.username).maxLength ? "✓" : "✗"}
+                        </li>
+                        <li
+                          className={
+                            validateUsername(formData.username).validChars
+                              ? "text-green-600"
+                              : "text-red-500"
+                          }
+                        >
+                          Hanya huruf, angka, dan underscore{" "}
+                          {validateUsername(formData.username).validChars ? "✓" : "✗"}
+                        </li>
+                        <li
+                          className={
+                            validateUsername(formData.username).notStartWithNumber
+                              ? "text-green-600"
+                              : "text-red-500"
+                          }
+                        >
+                          Tidak boleh dimulai dengan angka{" "}
+                          {validateUsername(formData.username).notStartWithNumber ? "✓" : "✗"}
+                        </li>
+                      </ul>
+                    </div>
+                  )}
               </div>
             </div>
 
@@ -245,42 +491,170 @@ export function AddEditUserDialog({
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">
-                  Nomor Telepon <span className="text-red-500">*</span>
-                </Label>
+            <div className="space-y-2">
+              <Label htmlFor="phone">
+                Nomor Telepon <span className="text-red-500">*</span>
+              </Label>
+              <div className="flex">
+                <div className="flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                  +62
+                </div>
                 <Input
                   id="phone"
                   value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  placeholder="081234567890"
-                  className={`w-full ${errors.phone ? "border-red-500" : ""}`}
-                />
-                {errors.phone && (
-                  <p className="text-sm text-red-500">{errors.phone}</p>
-                )}
-              </div>
-
-              {shouldShowNIP && (
-                <div className="space-y-2">
-                  <Label htmlFor="nip">NIP/NUPTK</Label>
-                  <Input
-                    id="nip"
-                    value={formData.nip}
-                    onChange={(e) =>
-                      setFormData({ ...formData, nip: e.target.value })
+                  onChange={(e) => {
+                    // Remove any non-digit characters
+                    const value = e.target.value.replace(/\D/g, "");
+                    // Remove leading zero if present
+                    if (value.startsWith("0")) {
+                      setFormData({ ...formData, phone: value.substring(1) });
+                    } else {
+                      setFormData({ ...formData, phone: value });
                     }
-                    placeholder="Masukkan NIP/NUPTK"
-                    className={`w-full ${errors.nip ? "border-red-500" : ""}`}
-                  />
-                  {errors.nip && (
-                    <p className="text-sm text-red-500">{errors.nip}</p>
-                  )}
+                  }}
+                  placeholder="812-3456-7890"
+                  type="tel"
+                  className={`w-full ${
+                    errors.phone ? "border-red-500 rounded-l-none" : "rounded-l-none"
+                  }`}
+                />
+              </div>
+              {errors.phone && (
+                <p className="text-sm text-red-500">{errors.phone}</p>
+              )}
+              
+              {/* Phone Validation Rules */}
+              {formData.phone.trim() !== "" && !validatePhone(formData.phone).isValid && (
+                <div className="text-xs">
+                  <p className="text-red-500 font-medium mb-1">
+                    Nomor telepon harus memenuhi kriteria berikut:
+                  </p>
+                  <ul className="space-y-1">
+                    <li
+                      className={
+                        validatePhone(formData.phone).isValidLength
+                          ? "text-green-600"
+                          : "text-red-500"
+                      }
+                    >
+                      9-13 digit (tanpa +62){" "}
+                      {validatePhone(formData.phone).isValidLength ? "✓" : "✗"}
+                    </li>
+                    <li
+                      className={
+                        validatePhone(formData.phone).startsWithValidDigit
+                          ? "text-green-600"
+                          : "text-red-500"
+                      }
+                    >
+                      Dimulai dengan 8 atau 9{" "}
+                      {validatePhone(formData.phone).startsWithValidDigit ? "✓" : "✗"}
+                    </li>
+                  </ul>
                 </div>
               )}
+              {formData.phone.trim() !== "" && validatePhone(formData.phone).isValid && (
+                <p className="text-sm text-gray-500">
+                  Format: 62{formData.phone}
+                </p>
+              )}
+            </div>
+
+            {shouldShowNIP && (
+              <div className="space-y-2">
+                <Label htmlFor="nip">
+                  {userRole === "siswa" ? "NISN" : "NIP/NUPTK"}
+                </Label>
+                <Input
+                  id="nip"
+                  value={formData.nip}
+                  onChange={(e) =>
+                    setFormData({ ...formData, nip: e.target.value })
+                  }
+                  placeholder={userRole === "siswa" ? "Masukkan NISN" : "Masukkan NIP/NUPTK"}
+                  className={`w-full ${errors.nip ? "border-red-500" : ""}`}
+                />
+                {errors.nip && (
+                  <p className="text-sm text-red-500">{errors.nip}</p>
+                )}
+              </div>
+            )}
+
+            {/* Password Field */}
+            <div className="space-y-2">
+              <Label htmlFor="password">
+                Password <span className="text-gray-500 text-xs">(Opsional)</span>
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                placeholder="Masukkan password (kosongkan jika tidak ingin mengubah)"
+                className={`w-full ${errors.password ? "border-red-500" : ""}`}
+              />
+              {errors.password && (
+                <p className="text-sm text-red-500">{errors.password}</p>
+              )}
+              
+              {/* Password Validation Rules */}
+              {formData.password.trim() !== "" &&
+                !validatePassword(formData.password).isValid && (
+                  <div className="text-xs text-red-500 space-y-1">
+                    <p className="font-medium">
+                      Password harus memenuhi kriteria:
+                    </p>
+                    <ul className="list-disc list-inside space-y-0.5 ml-2">
+                      <li
+                        className={
+                          validatePassword(formData.password).minLength
+                            ? "text-green-600"
+                            : "text-red-500"
+                        }
+                      >
+                        Minimal 8 karakter{" "}
+                        {validatePassword(formData.password).minLength ? "✓" : "✗"}
+                      </li>
+                      <li
+                        className={
+                          validatePassword(formData.password).hasUpperCase
+                            ? "text-green-600"
+                            : "text-red-500"
+                        }
+                      >
+                        Mengandung huruf besar (A-Z){" "}
+                        {validatePassword(formData.password).hasUpperCase ? "✓" : "✗"}
+                      </li>
+                      <li
+                        className={
+                          validatePassword(formData.password).hasLowerCase
+                            ? "text-green-600"
+                            : "text-red-500"
+                        }
+                      >
+                        Mengandung huruf kecil (a-z){" "}
+                        {validatePassword(formData.password).hasLowerCase ? "✓" : "✗"}
+                      </li>
+                      <li
+                        className={
+                          validatePassword(formData.password).hasNumber
+                            ? "text-green-600"
+                            : "text-red-500"
+                        }
+                      >
+                        Mengandung angka (0-9){" "}
+                        {validatePassword(formData.password).hasNumber ? "✓" : "✗"}
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              <p className="text-xs text-gray-500">
+                {isEdit
+                  ? "Kosongkan jika tidak ingin mengubah password"
+                  : "Kosongkan untuk menggunakan password default"}
+              </p>
             </div>
 
             {shouldShowClass && (
@@ -334,7 +708,7 @@ export function AddEditUserDialog({
             <Button
               type="submit"
               className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isFormValid}
             >
               {isSubmitting ? (
                 <>
