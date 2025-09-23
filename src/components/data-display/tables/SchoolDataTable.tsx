@@ -21,6 +21,8 @@ import UserDetailDialog from "@/components/dialogs/UserDetailDialog";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState, useEffect } from "react";
 import { Eye, ArrowUpDown } from "lucide-react";
+import { getDashboardUsers } from "@/lib/api";
+import { User } from "@/types/api";
 
 // Types
 interface SchoolUser {
@@ -28,105 +30,82 @@ interface SchoolUser {
   nama: string;
   username: string;
   kontak: string;
-  peran: "Siswa" | "Guru Wali" | "Guru BK" | "Admin TU";
+  peran: "Siswa" | "Guru Wali" | "Guru BK" | "Admin TU" | "Super Admin" | "Kepala Sekolah";
   waktuDibuat: string;
   nisn?: string;
   nip?: string;
   kelas?: string;
   guruWali?: string;
   status?: "Aktif" | "Tidak Aktif";
+  verified?: boolean;
 }
-
-// Sample data
-const schoolData: SchoolUser[] = [
-  {
-    id: 1,
-    nama: "Rina Sari Dewi",
-    username: "@rina_097",
-    kontak: "081345123",
-    peran: "Siswa",
-    waktuDibuat: "27/08/2025 10:00 AM",
-    nisn: "12345",
-    kelas: "X IPA 6",
-    guruWali: "Sri Wahyuni, S.Pd, M.Pd",
-  },
-  {
-    id: 2,
-    nama: "Anna Visconti",
-    username: "@Anna_vis",
-    kontak: "081345123",
-    peran: "Guru Wali",
-    waktuDibuat: "27/08/2025 10:00 AM",
-    nip: "67890",
-    status: "Aktif",
-  },
-  {
-    id: 3,
-    nama: "Astrid Andersen",
-    username: "@andersen",
-    kontak: "081345123",
-    peran: "Guru BK",
-    waktuDibuat: "27/08/2025 10:00 AM",
-    nip: "12345",
-    status: "Aktif",
-  },
-  {
-    id: 4,
-    nama: "David Kim",
-    username: "@kim_david",
-    kontak: "081345123",
-    peran: "Siswa",
-    waktuDibuat: "25/08/2025 10:00 AM",
-    nisn: "54321",
-    kelas: "XI IPS 2",
-  },
-  {
-    id: 5,
-    nama: "Diego Mendoza",
-    username: "@diego_san",
-    kontak: "081345123",
-    peran: "Siswa",
-    waktuDibuat: "25/08/2025 10:00 AM",
-    nisn: "11111",
-    kelas: "X IPA 1",
-  },
-  {
-    id: 6,
-    nama: "Fatim Al-Sayed",
-    username: "@fatim120",
-    kontak: "081345123",
-    peran: "Admin TU",
-    waktuDibuat: "25/08/2025 10:00 AM",
-    nip: "67890",
-  },
-  {
-    id: 7,
-    nama: "Hiroshi Yamamoto",
-    username: "@hiroshi12",
-    kontak: "081345123",
-    peran: "Admin TU",
-    waktuDibuat: "25/08/2025 10:00 AM",
-    nip: "12345",
-  },
-  {
-    id: 8,
-    nama: "Lena Müller",
-    username: "@guru_0115",
-    kontak: "081345123",
-    peran: "Guru Wali",
-    waktuDibuat: "25/08/2025 10:00 AM",
-    nip: "12345",
-    status: "Aktif",
-  },
-];
 
 export default function SchoolDataTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [peranFilter, setPenanFilter] = useState("all");
-  const [filteredData, setFilteredData] = useState(schoolData);
+  const [filteredData, setFilteredData] = useState<SchoolUser[]>([]);
+  const [schoolData, setSchoolData] = useState<SchoolUser[]>([]);
   const [currentPageSize, setCurrentPageSize] = useState(10);
   const [selectedUser, setSelectedUser] = useState<SchoolUser | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch data from API
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await getDashboardUsers();
+        if (response.success) {
+          const transformedData = response.data.map((user: User) => {
+            // Map role from API to display role
+            let peran: SchoolUser["peran"] = "Siswa";
+            switch (user.role) {
+              case "teacher":
+                peran = "Guru Wali";
+                break;
+              case "counselor":
+                peran = "Guru BK";
+                break;
+              case "admin":
+                peran = "Admin TU";
+                break;
+              case "super":
+                peran = "Super Admin";
+                break;
+              case "headteacher":
+                peran = "Kepala Sekolah";
+                break;
+              default:
+                peran = "Siswa";
+            }
+
+            return {
+              id: user.id || 0,
+              nama: user.name,
+              username: user.username,
+              kontak: user.phone,
+              peran,
+              waktuDibuat: user.created_at ? new Date(user.created_at).toLocaleString("id-ID") : "",
+              nisn: user.role === "student" ? user.identifier : undefined,
+              nip: user.role !== "student" ? user.identifier : undefined,
+              kelas: user.room?.name,
+              guruWali: user.mentor?.name,
+              status: user.verified ? "Aktif" : "Tidak Aktif",
+              verified: user.verified,
+            } as SchoolUser;
+          });
+          setSchoolData(transformedData);
+          setFilteredData(transformedData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   // Get unique values for filter options
   const uniquePeran = [...new Set(schoolData.map((user) => user.peran))];
@@ -143,7 +122,7 @@ export default function SchoolDataTable() {
       return matchesSearch && matchesPeran;
     });
     setFilteredData(filtered);
-  }, [searchTerm, peranFilter]);
+  }, [searchTerm, peranFilter, schoolData]);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -165,6 +144,8 @@ export default function SchoolDataTable() {
       "Guru Wali": "bg-purple-100 text-purple-800 border-purple-200",
       "Guru BK": "bg-blue-100 text-blue-800 border-blue-200",
       "Admin TU": "bg-pink-100 text-pink-800 border-pink-200",
+      "Super Admin": "bg-red-100 text-red-800 border-red-200",
+      "Kepala Sekolah": "bg-green-100 text-green-800 border-green-200",
     };
     return (
       variants[peran as keyof typeof variants] || "bg-gray-100 text-gray-800"
@@ -313,6 +294,14 @@ export default function SchoolDataTable() {
       },
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

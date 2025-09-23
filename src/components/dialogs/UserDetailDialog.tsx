@@ -17,7 +17,7 @@ interface SchoolUser {
   nama: string;
   username: string;
   kontak: string;
-  peran: "Siswa" | "Guru Wali" | "Guru BK" | "Admin TU";
+  peran: "Siswa" | "Guru Wali" | "Guru BK" | "Admin TU" | "Super Admin" | "Kepala Sekolah";
   waktuDibuat: string;
   nisn?: string;
   nip?: string;
@@ -49,6 +49,10 @@ export default function UserDetailDialog({
         return "Detail Guru BK";
       case "Admin TU":
         return "Detail Admin TU";
+      case "Super Admin":
+        return "Detail Super Admin";
+      case "Kepala Sekolah":
+        return "Detail Kepala Sekolah";
       default:
         return "Detail User";
     }
@@ -140,7 +144,9 @@ export default function UserDetailDialog({
 
             {(user.peran === "Guru Wali" ||
               user.peran === "Guru BK" ||
-              user.peran === "Admin TU") && (
+              user.peran === "Admin TU" ||
+              user.peran === "Super Admin" ||
+              user.peran === "Kepala Sekolah") && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">

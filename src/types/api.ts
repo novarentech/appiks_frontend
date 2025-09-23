@@ -323,16 +323,37 @@ export interface ReportCancelResponse {
 }
 
 export interface User {
+  id?: number;
   name: string;
   phone: string;
   username: string;
   identifier: string;
   verified: boolean;
   role: string;
-  mentor_id: number;
-  counselor_id: number;
-  room_id: number;
+  mentor_id?: number;
+  counselor_id?: number;
+  room_id?: number;
   school_id: number;
+  created_at?: string;
+  room?: {
+    id: number;
+    name: string;
+    code: string;
+    school_id: number;
+  };
+  mentor?: {
+    name: string;
+    phone: string;
+    username: string;
+    identifier: string;
+    verified: boolean;
+    role: string;
+    mentor_id?: string | null;
+    counselor_id?: string | null;
+    room_id?: number | null;
+    school_id: number;
+    created_at?: string;
+  };
 }
 export interface CounselingScheduleCounselor {
   name: string;
@@ -414,6 +435,13 @@ export interface CreateReportResponse {
   success: boolean;
   message: string;
   data: Report;
+}
+
+// Interface untuk response API dashboard user
+export interface DashboardUserResponse {
+  success: boolean;
+  message: string;
+  data: User[];
 }
 
 // Interface untuk response API dashboard mood trends
