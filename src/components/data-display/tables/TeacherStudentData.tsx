@@ -19,6 +19,7 @@ import { FaWhatsapp } from "react-icons/fa";
 import { getDashboardStudent } from "@/lib/api";
 import { Student as ApiStudent, DashboardStudentResponse } from "@/types/api";
 import { getInitials } from "@/lib/utils";
+import Image from "next/image";
 
 interface Student {
   id: number;
@@ -39,7 +40,7 @@ interface StudentDataTableProps {
 // Helper functions
 const getMoodColor = (mood: string) => {
   switch (mood.toLowerCase()) {
-    case "gembira":
+    case "senang":
       return "text-green-600";
     case "netral":
       return "text-gray-600";
@@ -54,16 +55,16 @@ const getMoodColor = (mood: string) => {
 
 const getMoodEmoji = (mood: string) => {
   switch (mood.toLowerCase()) {
-    case "gembira":
-      return "😊";
+    case "senang":
+      return "/icon/ico-happy.webp";
     case "netral":
-      return "😐";
+      return "/icon/ico-neutral.webp";
     case "sedih":
-      return "😢";
+      return "/icon/ico-sad.webp";
     case "marah":
-      return "😠";
+      return "/icon/ico-angry.webp";
     default:
-      return "😐";
+      return "/icon/ico-neutral.webp";
   }
 };
 
@@ -313,7 +314,13 @@ export default function TeacherStudentData({
         const mood = row.getValue("detailMood") as string;
         return (
           <div className="flex items-center space-x-2">
-            <span>{getMoodEmoji(mood)}</span>
+            <Image
+              src={getMoodEmoji(mood)}
+              alt={`${mood} icon`}
+              width={30}
+              height={30}
+              className="w-5 h-5"
+            />
             <span className={`font-medium ${getMoodColor(mood)}`}>{mood}</span>
           </div>
         );
@@ -335,6 +342,7 @@ export default function TeacherStudentData({
             >
               <Link
                 href={`https://wa.me/${whatsappNumber}`}
+                target="_blank"
                 className="flex items-center justify-center"
               >
                 <FaWhatsapp className="w-3 h-3 mr-1" />
