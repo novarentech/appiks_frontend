@@ -22,16 +22,6 @@ export default function DashboardDataSiswaPage() {
     }
   }, [isLoading, isAuthenticated, isVerified, user, router]);
 
-  const handleScheduleUpdate = (
-    scheduleId: number,
-    action: string,
-    data?: Record<string, unknown>
-  ) => {
-    // Here you would typically make an API call to update the schedule
-    console.log(`Action ${action} for schedule ${scheduleId}:`, data);
-    // You can add API integration here
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -71,7 +61,7 @@ export default function DashboardDataSiswaPage() {
       <CounselingSchedulePanel />
 
       {/* Table Jadwal Konseling */}
-      <CounselingScheduleTable onScheduleUpdate={handleScheduleUpdate} />
+      <CounselingScheduleTable />
     </div>
   );
 }

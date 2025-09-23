@@ -46,15 +46,6 @@ export default function CounselorSchedule() {
     }
   };
 
-  // Helper to format time to 12-hour with AM/PM
-  function formatTimeLabel(time: string) {
-    const [h, m] = time.split(":");
-    const hour = Number(h);
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-    return `${hour12}:${m} ${ampm}`;
-  }
-
   return (
     <Card className="w-full mx-auto p-6 sm:p-10">
       <div className="flex items-center gap-3 mb-2">
@@ -117,7 +108,7 @@ export default function CounselorSchedule() {
             <SelectContent className=" max-w-xs">
               {TIME_OPTIONS.map((t) => (
                 <SelectItem key={t} value={t}>
-                  {formatTimeLabel(t)}
+                  {(t)}
                 </SelectItem>
               ))}
             </SelectContent>

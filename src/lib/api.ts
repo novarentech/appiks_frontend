@@ -1,5 +1,5 @@
 import { getSession } from "next-auth/react";
-import { MoodRecordResponse, BulkTemplateResponse, BulkImportResponse, DashboardReportGraphResponse, DashboardMoodGraphResponse, DashboardStudentResponse, MoodPatternResponse, SharingListResponse, SharingDetailResponse, SharingReplyResponse, SharingCreateResponse } from "@/types/api";
+import { MoodRecordResponse, BulkTemplateResponse, BulkImportResponse, DashboardReportGraphResponse, DashboardMoodGraphResponse, DashboardStudentResponse, MoodPatternResponse, SharingListResponse, SharingDetailResponse, SharingReplyResponse, SharingCreateResponse, ReportListResponse, ReportConfirmRequest, ReportConfirmResponse, ReportCloseRequest, ReportCloseResponse, ReportRescheduleRequest, ReportRescheduleResponse, ReportCancelRequest, ReportCancelResponse, UserListResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
 
 /**
@@ -265,4 +265,52 @@ export async function authPatch(endpoint: string, data: unknown) {
   }
 
   return response.json();
+}
+
+/**
+ * Get all counseling schedule reports
+ */
+export async function getReportList(): Promise<ReportListResponse> {
+  const response = await authGet("/report");
+  return response;
+}
+
+/**
+ * Confirm a counseling schedule report
+ */
+export async function confirmReport(id: number, data: ReportConfirmRequest): Promise<ReportConfirmResponse> {
+  const response = await authPatch(`/report/confirm/${id}`, data);
+  return response;
+}
+
+/**
+ * Close/Complete a counseling schedule report
+ */
+export async function closeReport(id: number, data: ReportCloseRequest): Promise<ReportCloseResponse> {
+  const response = await authPatch(`/report/close/${id}`, data);
+  return response;
+}
+
+/**
+ * Reschedule a counseling report meeting
+ */
+export async function rescheduleReport(id: number, data: ReportRescheduleRequest): Promise<ReportRescheduleResponse> {
+  const response = await authPatch(`/report/reschedule/${id}`, data);
+  return response;
+}
+
+/**
+ * Cancel a counseling schedule report
+ */
+export async function cancelReport(id: number, data: ReportCancelRequest): Promise<ReportCancelResponse> {
+  const response = await authPatch(`/report/cancel/${id}`, data);
+  return response;
+}
+
+/**
+ * Get users by type
+ */
+export async function getUsersByType(type: string): Promise<UserListResponse> {
+  const response = await authGet(`/dashboard/users/type/${type}`);
+  return response;
 }

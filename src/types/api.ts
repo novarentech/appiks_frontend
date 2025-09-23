@@ -228,3 +228,155 @@ export interface SharingCreateResponse {
   data: Sharing;
 }
 
+// Interface untuk Counseling Schedule
+export interface ReportUser {
+  name: string;
+  phone: string;
+  username: string;
+  identifier: string;
+  verified: boolean;
+  role: string;
+  room: {
+    id: number;
+    name: string;
+    code: string;
+    school_id: number;
+  };
+}
+
+export interface ReportCounselor {
+  name: string;
+  phone: string;
+  username: string;
+  identifier: string;
+  verified: boolean;
+  role: string;
+}
+
+export interface Report {
+  id: number;
+  user_id: number;
+  counselor_id: number;
+  topic: string;
+  room: string;
+  date: string;
+  time: string;
+  status: "menunggu" | "disetujui" | "dijadwalkan" | "selesai" | "dibatalkan";
+  priority: "rendah" | "sedang" | "tinggi";
+  notes: string;
+  result: string;
+  created_at: string;
+  user: ReportUser;
+  counselor: ReportCounselor;
+}
+
+export interface ReportListResponse {
+  success: boolean;
+  message: string;
+  data: Report[];
+}
+
+export interface ReportConfirmRequest {
+  date: string;
+  time: string;
+  notes: string;
+  room: string;
+}
+
+export interface ReportConfirmResponse {
+  success: boolean;
+  message: string;
+  data: Report;
+}
+
+export interface ReportCloseRequest {
+  result: string;
+}
+
+export interface ReportCloseResponse {
+  success: boolean;
+  message: string;
+  data: Report;
+}
+
+export interface ReportRescheduleRequest {
+  date: string;
+  time: string;
+  notes: string;
+  room: string;
+}
+
+export interface ReportRescheduleResponse {
+  success: boolean;
+  message: string;
+  data: Report;
+}
+
+export interface ReportCancelRequest {
+  result: string;
+}
+
+export interface ReportCancelResponse {
+  success: boolean;
+  message: string;
+  data: Report;
+}
+
+export interface User {
+  name: string;
+  phone: string;
+  username: string;
+  identifier: string;
+  verified: boolean;
+  role: string;
+  mentor_id: number;
+  counselor_id: number;
+  room_id: number;
+  school_id: number;
+}
+export interface CounselingScheduleCounselor {
+  name: string;
+  phone: string;
+  username: string;
+  identifier: string;
+  verified: boolean;
+  role: string;
+}
+
+export interface CounselingSchedule {
+  id: number;
+  user_id: number;
+  counselor_id: number;
+  topic: string;
+  room: string;
+  date: string;
+  time: string;
+  status: "menunggu" | "disetujui" | "dijadwalkan" | "selesai" | "dibatalkan";
+  priority: "rendah" | "sedang" | "tinggi";
+  notes: string;
+  result: string;
+  created_at: string;
+  user: {
+    name: string;
+    phone: string;
+    username: string;
+    identifier: string;
+    verified: boolean;
+    role: string;
+    room: {
+      id: number;
+      name: string;
+      code: string;
+      school_id: number;
+    };
+  };
+  counselor: CounselingScheduleCounselor;
+}
+
+export interface UserListResponse {
+  success: boolean;
+  message: string;
+  data: User[];
+}
+
+

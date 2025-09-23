@@ -37,29 +37,31 @@ import { useState, useEffect } from "react";
 // Types
 interface CounselingSchedule {
   id: number;
-  siswa: {
-    nama: string;
-    nisn: string;
-    kelas: string;
+  user_id: number;
+  counselor_id: number;
+  topic: string;
+  room: string;
+  date: string;
+  time: string;
+  status: "menunggu" | "disetujui" | "dijadwalkan" | "selesai" | "dibatalkan";
+  priority: "rendah" | "sedang" | "tinggi";
+  notes: string;
+  result: string;
+  created_at: string;
+  user: {
+    name: string;
+    phone: string;
+    username: string;
+    identifier: string;
+    verified: boolean;
+    role: string;
+    room: {
+      id: number;
+      name: string;
+      code: string;
+      school_id: number;
+    };
   };
-  topikKonseling: string;
-  status:
-    | "menunggu"
-    | "disetujui"
-    | "dijadwalkanUlang"
-    | "selesai"
-    | "dibatalkan";
-  prioritas: "rendah" | "sedang" | "tinggi";
-  waktuDiajukan: string;
-  jadwalKonseling?: {
-    tanggal: string;
-    waktu: string;
-    guruBK: string;
-    ruangan: string;
-  };
-  catatanKonfirmasi?: string;
-  alasanPembatalan?: string;
-  hasilKonseling?: string;
 }
 
 interface CounselingScheduleDialogProps {
@@ -95,8 +97,8 @@ export default function CounselingScheduleDialog({
     if (schedule && isOpen) {
       // Initialize form data based on existing schedule
       let existingDate: Date | undefined = undefined;
-      if (schedule.jadwalKonseling?.tanggal) {
-        const [day, month, year] = schedule.jadwalKonseling.tanggal.split("/");
+      if (schedule.date) {
+        const [year, month, day] = schedule.date.split("-");
         existingDate = new Date(
           parseInt(year),
           parseInt(month) - 1,
@@ -106,12 +108,12 @@ export default function CounselingScheduleDialog({
 
       setFormData({
         tanggal: existingDate,
-        waktu: schedule.jadwalKonseling?.waktu || "",
-        guruBK: schedule.jadwalKonseling?.guruBK || "Sri Wahyuni, S.Pd, M.Pd",
-        ruangan: schedule.jadwalKonseling?.ruangan || "",
-        catatan: schedule.catatanKonfirmasi || "",
-        hasilKonseling: schedule.hasilKonseling || "",
-        alasanPembatalan: schedule.alasanPembatalan || "",
+        waktu: schedule.time || "",
+        guruBK: "Sri Wahyuni, S.Pd, M.Pd",
+        ruangan: schedule.room || "",
+        catatan: schedule.notes || "",
+        hasilKonseling: schedule.result || "",
+        alasanPembatalan: schedule.result || "",
       });
     }
   }, [schedule, isOpen]);
@@ -203,7 +205,7 @@ export default function CounselingScheduleDialog({
   const isFormValid = () => {
     switch (dialogType) {
       case "confirm":
-        return formData.ruangan.trim() !== "";
+        return formData.tanggal && formData.waktu.trim() !== "" && formData.guruBK.trim() !== "" && formData.ruangan.trim() !== "";
       case "reschedule":
         return formData.tanggal && formData.waktu.trim() !== "";
       case "complete":
@@ -231,40 +233,118 @@ export default function CounselingScheduleDialog({
           {/* Student Info */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <h4 className="font-semibold text-lg mb-2">
-              {schedule.topikKonseling}
+              {schedule.topic}
             </h4>
             <div className="text-sm text-gray-600">
               <p>
-                Siswa: {schedule.siswa.nama} ({schedule.siswa.kelas})
+                Siswa: {schedule.user.name} ({schedule.user.room.name})
               </p>
-              <p>Diajukan: {schedule.waktuDiajukan}</p>
+              <p>Diajukan: {schedule.created_at}</p>
             </div>
           </div>
 
           {/* Form Fields */}
           {dialogType === "confirm" && (
             <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="tanggal">Tanggal *</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.tanggal ? (
+                          format(formData.tanggal, "dd/MM/yyyy")
+                        ) : (
+                          <span>Pilih tanggal</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={formData.tanggal}
+                        onSelect={(date) =>
+                          setFormData({ ...formData, tanggal: date })
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div>
+                  <Label htmlFor="waktu">Waktu *</Label>
+                  <Select
+                    value={formData.waktu}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, waktu: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih waktu" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="08:00">08:00</SelectItem>
+                      <SelectItem value="08:30">08:30</SelectItem>
+                      <SelectItem value="09:00">09:00</SelectItem>
+                      <SelectItem value="09:30">09:30</SelectItem>
+                      <SelectItem value="10:00">10:00</SelectItem>
+                      <SelectItem value="10:30">10:30</SelectItem>
+                      <SelectItem value="11:00">11:00</SelectItem>
+                      <SelectItem value="11:30">11:30</SelectItem>
+                      <SelectItem value="13:00">13:00</SelectItem>
+                      <SelectItem value="13:30">13:30</SelectItem>
+                      <SelectItem value="14:00">14:00</SelectItem>
+                      <SelectItem value="14:30">14:30</SelectItem>
+                      <SelectItem value="15:00">15:00</SelectItem>
+                      <SelectItem value="15:30">15:30</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <div>
-                <Label htmlFor="guruBK">Guru BK</Label>
-                <Input
-                  id="guruBK"
+                <Label htmlFor="guruBK">Guru BK *</Label>
+                <Select
                   value={formData.guruBK}
-                  onChange={(e) =>
-                    setFormData({ ...formData, guruBK: e.target.value })
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, guruBK: value })
                   }
-                  placeholder="Nama Guru BK"
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih guru BK" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Sri Wahyuni, S.Pd, M.Pd">
+                      Sri Wahyuni, S.Pd, M.Pd
+                    </SelectItem>
+                    <SelectItem value="Ahmad Rizki, S.Pd">
+                      Ahmad Rizki, S.Pd
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="ruangan">Ruangan *</Label>
-                <Input
-                  id="ruangan"
+                <Select
                   value={formData.ruangan}
-                  onChange={(e) =>
-                    setFormData({ ...formData, ruangan: e.target.value })
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, ruangan: value })
                   }
-                  placeholder="Ruangan konseling"
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih ruangan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Ruang BK 1">Ruang BK 1</SelectItem>
+                    <SelectItem value="Ruang BK 2">Ruang BK 2</SelectItem>
+                    <SelectItem value="Ruang Konseling">
+                      Ruang Konseling
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="catatan">Catatan Konfirmasi</Label>
