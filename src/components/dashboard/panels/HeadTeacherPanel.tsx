@@ -1,59 +1,89 @@
-import { Card } from "@/components/ui/card";
-import { Users, User } from "lucide-react";
+"use client";
+
+import { Users, User, UserStar } from "lucide-react";
 import { FaChalkboardTeacher } from "react-icons/fa";
+import DashboardPanel from "./DashboardPanel";
+import { useEffect, useState } from "react";
+import { getDashboardHeadTeacher } from "@/lib/api";
 
 export default function HeadTeacherPanel() {
-  return (
-    <Card className="w-full shadow-none">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-200">
-        <div className="p-6 flex items-center space-x-4">
-          <div className="p-3 bg-blue-100 rounded-full">
-            <User className="w-6 h-6 text-blue-600" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">
-              TOTAL SISWA
-            </p>
-            <p className="text-3xl font-bold text-blue-600">32</p>
-          </div>
-        </div>
+  const [stats, setStats] = useState([
+    {
+      icon: Users,
+      label: "TOTAL SISWA",
+      value: 0,
+      bgColor: "bg-indigo-200",
+      textColor: "text-indigo-500",
+    },
+    {
+      icon: User,
+      label: "TOTAL WALI",
+      value: 0,
+      bgColor: "bg-indigo-200",
+      textColor: "text-indigo-500",
+    },
+    {
+      icon: User,
+      label: "TOTAL BK",
+      value: 0,
+      bgColor: "bg-indigo-200",
+      textColor: "text-indigo-500",
+    },
+    {
+      icon: FaChalkboardTeacher,
+      label: "TOTAL KELAS",
+      value: 0,
+      bgColor: "bg-indigo-200",
+      textColor: "text-indigo-500",
+    },
+  ]);
 
-        <div className="p-6 flex items-center space-x-4">
-          <div className="p-3 bg-purple-100 rounded-full">
-            <Users className="w-6 h-6 text-purple-600" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">
-              TOTAL WALI
-            </p>
-            <p className="text-3xl font-bold text-purple-600">25</p>
-          </div>
-        </div>
+  useEffect(() => {
+    const fetchHeadTeacherData = async () => {
+      try {
+        const response = await getDashboardHeadTeacher();
+        if (response.success) {
+          const { student_count, teacher_count, counselor_count, room_count } =
+            response.data;
 
-        <div className="p-6 flex items-center space-x-4">
-          <div className="p-3 bg-green-100 rounded-full">
-            <User className="w-6 h-6 text-green-600" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">
-              TOTAL BK
-            </p>
-            <p className="text-3xl font-bold text-green-600">20</p>
-          </div>
-        </div>
+          setStats([
+            {
+              icon: Users,
+              label: "TOTAL SISWA",
+              value: student_count,
+              bgColor: "bg-indigo-200",
+              textColor: "text-indigo-500",
+            },
+            {
+              icon: User,
+              label: "TOTAL WALI",
+              value: teacher_count,
+              bgColor: "bg-indigo-200",
+              textColor: "text-indigo-500",
+            },
+            {
+              icon: User,
+              label: "TOTAL BK",
+              value: counselor_count,
+              bgColor: "bg-indigo-200",
+              textColor: "text-indigo-500",
+            },
+            {
+              icon: FaChalkboardTeacher,
+              label: "TOTAL KELAS",
+              value: room_count,
+              bgColor: "bg-indigo-200",
+              textColor: "text-indigo-500",
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch head teacher dashboard data:", error);
+      }
+    };
 
-        <div className="p-6 flex items-center space-x-4">
-          <div className="p-3 bg-orange-100 rounded-full">
-            <FaChalkboardTeacher className="w-6 h-6 text-orange-600" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">
-              TOTAL KELAS
-            </p>
-            <p className="text-3xl font-bold text-orange-600">5</p>
-          </div>
-        </div>
-      </div>
-    </Card>
-  );
+    fetchHeadTeacherData();
+  }, []);
+
+  return <DashboardPanel items={stats} />;
 }

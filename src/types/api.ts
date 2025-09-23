@@ -426,3 +426,15 @@ export interface DashboardMoodTrendsResponse {
   }>;
 }
 
+// Interface untuk response API dashboard headteacher
+export interface DashboardHeadTeacherResponse {
+  success: boolean;
+  message: string;
+  data: {
+    student_count: number;
+    teacher_count: number;
+    counselor_count: number;
+    room_count: number;
+  };
+}
+
