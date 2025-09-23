@@ -460,6 +460,21 @@ export interface DashboardLatestContentResponse {
   }[];
 }
 
+// Interface untuk response API dashboard latest user
+export interface DashboardLatestUserResponse {
+  success: boolean;
+  message: string;
+  data: {
+    name: string;
+    phone: string;
+    username: string;
+    identifier: string;
+    verified: boolean;
+    role: string;
+    created_at: string;
+  }[];
+}
+
 // Interface untuk response API dashboard user
 export interface DashboardUserResponse {
   success: boolean;

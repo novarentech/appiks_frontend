@@ -1,5 +1,5 @@
 import { getSession } from "next-auth/react";
-import { MoodRecordResponse, BulkTemplateResponse, BulkImportResponse, DashboardReportGraphResponse, DashboardMoodGraphResponse, DashboardStudentResponse, MoodPatternResponse, SharingListResponse, SharingDetailResponse, SharingReplyResponse, SharingCreateResponse, ReportListResponse, ReportConfirmRequest, ReportConfirmResponse, ReportCloseRequest, ReportCloseResponse, ReportRescheduleRequest, ReportRescheduleResponse, ReportCancelRequest, ReportCancelResponse, UserListResponse, CreateReportRequest, CreateReportResponse, DashboardMoodTrendsResponse, DashboardTeacherResponse, DashboardCounselorResponse, DashboardHeadTeacherResponse, DashboardUserResponse, DashboardAdminResponse, DashboardLatestContentResponse } from "@/types/api";
+import { MoodRecordResponse, BulkTemplateResponse, BulkImportResponse, DashboardReportGraphResponse, DashboardMoodGraphResponse, DashboardStudentResponse, MoodPatternResponse, SharingListResponse, SharingDetailResponse, SharingReplyResponse, SharingCreateResponse, ReportListResponse, ReportConfirmRequest, ReportConfirmResponse, ReportCloseRequest, ReportCloseResponse, ReportRescheduleRequest, ReportRescheduleResponse, ReportCancelRequest, ReportCancelResponse, UserListResponse, CreateReportRequest, CreateReportResponse, DashboardMoodTrendsResponse, DashboardTeacherResponse, DashboardCounselorResponse, DashboardHeadTeacherResponse, DashboardUserResponse, DashboardAdminResponse, DashboardLatestContentResponse, DashboardLatestUserResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
 
 /**
@@ -376,5 +376,13 @@ export async function getDashboardAdmin(): Promise<DashboardAdminResponse> {
  */
 export async function getDashboardLatestContent(): Promise<DashboardLatestContentResponse> {
   const response = await authGet("/dashboard/latest-content");
+  return response;
+}
+
+/**
+ * Get dashboard latest user data
+ */
+export async function getDashboardLatestUser(): Promise<DashboardLatestUserResponse> {
+  const response = await authGet("/dashboard/latest-user");
   return response;
 }
