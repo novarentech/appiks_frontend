@@ -392,3 +392,13 @@ export interface CreateReportResponse {
   data: Report;
 }
 
+// Interface untuk response API dashboard mood trends
+export interface DashboardMoodTrendsResponse {
+  success: boolean;
+  message: string;
+  data: Record<string, {
+    status: string;
+    total: number;
+  }>;
+}
+

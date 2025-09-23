@@ -10,121 +10,83 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getDashboardMoodTrends } from "@/lib/api";
 
-// Data untuk chart line mood rata-rata sepanjang tahun
-const yearlyMoodData = [
-  {
-    month: "Jan",
-    Gembira: 3,
-    Netral: 2,
-    Marah: 1,
-    Sedih: 2,
-    details:
-      "Januari: Siswa menunjukkan mood yang cukup stabil dengan mayoritas dalam kondisi gembira.",
-  },
-  {
-    month: "Feb",
-    Gembira: 2,
-    Netral: 2,
-    Marah: 1,
-    Sedih: 2,
-    details:
-      "Februari: Mood siswa mulai menurun setelah liburan, banyak yang merasa sedih kembali ke sekolah.",
-  },
-  {
-    month: "Mar",
-    Gembira: 2,
-    Netral: 2,
-    Marah: 1,
-    Sedih: 2,
-    details:
-      "Maret: Mood siswa masih dalam tahap penyesuaian dengan rutinitas sekolah baru.",
-  },
-  {
-    month: "Apr",
-    Gembira: 3,
-    Netral: 3,
-    Marah: 1,
-    Sedih: 1,
-    details:
-      "April: Peningkatan mood positif, siswa mulai beradaptasi dengan baik.",
-  },
-  {
-    month: "May",
-    Gembira: 2,
-    Netral: 2,
-    Marah: 1,
-    Sedih: 4,
-    details: "Mei: Penurunan mood karena tekanan ujian tengah semester.",
-  },
-  {
-    month: "Jun",
-    Gembira: 4,
-    Netral: 3,
-    Marah: 1,
-    Sedih: 2,
-    details: "Juni: Mood membaik setelah ujian selesai, siswa merasa lega.",
-  },
-  {
-    month: "Jul",
-    Gembira: 3,
-    Netral: 2,
-    Marah: 1,
-    Sedih: 2,
-    details: "Juli: Liburan semester, mood siswa cenderung positif.",
-  },
-  {
-    month: "Aug",
-    Gembira: 4,
-    Netral: 3,
-    Marah: 2,
-    Sedih: 2,
-    details:
-      "Agustus: Semester baru dimulai, antusiasme tinggi tapi ada juga yang merasa marah.",
-  },
-  {
-    month: "Sep",
-    Gembira: 3,
-    Netral: 2,
-    Marah: 1,
-    Sedih: 2,
-    details:
-      "September: Mood mulai stabil kembali setelah adaptasi semester baru.",
-  },
-  {
-    month: "Oct",
-    Gembira: 3,
-    Netral: 2,
-    Marah: 1,
-    Sedih: 2,
-    details: "Oktober: Kondisi mood siswa dalam keadaan normal dan terkendali.",
-  },
-  {
-    month: "Nov",
-    Gembira: 3,
-    Netral: 2,
-    Marah: 1,
-    Sedih: 2,
-    details: "November: Mood siswa stabil menjelang akhir tahun.",
-  },
-  {
-    month: "Dec",
-    Gembira: 3,
-    Netral: 2,
-    Marah: 1,
-    Sedih: 2,
-    details: "Desember: Antusiasme tinggi menjelang liburan akhir tahun.",
-  },
-];
+// Fungsi untuk mengubah data dari API menjadi format yang sesuai untuk chart
+const transformApiDataToChartFormat = (
+  apiData: Record<string, { status: string; total: number }>
+) => {
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  // Filter hanya bulan yang memiliki data
+  const monthData = monthNames
+    .map((month) => {
+      const monthKey = Object.keys(apiData).find((key) =>
+        key.toLowerCase().includes(month.toLowerCase())
+      );
+
+      if (monthKey && apiData[monthKey]) {
+        const { status, total } = apiData[monthKey];
+
+        // Konversi status menjadi nilai numerik untuk chart
+        let moodName = "";
+
+        // Berdasarkan status, tentukan nilai mood
+        switch (status.toLowerCase()) {
+          case "happy":
+          case "gembira":
+            moodName = "Gembira";
+            break;
+          case "neutral":
+          case "netral":
+            moodName = "Netral";
+            break;
+          case "sad":
+          case "sedih":
+            moodName = "Sedih";
+            break;
+          case "angry":
+          case "marah":
+            moodName = "Marah";
+            break;
+          default:
+            moodName = "Netral";
+        }
+
+        return {
+          month,
+          moodName,
+          total,
+        };
+      }
+
+      return null; // Return null untuk bulan yang tidak ada data
+    })
+    .filter((item): item is MoodData => item !== null); // Filter out null values dengan type guard
+
+  return monthData;
+};
 
 // Types
 interface MoodData {
   month: string;
-  Gembira: number;
-  Netral: number;
-  Marah: number;
-  Sedih: number;
+  moodValue: number;
+  moodName: string;
+  total: number;
   details: string;
 }
 
@@ -141,10 +103,12 @@ interface TooltipProps {
 // Custom Tooltip
 const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
+    const moodData = payload[0].payload;
+
     return (
       <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
         <p className="font-semibold">{`${label}`}</p>
-        <p className="text-green-600">{`Gembira: ${payload[0].value}`}</p>
+        <p className="text-sm text-gray-500">{`Total: ${moodData.total}`}</p>
       </div>
     );
   }
@@ -153,6 +117,29 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 
 export default function AverageStudentMood() {
   const [selectedPoint, setSelectedPoint] = useState<MoodData | null>(null);
+  const [moodData, setMoodData] = useState<MoodData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMoodData = async () => {
+      try {
+        const response = await getDashboardMoodTrends();
+        if (response.success && response.data) {
+          const chartData = transformApiDataToChartFormat(response.data);
+          setMoodData(chartData);
+        }
+      } catch (error) {
+        console.error("Error fetching mood trends data:", error);
+        // Set default data if API fails
+        const defaultData = transformApiDataToChartFormat({});
+        setMoodData(defaultData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMoodData();
+  }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleChartClick = (data: any) => {
@@ -167,50 +154,66 @@ export default function AverageStudentMood() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-700">
-            Rata-Rata Mood Siswa 2025
+            Rata-Rata Mood Siswa {new Date().getFullYear()}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={yearlyMoodData} onClick={handleChartClick}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-gray-500">Memuat data mood siswa...</p>
+              </div>
+            ) : moodData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={moodData} onClick={handleChartClick}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
 
-                <XAxis
-                  dataKey="month"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: "#6b7280" }}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: "#6b7280" }}
-                  domain={[0, 5]}
-                  ticks={[0, 1, 2, 3, 4, 5]}
-                  tickFormatter={(value) => {
-                    const labels = ["", "Sedih", "Marah", "Netral", "Gembira"];
-                    return labels[value] || "";
-                  }}
-                />
+                  <XAxis
+                    dataKey="month"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 12, fill: "#6b7280" }}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 12, fill: "#6b7280" }}
+                    domain={[0, 5]}
+                    ticks={[0, 1, 2, 3, 4, 5]}
+                    tickFormatter={(value) => {
+                      const labels = [
+                        "",
+                        "Marah",
+                        "Sedih",
+                        "Netral",
+                        "Gembira",
+                      ];
+                      return labels[value] || "";
+                    }}
+                  />
 
-                <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip />} />
 
-                <Line
-                  type="linear"
-                  dataKey="Gembira"
-                  stroke="#6366F1"
-                  strokeWidth={2}
-                  dot={{
-                    fill: "#6366F1",
-                    strokeWidth: 2,
-                    r: 3,
-                    cursor: "pointer",
-                  }}
-                  activeDot={{ r: 5, stroke: "#6366F1", strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+                  <Line
+                    type="linear"
+                    dataKey="moodValue"
+                    stroke="#6366F1"
+                    strokeWidth={2}
+                    dot={{
+                      fill: "#6366F1",
+                      strokeWidth: 2,
+                      r: 3,
+                      cursor: "pointer",
+                    }}
+                    activeDot={{ r: 5, stroke: "#6366F1", strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-gray-500">Tidak ada data mood tersedia.</p>
+              </div>
+            )}
           </div>
 
           {/* Detail Information when point is clicked */}
@@ -224,25 +227,26 @@ export default function AverageStudentMood() {
                   <p className="text-sm text-gray-700 mt-2">
                     {selectedPoint.details}
                   </p>
-                  <div className="grid grid-cols-2 gap-4 mt-3">
+                  <div className="mt-3">
                     <div className="text-sm">
-                      <span className="text-green-600">
-                        Gembira: {selectedPoint.Gembira}
+                      <span
+                        className={`${
+                          selectedPoint.moodName === "Gembira"
+                            ? "text-green-600"
+                            : selectedPoint.moodName === "Netral"
+                            ? "text-gray-600"
+                            : selectedPoint.moodName === "Marah"
+                            ? "text-red-600"
+                            : "text-blue-600"
+                        }`}
+                      >
+                        Mood Terbanyak: {selectedPoint.moodName} (
+                        {selectedPoint.moodValue})
                       </span>
                     </div>
-                    <div className="text-sm">
+                    <div className="text-sm mt-1">
                       <span className="text-gray-600">
-                        Netral: {selectedPoint.Netral}
-                      </span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-red-600">
-                        Marah: {selectedPoint.Marah}
-                      </span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-blue-600">
-                        Sedih: {selectedPoint.Sedih}
+                        Total: {selectedPoint.total}
                       </span>
                     </div>
                   </div>
