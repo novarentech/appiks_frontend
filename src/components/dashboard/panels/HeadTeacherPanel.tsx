@@ -23,7 +23,7 @@ export default function HeadTeacherPanel() {
       textColor: "text-indigo-500",
     },
     {
-      icon: User,
+      icon: UserStar,
       label: "TOTAL BK",
       value: 0,
       bgColor: "bg-indigo-200",
@@ -62,7 +62,7 @@ export default function HeadTeacherPanel() {
               textColor: "text-indigo-500",
             },
             {
-              icon: User,
+              icon: UserStar,
               label: "TOTAL BK",
               value: counselor_count,
               bgColor: "bg-indigo-200",
