@@ -448,6 +448,18 @@ export interface DashboardAdminResponse {
   };
 }
 
+// Interface untuk response API dashboard latest content
+export interface DashboardLatestContentResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    title: string;
+    created_at: string;
+    type: "video" | "article" | "quote";
+  }[];
+}
+
 // Interface untuk response API dashboard user
 export interface DashboardUserResponse {
   success: boolean;
