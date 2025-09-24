@@ -145,17 +145,33 @@ export function ViewUserDialog({
               )}
 
               {user.class && (
-                <div className="flex items-start space-x-4 p-4 bg-white border rounded-lg hover:shadow-md transition-shadow">
-                  <div className="p-2 bg-gray-100 rounded-full">
-                    <School className="h-5 w-5 text-gray-600" />
+                <>
+                  {user.role === "siswa" && (
+                    <div className="flex items-start space-x-4 p-4 bg-white border rounded-lg hover:shadow-md transition-shadow">
+                      <div className="p-2 bg-gray-100 rounded-full">
+                        <School className="h-5 w-5 text-gray-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-500">
+                          Tingkat Kelas
+                        </p>
+                        <p className="font-semibold text-gray-900">{user.class.split(" ")[0]}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="flex items-start space-x-4 p-4 bg-white border rounded-lg hover:shadow-md transition-shadow">
+                    <div className="p-2 bg-gray-100 rounded-full">
+                      <School className="h-5 w-5 text-gray-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-500">
+                        {user.role === "siswa" ? "Kelas" : "Wali Kelas"}
+                      </p>
+                      <p className="font-semibold text-gray-900">{user.class}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-500">
-                      {user.role === "siswa" ? "Kelas" : "Wali Kelas"}
-                    </p>
-                    <p className="font-semibold text-gray-900">{user.class}</p>
-                  </div>
-                </div>
+                </>
               )}
 
               <div className="flex items-start space-x-4 p-4 bg-white border rounded-lg hover:shadow-md transition-shadow">

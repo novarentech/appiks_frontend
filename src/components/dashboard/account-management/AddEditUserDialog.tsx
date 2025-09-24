@@ -55,6 +55,8 @@ export function AddEditUserDialog({
     class: "",
     password: "",
   });
+  
+  const [classLevel, setClassLevel] = useState("");
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -126,6 +128,12 @@ export function AddEditUserDialog({
         class: user.class || "",
         password: user.password || "",
       });
+      
+      // Set class level based on user class
+      if (user.class) {
+        const level = user.class.split(" ")[0]; // Get the level part (X, XI, XII)
+        setClassLevel(level);
+      }
     } else {
       setFormData({
         fullName: "",
@@ -135,6 +143,7 @@ export function AddEditUserDialog({
         class: "",
         password: "",
       });
+      setClassLevel("");
     }
     setErrors({});
   }, [user]);
@@ -223,6 +232,12 @@ export function AddEditUserDialog({
       }
     };
   }, [debounceTimer]);
+
+  const handleClassLevelChange = (level: string) => {
+    setClassLevel(level);
+    // Reset class selection when level changes
+    setFormData({ ...formData, class: "" });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -658,40 +673,107 @@ export function AddEditUserDialog({
             </div>
 
             {shouldShowClass && (
-              <div className="space-y-2">
-                <Label htmlFor="class">
-                  {userRole === "siswa" ? "Kelas" : "Wali Kelas"}
-                </Label>
-                <Select
-                  value={formData.class}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, class: value })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={`Pilih ${
-                        userRole === "siswa" ? "kelas" : "wali kelas"
-                      }`}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="X IPA 1">X IPA 1</SelectItem>
-                    <SelectItem value="X IPA 2">X IPA 2</SelectItem>
-                    <SelectItem value="X IPA 3">X IPA 3</SelectItem>
-                    <SelectItem value="XI IPA 1">XI IPA 1</SelectItem>
-                    <SelectItem value="XI IPA 2">XI IPA 2</SelectItem>
-                    <SelectItem value="XII IPA 1">XII IPA 1</SelectItem>
-                    <SelectItem value="XII IPA 2">XII IPA 2</SelectItem>
-                    <SelectItem value="X IPS 1">X IPS 1</SelectItem>
-                    <SelectItem value="X IPS 2">X IPS 2</SelectItem>
-                    <SelectItem value="XI IPS 1">XI IPS 1</SelectItem>
-                    <SelectItem value="XI IPS 2">XI IPS 2</SelectItem>
-                    <SelectItem value="XII IPS 1">XII IPS 1</SelectItem>
-                    <SelectItem value="XII IPS 2">XII IPS 2</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <>
+                {userRole === "siswa" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="classLevel">Tingkat Kelas</Label>
+                    <Select
+                      value={classLevel}
+                      onValueChange={handleClassLevelChange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Pilih tingkat kelas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="X">X</SelectItem>
+                        <SelectItem value="XI">XI</SelectItem>
+                        <SelectItem value="XII">XII</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="class">
+                    {userRole === "siswa" ? "Kelas" : "Wali Kelas"}
+                  </Label>
+                  <Select
+                    value={formData.class}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, class: value })
+                    }
+                    disabled={userRole === "siswa" && !classLevel}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        placeholder={`Pilih ${
+                          userRole === "siswa" ? "kelas" : "wali kelas"
+                        }`}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {userRole === "siswa" ? (
+                        // Show classes based on selected level
+                        <>
+                          {classLevel === "X" && (
+                            <>
+                              <SelectItem value="X IPA 1">X IPA 1</SelectItem>
+                              <SelectItem value="X IPA 2">X IPA 2</SelectItem>
+                              <SelectItem value="X IPA 3">X IPA 3</SelectItem>
+                              <SelectItem value="X IPS 1">X IPS 1</SelectItem>
+                              <SelectItem value="X IPS 2">X IPS 2</SelectItem>
+                            </>
+                          )}
+                          
+                          {classLevel === "XI" && (
+                            <>
+                              <SelectItem value="XI IPA 1">XI IPA 1</SelectItem>
+                              <SelectItem value="XI IPA 2">XI IPA 2</SelectItem>
+                              <SelectItem value="XI IPS 1">XI IPS 1</SelectItem>
+                              <SelectItem value="XI IPS 2">XI IPS 2</SelectItem>
+                            </>
+                          )}
+                          
+                          {classLevel === "XII" && (
+                            <>
+                              <SelectItem value="XII IPA 1">XII IPA 1</SelectItem>
+                              <SelectItem value="XII IPA 2">XII IPA 2</SelectItem>
+                              <SelectItem value="XII IPS 1">XII IPS 1</SelectItem>
+                              <SelectItem value="XII IPS 2">XII IPS 2</SelectItem>
+                            </>
+                          )}
+                          
+                          {!classLevel && (
+                            <SelectItem value="" disabled>
+                              Pilih tingkat kelas terlebih dahulu
+                            </SelectItem>
+                          )}
+                        </>
+                      ) : (
+                        // For guru_wali, show all classes
+                        <>
+                          <SelectItem value="X IPA 1">X IPA 1</SelectItem>
+                          <SelectItem value="X IPA 2">X IPA 2</SelectItem>
+                          <SelectItem value="X IPA 3">X IPA 3</SelectItem>
+                          <SelectItem value="XI IPA 1">XI IPA 1</SelectItem>
+                          <SelectItem value="XI IPA 2">XI IPA 2</SelectItem>
+                          <SelectItem value="XII IPA 1">XII IPA 1</SelectItem>
+                          <SelectItem value="XII IPA 2">XII IPA 2</SelectItem>
+                          <SelectItem value="X IPS 1">X IPS 1</SelectItem>
+                          <SelectItem value="X IPS 2">X IPS 2</SelectItem>
+                          <SelectItem value="XI IPS 1">XI IPS 1</SelectItem>
+                          <SelectItem value="XI IPS 2">XI IPS 2</SelectItem>
+                          <SelectItem value="XII IPS 1">XII IPS 1</SelectItem>
+                          <SelectItem value="XII IPS 2">XII IPS 2</SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {userRole === "siswa" && !classLevel && (
+                    <p className="text-sm text-gray-500">Pilih tingkat kelas terlebih dahulu</p>
+                  )}
+                </div>
+              </>
             )}
           </div>
 
