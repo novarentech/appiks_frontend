@@ -37,7 +37,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTags } from "@/hooks/useTags";
-import { Tag } from "@/types/api";
 import { CreateVideoDialog } from "@/components/dashboard/dialogs/CreateVideoDialog";
 import { CreateArticleDialog } from "@/components/dashboard/dialogs/CreateArticleDialog";
 import { CreateQuoteDialog } from "@/components/dashboard/dialogs/CreateQuoteDialog";
