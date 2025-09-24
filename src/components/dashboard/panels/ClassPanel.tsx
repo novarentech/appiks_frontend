@@ -1,36 +1,23 @@
-import { Users, ClipboardList, ThumbsUp, AlertTriangle } from "lucide-react";
+import { Users } from "lucide-react";
 import DashboardPanel from "./DashboardPanel";
+import { FaChalkboardTeacher } from "react-icons/fa";
 
 export default function ClassPanel() {
   const stats = [
     {
-      icon: Users,
-      label: "TOTAL SEKOLAH",
-      value: 150,
-      bgColor: "bg-blue-100",
-      textColor: "text-blue-600"
-    },
-    {
-      icon: ClipboardList,
+      icon: FaChalkboardTeacher,
       label: "TOTAL KELAS",
-      value: 5,
-      bgColor: "bg-purple-100",
-      textColor: "text-purple-600"
+      value: 150,
+      bgColor: "bg-indigo-200",
+      textColor: "text-indigo-500",
     },
     {
-      icon: ThumbsUp,
-      label: "TOTAL TU",
-      value: 10,
-      bgColor: "bg-green-100",
-      textColor: "text-green-600"
-    },
-    {
-      icon: AlertTriangle,
+      icon: Users,
       label: "TOTAL SISWA",
-      value: 5,
-      bgColor: "bg-orange-100",
-      textColor: "text-orange-600"
-    }
+      value: 150,
+      bgColor: "bg-indigo-200",
+      textColor: "text-indigo-500",
+    },
   ];
 
   return <DashboardPanel items={stats} />;
