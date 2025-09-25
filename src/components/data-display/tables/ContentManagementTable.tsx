@@ -125,7 +125,7 @@ const sampleData: ContentItem[] = [
   },
 ];
 
-export function ContentManagementTable() {
+export function ContentManagementTable({ refreshData }: { refreshData?: () => void }) {
   const router = useRouter();
   const { data: tagsData, loading: tagsLoading } = useTags();
   const { data: dashboardContentData, loading: contentLoading, error: contentError, refetch: refetchDashboardContent } = useDashboardContent();
@@ -487,6 +487,10 @@ export function ContentManagementTable() {
         onSuccess={(newArticle: ContentItem) => {
           setData((prevData) => [...prevData, newArticle]);
           setIsCreateArticleOpen(false);
+          // Refetch dashboard content to get fresh data
+          refetchDashboardContent();
+          // Refresh parent components
+          if (refreshData) refreshData();
         }}
       />
 
@@ -498,6 +502,10 @@ export function ContentManagementTable() {
         onSuccess={(newVideo: ContentItem) => {
           setData((prevData) => [...prevData, newVideo]);
           setIsCreateVideoOpen(false);
+          // Refetch dashboard content to get fresh data
+          refetchDashboardContent();
+          // Refresh parent components
+          if (refreshData) refreshData();
         }}
       />
 
@@ -507,6 +515,10 @@ export function ContentManagementTable() {
         onSuccess={(newQuote: ContentItem) => {
           setData((prevData) => [...prevData, newQuote]);
           setIsCreateQuoteOpen(false);
+          // Refetch dashboard content to get fresh data
+          refetchDashboardContent();
+          // Refresh parent components
+          if (refreshData) refreshData();
         }}
       />
 
@@ -534,6 +546,8 @@ export function ContentManagementTable() {
           setIsEditArticleOpen(false);
           // Refetch dashboard content to get fresh data
           refetchDashboardContent();
+          // Refresh parent components
+          if (refreshData) refreshData();
         }}
       />
 
@@ -551,6 +565,8 @@ export function ContentManagementTable() {
           );
           setIsEditVideoOpen(false);
           setSelectedItem(null);
+          // Refresh parent components
+          if (refreshData) refreshData();
         }}
       />
 
@@ -558,7 +574,14 @@ export function ContentManagementTable() {
         open={isDeleteOpen}
         onOpenChange={setIsDeleteOpen}
         contentItem={selectedItem}
-        onConfirm={handleDeleteConfirm}
+        onSuccess={() => {
+          setIsDeleteOpen(false);
+          setSelectedItem(null);
+          // Refetch dashboard content to get fresh data
+          refetchDashboardContent();
+          // Refresh parent components
+          if (refreshData) refreshData();
+        }}
       />
     </div>
   );

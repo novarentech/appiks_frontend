@@ -4,11 +4,16 @@ import ContentManagementPanel from "@/components/dashboard/panels/ContentManagem
 import { ContentManagementTable } from "@/components/data-display/tables/ContentManagementTable";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function ContentManagementPage() {
   const { isLoading, isAuthenticated, isVerified, user } = useAuth();
   const router = useRouter();
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const refreshData = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !isVerified)) {
@@ -55,9 +60,9 @@ export default function ContentManagementPage() {
         <p className="text-gray-600 mt-2">Management artikel dan video </p>
       </div>
 
-      <ContentManagementPanel />
+      <ContentManagementPanel refreshTrigger={refreshTrigger} />
 
-      <ContentManagementTable />
+      <ContentManagementTable refreshData={refreshData} />
     </div>
   );
 }

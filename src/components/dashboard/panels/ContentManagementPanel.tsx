@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { getContentStatistics } from "@/lib/api";
 import { ContentStatisticsResponse } from "@/types/api";
 
-export default function ContentManagementPanel() {
+export default function ContentManagementPanel({ refreshTrigger }: { refreshTrigger?: number }) {
   const [stats, setStats] = useState([
     {
       icon: Newspaper,
@@ -33,44 +33,44 @@ export default function ContentManagementPanel() {
     },
   ]);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response: ContentStatisticsResponse =
-          await getContentStatistics();
+  const fetchStats = async () => {
+    try {
+      const response: ContentStatisticsResponse =
+        await getContentStatistics();
 
-        if (response.success && response.data) {
-          setStats([
-            {
-              icon: Newspaper,
-              label: "TOTAL KONTEN ARTIKEL",
-              value: response.data.article_count,
-              bgColor: "bg-indigo-200",
-              textColor: "text-indigo-500",
-            },
-            {
-              icon: Play,
-              label: "TOTAL KONTEN VIDEO",
-              value: response.data.video_count,
-              bgColor: "bg-indigo-200",
-              textColor: "text-indigo-500",
-            },
-            {
-              icon: Quote,
-              label: "TOTAL KONTEN QUOTES",
-              value: response.data.quote_count,
-              bgColor: "bg-indigo-200",
-              textColor: "text-indigo-500",
-            },
-          ]);
-        }
-      } catch (error) {
-        console.error("Error fetching content statistics:", error);
+      if (response.success && response.data) {
+        setStats([
+          {
+            icon: Newspaper,
+            label: "TOTAL KONTEN ARTIKEL",
+            value: response.data.article_count,
+            bgColor: "bg-indigo-200",
+            textColor: "text-indigo-500",
+          },
+          {
+            icon: Play,
+            label: "TOTAL KONTEN VIDEO",
+            value: response.data.video_count,
+            bgColor: "bg-indigo-200",
+            textColor: "text-indigo-500",
+          },
+          {
+            icon: Quote,
+            label: "TOTAL KONTEN QUOTES",
+            value: response.data.quote_count,
+            bgColor: "bg-indigo-200",
+            textColor: "text-indigo-500",
+          },
+        ]);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching content statistics:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchStats();
-  }, []);
+  }, [refreshTrigger]);
 
   return <DashboardPanel items={stats} />;
 }
