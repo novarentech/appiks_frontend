@@ -21,6 +21,9 @@ import {
 } from "@/components/ui/select";
 import { Quote, Plus } from "lucide-react";
 import { ContentItem } from "@/components/data-display/tables/ContentManagementTable";
+import { createQuote } from "@/lib/api";
+import { CreateQuoteRequest } from "@/types/api";
+import { toast } from "sonner";
 
 interface CreateQuoteDialogProps {
   open: boolean;
@@ -32,7 +35,6 @@ const publicationTargets = [
   "Hasil Mood Aman",
   "Hasil Mood Tidak Aman",
   "Daily Quotes",
-  "Motivational Quotes",
 ];
 
 export function CreateQuoteDialog({
@@ -47,16 +49,39 @@ export function CreateQuoteDialog({
 
   const handleSubmit = async () => {
     if (!quoteContent.trim() || !author.trim() || !publicationTarget) {
-      alert("Mohon lengkapi semua field yang wajib diisi");
+      toast.error("Mohon lengkapi semua field yang wajib diisi");
       return;
     }
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Map publication target to API type
+      let apiType: "secure" | "insecure" | "daily";
+      switch (publicationTarget) {
+        case "Hasil Mood Aman":
+          apiType = "secure";
+          break;
+        case "Hasil Mood Tidak Aman":
+          apiType = "insecure";
+          break;
+        case "Daily Quotes":
+          apiType = "daily";
+          break;
+        default:
+          apiType = "daily";
+      }
+
+      const quoteData: CreateQuoteRequest = {
+        text: quoteContent.trim(),
+        author: author.trim(),
+        type: apiType,
+      };
+
+      const response = await createQuote(quoteData);
+      
       const newQuote: ContentItem = {
-        id: Date.now().toString(),
+        id: response.data.id.toString(),
         title:
           quoteContent.length > 50
             ? quoteContent.substring(0, 50) + "..."
@@ -73,16 +98,23 @@ export function CreateQuoteDialog({
         content: quoteContent.trim(),
         author: author.trim(),
         category: publicationTarget,
+        ids: response.data.id.toString(),
+        created_at: response.data.created_at,
       };
 
       onSuccess(newQuote);
+      toast.success("Quote berhasil dibuat!");
 
       // Reset form
       setQuoteContent("");
       setAuthor("");
       setPublicationTarget("");
       setIsSubmitting(false);
-    }, 1000);
+    } catch (error) {
+      console.error("Error creating quote:", error);
+      toast.error("Gagal membuat quote. Silakan coba lagi.");
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {

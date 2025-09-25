@@ -20,6 +20,8 @@ import { toast } from "sonner";
 import { Editor } from "@/components/blocks/editor-00/editor";
 import { ContentItem } from "@/components/data-display/tables/ContentManagementTable";
 import { Tag } from "@/types/api";
+import { createArticle } from "@/lib/api";
+import { CreateArticleRequest } from "@/types/api";
 
 interface CreateArticleDialogProps {
   open: boolean;
@@ -104,10 +106,19 @@ export function CreateArticleDialog({
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const articleData: CreateArticleRequest = {
+        title: title.trim(),
+        description: overview.trim(),
+        content: content.trim(),
+        tags: selectedTags,
+        thumbnail: uploadedImage || undefined,
+      };
+
+      const response = await createArticle(articleData);
+      
       const newArticle: ContentItem = {
-        id: Date.now().toString(),
+        id: response.data.id.toString(),
         title: title.trim(),
         type: "Artikel",
         createdAt: new Date().toLocaleDateString("id-ID", {
@@ -120,9 +131,9 @@ export function CreateArticleDialog({
         }),
         content: content.trim(),
         category: selectedTags[0] || "Uncategorized",
-        thumbnail: uploadedImage
-          ? URL.createObjectURL(uploadedImage)
-          : undefined,
+        thumbnail: response.data.thumbnail || (uploadedImage ? URL.createObjectURL(uploadedImage) : undefined),
+        ids: response.data.id.toString(),
+        created_at: response.data.created_at,
       };
 
       onSuccess(newArticle);
@@ -139,7 +150,11 @@ export function CreateArticleDialog({
       setSelectedTags([]);
       setUploadedImage(null);
       setIsSubmitting(false);
-    }, 1000);
+    } catch (error) {
+      console.error("Error creating article:", error);
+      toast.error("Gagal membuat artikel. Silakan coba lagi.");
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {

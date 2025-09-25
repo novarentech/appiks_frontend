@@ -599,3 +599,61 @@ export interface DashboardHeadTeacherResponse {
   };
 }
 
+// Create Quote API types
+export interface CreateQuoteRequest {
+  text: string;
+  author: string;
+  type: "secure" | "insecure" | "daily";
+}
+
+export interface CreateQuoteResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    text: string;
+    author: string;
+    type: string;
+    created_at: string;
+  };
+}
+
+// Create Video API types
+export interface CreateVideoRequest {
+  video_id: string;
+  tags: number[];
+}
+
+export interface CreateVideoResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    title: string;
+    video_id: string;
+    created_at: string;
+  };
+}
+
+// Create Article API types
+export interface CreateArticleRequest {
+  title: string;
+  description: string;
+  content: string;
+  tags: string[];
+  thumbnail?: File;
+}
+
+export interface CreateArticleResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    title: string;
+    description: string;
+    content: string;
+    thumbnail?: string;
+    created_at: string;
+  };
+}
+

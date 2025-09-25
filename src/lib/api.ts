@@ -1,5 +1,5 @@
 import { getSession } from "next-auth/react";
-import { MoodRecordResponse, BulkTemplateResponse, BulkImportResponse, DashboardReportGraphResponse, DashboardMoodGraphResponse, DashboardStudentResponse, MoodPatternResponse, SharingListResponse, SharingDetailResponse, SharingReplyResponse, SharingCreateResponse, ReportListResponse, ReportConfirmRequest, ReportConfirmResponse, ReportCloseRequest, ReportCloseResponse, ReportRescheduleRequest, ReportRescheduleResponse, ReportCancelRequest, ReportCancelResponse, UserListResponse, CreateReportRequest, CreateReportResponse, DashboardMoodTrendsResponse, DashboardTeacherResponse, DashboardCounselorResponse, DashboardHeadTeacherResponse, DashboardUserResponse, DashboardAdminResponse, DashboardLatestContentResponse, DashboardLatestUserResponse, ContentResponse, TagResponse, ArticleDetailResponse, DashboardContentResponse, UpdateArticleRequest, UpdateArticleResponse } from "@/types/api";
+import { MoodRecordResponse, BulkTemplateResponse, BulkImportResponse, DashboardReportGraphResponse, DashboardMoodGraphResponse, DashboardStudentResponse, MoodPatternResponse, SharingListResponse, SharingDetailResponse, SharingReplyResponse, SharingCreateResponse, ReportListResponse, ReportConfirmRequest, ReportConfirmResponse, ReportCloseRequest, ReportCloseResponse, ReportRescheduleRequest, ReportRescheduleResponse, ReportCancelRequest, ReportCancelResponse, UserListResponse, CreateReportRequest, CreateReportResponse, DashboardMoodTrendsResponse, DashboardTeacherResponse, DashboardCounselorResponse, DashboardHeadTeacherResponse, DashboardUserResponse, DashboardAdminResponse, DashboardLatestContentResponse, DashboardLatestUserResponse, ContentResponse, TagResponse, ArticleDetailResponse, DashboardContentResponse, UpdateArticleRequest, UpdateArticleResponse, CreateQuoteRequest, CreateQuoteResponse, CreateVideoRequest, CreateVideoResponse, CreateArticleRequest, CreateArticleResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
 
 /**
@@ -486,4 +486,49 @@ export async function updateArticle(id: string, data: UpdateArticleRequest): Pro
 
     return response;
   }
+}
+
+// Create quote
+export async function createQuote(data: CreateQuoteRequest): Promise<CreateQuoteResponse> {
+  const response = await authPost("/quote", data);
+  return response;
+}
+
+// Create video
+export async function createVideo(data: CreateVideoRequest): Promise<CreateVideoResponse> {
+  const response = await authPost("/video", data);
+  return response;
+}
+
+// Create article with file upload support
+export async function createArticle(data: CreateArticleRequest): Promise<CreateArticleResponse> {
+  const session = await getSession();
+  
+  if (!session?.user?.token) {
+    throw new Error("No authentication token available");
+  }
+
+  const formData = new FormData();
+  formData.append("title", data.title);
+  formData.append("description", data.description);
+  formData.append("content", data.content);
+  formData.append("tags", JSON.stringify(data.tags));
+  
+  if (data.thumbnail) {
+    formData.append("thumbnail", data.thumbnail);
+  }
+
+  const response = await fetch(`${API_BASE_URL}/articles`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${session.user.token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`POST /articles failed with status ${response.status}`);
+  }
+
+  return response.json();
 }

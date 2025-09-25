@@ -15,6 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { Play, Upload, X } from "lucide-react";
 import { ContentItem } from "@/components/data-display/tables/ContentManagementTable";
 import { Tag } from "@/types/api";
+import { createVideo } from "@/lib/api";
+import { CreateVideoRequest } from "@/types/api";
+import { toast } from "sonner";
 
 interface CreateVideoDialogProps {
   open: boolean;
@@ -23,7 +26,6 @@ interface CreateVideoDialogProps {
   tagsLoading: boolean;
   onSuccess: (video: ContentItem) => void;
 }
-
 
 export function CreateVideoDialog({
   open,
@@ -46,37 +48,51 @@ export function CreateVideoDialog({
     setSelectedTags((prev) => prev.filter((t) => t !== tag));
   };
 
-  const extractVideoTitle = (url: string): string => {
-    // Simple title extraction based on URL pattern
-    // In real implementation, you might want to use YouTube API
-    if (url.includes("cara-menjaga-kondisi-emosional")) {
-      return "Cara Menjaga Kondisi Emosional";
-    } else if (url.includes("stop-intoleransi")) {
-      return "Stop Intoleransi di Lingkungan Sekolah";
-    }
-    return "Video Title"; // Default title
+  const extractVideoId = (url: string): string | null => {
+    // Extract YouTube video ID from URL
+    const regex =
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
   };
 
   const handleSubmit = async () => {
     if (!youtubeUrl.trim() || selectedTags.length === 0) {
-      alert("Mohon lengkapi URL YouTube dan pilih minimal satu tag");
+      toast.error("Mohon lengkapi URL YouTube dan pilih minimal satu tag");
       return;
     }
 
     // Basic YouTube URL validation
     const youtubeRegex = /^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
     if (!youtubeRegex.test(youtubeUrl)) {
-      alert("Mohon masukkan URL YouTube yang valid");
+      toast.error("Mohon masukkan URL YouTube yang valid");
+      return;
+    }
+
+    const videoId = extractVideoId(youtubeUrl);
+    if (!videoId) {
+      toast.error("Tidak dapat mengekstrak ID video dari URL YouTube");
       return;
     }
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Convert tag titles to tag IDs
+      const tagIds = tags
+        .filter((tag) => selectedTags.includes(tag.title))
+        .map((tag) => tag.id);
+
+      const videoData: CreateVideoRequest = {
+        video_id: videoId,
+        tags: tagIds,
+      };
+
+      const response = await createVideo(videoData);
+
       const newVideo: ContentItem = {
-        id: Date.now().toString(),
-        title: extractVideoTitle(youtubeUrl),
+        id: response.data.id.toString(),
+        title: response.data.title || "Video Title",
         type: "Video",
         createdAt: new Date().toLocaleDateString("id-ID", {
           day: "2-digit",
@@ -88,15 +104,22 @@ export function CreateVideoDialog({
         }),
         url: youtubeUrl.trim(),
         category: selectedTags[0] || "Uncategorized",
+        ids: response.data.id.toString(),
+        created_at: response.data.created_at,
       };
 
       onSuccess(newVideo);
+      toast.success("Video berhasil dibuat!");
 
       // Reset form
       setYoutubeUrl("");
       setSelectedTags([]);
       setIsSubmitting(false);
-    }, 1000);
+    } catch (error) {
+      console.error("Error creating video:", error);
+      toast.error("Gagal membuat video. Silakan coba lagi.");
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -173,7 +196,9 @@ export function CreateVideoDialog({
                     <Button
                       key={tag.id}
                       type="button"
-                      variant={selectedTags.includes(tag.title) ? "default" : "outline"}
+                      variant={
+                        selectedTags.includes(tag.title) ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() => handleTagToggle(tag.title)}
                       className={
