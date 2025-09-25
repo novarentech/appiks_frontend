@@ -48,7 +48,7 @@ import {
   DeleteArticleResponse,
   ContentStatisticsResponse,
 } from "@/types/api";
-import { RoomResponse } from "@/types/api";
+import { RoomResponse, RoomStudentCountResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
 
 /**
@@ -750,9 +750,28 @@ export async function getRooms(): Promise<RoomResponse> {
 }
 
 /**
+ * Create a new room/class
+ */
+export async function createRoom(data: {
+  name: string;
+  level: string;
+}): Promise<RoomResponse> {
+  const response = await authPost("/room", data);
+  return response;
+}
+
+/**
  * Delete user by username
  */
 export async function deleteUser(username: string): Promise<{ success: boolean; message: string }> {
   const response = await authDelete(`/user/${username}`);
+  return response;
+}
+
+/**
+ * Get room and student count data
+ */
+export async function getRoomStudentCount(): Promise<RoomStudentCountResponse> {
+  const response = await authGet("/room-student-count");
   return response;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
@@ -27,59 +27,81 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-
-// Dummy data
-const sampleData = [
-  {
-    id: "1",
-    kelas: "X IPA 1",
-    sekolah: "Magelang",
-    tingkat: "X",
-    waktu: "27/08/2025 10:00 AM",
-  },
-  {
-    id: "2",
-    kelas: "X IPA 1",
-    sekolah: "Magelang",
-    tingkat: "X",
-    waktu: "27/08/2025 10:00 AM",
-  },
-  {
-    id: "3",
-    kelas: "X IPA 1",
-    sekolah: "Magelang",
-    tingkat: "X",
-    waktu: "25/08/2025 10:00 AM",
-  },
-  {
-    id: "4",
-    kelas: "X IPA 1",
-    sekolah: "Magelang",
-    tingkat: "X",
-    waktu: "25/08/2025 10:00 AM",
-  },
-];
+import { getRooms, createRoom } from "@/lib/api";
+import { toast } from "sonner";
 
 export interface ClassItem {
-  id: string;
-  kelas: string;
-  sekolah: string;
-  tingkat?: string;
-  waktu: string;
+  id: number;
+  name: string;
+  level: string;
+  code: string;
+  school_id: number;
+  created_at?: string;
+  school?: {
+    id: number;
+    name: string;
+    address: string;
+    phone: string;
+    email: string;
+    district: string;
+    city: string;
+    province: string;
+  };
+  mention: string;
 }
 
-const TINGKAT_OPTIONS = [
+// Generate tingkat options dynamically from data
+const getTingkatOptions = (data: ClassItem[]) => {
+  const uniqueLevels = [...new Set(data.map(item => item.level).filter((level): level is string => Boolean(level)))];
+  return uniqueLevels.map(level => ({
+    value: level,
+    label: level
+  }));
+};
+
+// Static tingkat options for form
+const staticTingkatOptions = [
   { value: "X", label: "X" },
   { value: "XI", label: "XI" },
   { value: "XII", label: "XII" },
 ];
 
 export default function ClassDataTable() {
-  const [data, setData] = useState<ClassItem[]>(sampleData);
+  const [data, setData] = useState<ClassItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [schoolFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [pageSize, setPageSize] = useState(10);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Generate tingkat options dynamically
+  const tingkatOptions = getTingkatOptions(data);
+  
+  // Fetch data from API
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getRooms();
+      if (response.success) {
+        setData(response.data);
+      } else {
+        setError(response.message || "Gagal memuat data kelas");
+        toast.error(response.message || "Gagal memuat data kelas");
+      }
+    } catch (err) {
+      setError("Terjadi kesalahan saat memuat data kelas");
+      toast.error("Terjadi kesalahan saat memuat data kelas");
+      console.error("Error fetching class data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Load data on component mount
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   // Dialog state
   const [openDialog, setOpenDialog] = useState<null | {
@@ -89,48 +111,47 @@ export default function ClassDataTable() {
 
   // Form state for tambah/edit
   const [form, setForm] = useState<{
-    sekolah?: string;
-    kelas?: string;
-    tingkat?: string;
+    name?: string;
+    level?: string;
+    code?: string;
+    school?: string;
   }>({});
 
   // Filtering
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       const matchesSearch =
-        item.kelas.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.sekolah.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesSchool =
-        schoolFilter === "all" || item.sekolah === schoolFilter;
-      // Status filter dummy, always true
-      const matchesStatus = statusFilter === "all" || true;
-      return matchesSearch && matchesSchool && matchesStatus;
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.code.toLowerCase().includes(searchQuery.toLowerCase());
+      // Tingkat filter
+      const matchesTingkat = statusFilter === "all" || item.level === statusFilter;
+      return matchesSearch && matchesTingkat;
     });
-  }, [data, searchQuery, schoolFilter, statusFilter]);
+  }, [data, searchQuery, statusFilter]);
 
   // Table columns
   const columns: ColumnDef<ClassItem>[] = [
     {
-      accessorKey: "kelas",
+      accessorKey: "name",
       header: "Kelas",
       cell: ({ row }) => (
-        <div className="font-medium">{row.original.kelas}</div>
+        <div className="font-medium">{row.original.name}</div>
       ),
     },
     {
-      accessorKey: "sekolah",
-      header: "Sekolah",
-      cell: ({ row }) => <div>{row.original.sekolah}</div>,
-    },
-    {
-      accessorKey: "tingkat",
+      accessorKey: "level",
       header: "Tingkat",
-      cell: ({ row }) => <div>{row.original.tingkat}</div>,
+      cell: ({ row }) => <div>{row.original.level}</div>,
     },
     {
-      accessorKey: "waktu",
+      accessorKey: "code",
+      header: "Kode Kelas",
+      cell: ({ row }) => <div>{row.original.code}</div>,
+    },
+    {
+      accessorKey: "created_at",
       header: "Waktu Dibuat",
-      cell: ({ row }) => <div>{row.original.waktu}</div>,
+      cell: ({ row }) => <div>{row.original.created_at ? new Date(row.original.created_at).toLocaleString('id-ID') : '-'}</div>,
     },
     {
       id: "actions",
@@ -148,9 +169,10 @@ export default function ClassDataTable() {
                     onClick={() => {
                       setOpenDialog({ type: "lihat", row: item });
                       setForm({
-                        sekolah: item.sekolah,
-                        kelas: item.kelas,
-                        tingkat: item.tingkat,
+                        name: item.name,
+                        level: item.level,
+                        code: item.code,
+                        school: item.school?.name || '',
                       });
                     }}
                     className="h-8 w-8 p-0 bg-cyan-100 text-cyan-700 hover:bg-cyan-200"
@@ -170,9 +192,10 @@ export default function ClassDataTable() {
                     onClick={() => {
                       setOpenDialog({ type: "edit", row: item });
                       setForm({
-                        sekolah: item.sekolah,
-                        kelas: item.kelas,
-                        tingkat: item.tingkat,
+                        name: item.name,
+                        level: item.level,
+                        code: item.code,
+                        school: item.school?.name || '',
                       });
                     }}
                     className="h-8 w-8 p-0 bg-purple-100 text-purple-700 hover:bg-purple-200"
@@ -211,31 +234,32 @@ export default function ClassDataTable() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleTambah = () => {
+  const handleTambah = async () => {
     try {
-      if (!form.sekolah || !form.kelas || !form.tingkat) {
-        console.error("Form tidak lengkap. Semua field harus diisi.");
+      if (!form.name || !form.level) {
+        toast.error("Form tidak lengkap. Semua field harus diisi.");
         return;
       }
-      const newId = `class-${Date.now()}`;
-      const formattedTime = new Date().toLocaleString("id-ID", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
+      
+      // Call API to create new room
+      const response = await createRoom({
+        name: form.name,
+        level: form.level,
       });
-      const newClassItem: ClassItem = {
-        id: newId,
-        kelas: form.kelas,
-        sekolah: form.sekolah,
-        tingkat: form.tingkat,
-        waktu: formattedTime,
-      };
-      setData((prev) => [...prev, newClassItem]);
-      setForm({});
-      setOpenDialog(null);
+      
+      if (response.success) {
+        // Refresh data after successful creation
+        await fetchData();
+        setForm({});
+        setOpenDialog(null);
+        toast.success("Kelas berhasil ditambahkan");
+      } else {
+        setError(response.message || "Gagal menambah kelas");
+        toast.error(response.message || "Gagal menambah kelas");
+      }
     } catch (error) {
+      setError("Terjadi kesalahan saat menambah kelas");
+      toast.error("Terjadi kesalahan saat menambah kelas");
       console.error("Error saat menambah kelas:", error);
     }
   };
@@ -243,11 +267,11 @@ export default function ClassDataTable() {
   const handleEdit = () => {
     try {
       if (!openDialog?.row) {
-        console.error("Tidak ada data yang dipilih untuk diedit.");
+        toast.error("Tidak ada data yang dipilih untuk diedit.");
         return;
       }
-      if (!form.sekolah || !form.kelas || !form.tingkat) {
-        console.error("Form tidak lengkap. Semua field harus diisi.");
+      if (!form.school || !form.name || !form.level) {
+        toast.error("Form tidak lengkap. Semua field harus diisi.");
         return;
       }
       setData((prev) =>
@@ -255,16 +279,18 @@ export default function ClassDataTable() {
           item.id === openDialog.row!.id
             ? {
                 ...item,
-                kelas: form.kelas!,
-                sekolah: form.sekolah!,
-                tingkat: form.tingkat!,
+                name: form.name!,
+                level: form.level!,
+                code: form.code!,
               }
             : item
         )
       );
       setForm({});
       setOpenDialog(null);
+      toast.success("Kelas berhasil diperbarui");
     } catch (error) {
+      toast.error("Terjadi kesalahan saat mengedit kelas");
       console.error("Error saat mengedit kelas:", error);
     }
   };
@@ -322,6 +348,22 @@ export default function ClassDataTable() {
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-6 py-4">
+          {isEdit && (
+            <div className="flex-1">
+              <label className="text-sm font-medium mb-1 block">
+                Nama Sekolah
+                <span className="text-red-500">*</span>
+              </label>
+              <Input
+                placeholder="Nama Sekolah"
+                value={form.school || ""}
+                onChange={(e) => handleFormChange("school", e.target.value)}
+                disabled={readOnly}
+                className=""
+                required
+              />
+            </div>
+          )}
           <div className="flex-1">
             <label className="text-sm font-medium mb-1 block">
               Nama Kelas
@@ -329,8 +371,8 @@ export default function ClassDataTable() {
             </label>
             <Input
               placeholder="Nama Kelas"
-              value={form.kelas || ""}
-              onChange={(e) => handleFormChange("kelas", e.target.value)}
+              value={form.name || ""}
+              onChange={(e) => handleFormChange("name", e.target.value)}
               disabled={readOnly}
               className=""
               required={isTambah || isEdit}
@@ -342,15 +384,15 @@ export default function ClassDataTable() {
               {(isTambah || isEdit) && <span className="text-red-500">*</span>}
             </label>
             <Select
-              value={form.tingkat || ""}
-              onValueChange={(v) => handleFormChange("tingkat", v)}
+              value={form.level || ""}
+              onValueChange={(v) => handleFormChange("level", v)}
               disabled={readOnly}
             >
               <SelectTrigger className="w-full h-12">
                 <SelectValue placeholder="Pilih Tingkat" />
               </SelectTrigger>
               <SelectContent>
-                {TINGKAT_OPTIONS.map((opt) => (
+                {staticTingkatOptions.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
                     {opt.label}
                   </SelectItem>
@@ -366,7 +408,15 @@ export default function ClassDataTable() {
                 Batal
               </Button>
             </DialogClose>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+            <Button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={
+                isTambah
+                  ? !form.name || !form.level
+                  : !form.school || !form.name || !form.level
+              }
+            >
               {isTambah ? (
                 <>
                   <Plus className="w-4 h-4 mr-1" />
@@ -396,20 +446,24 @@ export default function ClassDataTable() {
         </DialogHeader>
         <div className="space-y-6 py-4">
           <div>
-            <label className="text-sm font-medium mb-1 block">Sekolah</label>
-            <Input value={form.sekolah || ""} disabled className="h-12" />
+            <label className="text-sm font-medium mb-1 block">Nama Sekolah</label>
+            <Input value={form.school || ""} disabled className="h-12" />
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <label className="text-sm font-medium mb-1 block">
                 Nama Kelas
               </label>
-              <Input value={form.kelas || ""} disabled className="h-12" />
+              <Input value={form.name || ""} disabled className="h-12" />
             </div>
             <div className="flex-1">
               <label className="text-sm font-medium mb-1 block">Tingkat</label>
-              <Input value={form.tingkat || ""} disabled className="h-12" />
+              <Input value={form.level || ""} disabled className="h-12" />
             </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Kode Kelas</label>
+            <Input value={form.code || ""} disabled className="h-12" />
           </div>
         </div>
         <DialogFooter className="pt-4 border-t flex flex-row gap-4">
@@ -432,7 +486,7 @@ export default function ClassDataTable() {
         </DialogTitle>
         <div className="text-center py-4">
           <p>
-            Yakin ingin menghapus kelas <b>{openDialog?.row?.kelas}</b>?
+            Yakin ingin menghapus kelas <b>{openDialog?.row?.name}</b>?
           </p>
         </div>
         <DialogFooter className="pt-4 border-t flex flex-row gap-4">
@@ -470,7 +524,7 @@ export default function ClassDataTable() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Tingkat</SelectItem>
-              {TINGKAT_OPTIONS.map((opt) => (
+              {tingkatOptions.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
                   {opt.label}
                 </SelectItem>
@@ -511,16 +565,52 @@ export default function ClassDataTable() {
         </div>
       </div>
 
+      {/* Loading and Error States */}
+      {loading && (
+        <div className="flex justify-center items-center py-8">
+          <p>Memuat data kelas...</p>
+        </div>
+      )}
+      
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Error</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+              </div>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={fetchData}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Coba Lagi
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Data Table */}
-      <DataTable
-        columns={columns}
-        data={filteredData}
-        showColumnToggle={false}
-        showPagination={true}
-        pageSize={pageSize}
-        pageSizeOptions={[5, 10, 20, 50]}
-        showPageSizeSelector={false}
-      />
+      {!loading && !error && (
+        <DataTable
+          columns={columns}
+          data={filteredData}
+          showColumnToggle={false}
+          showPagination={true}
+          pageSize={pageSize}
+          pageSizeOptions={[5, 10, 20, 50]}
+          showPageSizeSelector={false}
+        />
+      )}
 
       {/* Dialogs */}
       <Dialog open={!!openDialog} onOpenChange={() => setOpenDialog(null)}>

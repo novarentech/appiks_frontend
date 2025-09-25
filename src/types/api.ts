@@ -704,3 +704,13 @@ export interface ContentStatisticsResponse {
   };
 }
 
+// Room Student Count API types
+export interface RoomStudentCountResponse {
+  success: boolean;
+  message: string;
+  data: {
+    student: number;
+    room: number;
+  };
+}
+
