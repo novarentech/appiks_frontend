@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -370,6 +370,7 @@ export function AddEditUserDialog({
         }));
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rooms.length, loadingRooms, isEdit, shouldShowClass, user?.room?.id, formData.class]);
 
   // Update form data for mentor when mentors are loaded and we're editing
@@ -393,6 +394,7 @@ export function AddEditUserDialog({
         }));
       }
     }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mentors.length, loadingMentors, isEdit, userRole, user?.mentor, formData.mentor]);
 
   // Check if form is valid
