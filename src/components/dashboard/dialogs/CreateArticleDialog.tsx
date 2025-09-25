@@ -99,8 +99,8 @@ export function CreateArticleDialog({
   };
 
   const handleSubmit = async () => {
-    if (!title.trim() || !overview.trim() || !content.trim()) {
-      toast.error("Mohon lengkapi semua field yang wajib diisi");
+    if (!title.trim() || !overview.trim() || !content.trim() || !uploadedImage) {
+      toast.error("Mohon lengkapi semua field yang wajib diisi, termasuk thumbnail");
       return;
     }
 
@@ -187,7 +187,7 @@ export function CreateArticleDialog({
             <div className="space-y-4">
               <div>
                 <Label className="text-sm font-medium flex items-center gap-2">
-                  Gambar / Thumbnail
+                  Gambar / Thumbnail <span className="text-red-500">*</span>
                 </Label>
                 <div className="mt-2">
                   {uploadedImage ? (
@@ -396,7 +396,8 @@ export function CreateArticleDialog({
               !title.trim() ||
               !overview.trim() ||
               !content.trim() ||
-              selectedTags.length === 0
+              selectedTags.length === 0 ||
+              !uploadedImage
             }
             className="bg-blue-600 hover:bg-blue-700 min-w-[120px]"
           >
