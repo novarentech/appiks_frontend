@@ -548,6 +548,7 @@ export function EditArticleDialog({
                       setSerializedEditorState(serialized);
                       setContent(JSON.stringify(serialized));
                     }}
+                    
                   />
                 )}
               </div>

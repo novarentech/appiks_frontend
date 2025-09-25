@@ -3,17 +3,19 @@
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   ChevronLeft,
   Clock,
-  Calendar,
   User,
   ThumbsUp,
   ThumbsDown,
+  Tag as TagIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { useArticleDetail } from "@/hooks/useArticleDetail";
+import { LexicalViewer } from "@/components/blocks/LexicalViewer";
 
 export default function ArticleDetailPage() {
   const params = useParams();
@@ -69,17 +71,70 @@ export default function ArticleDetailPage() {
   }
 
   const handleGoBack = () => {
-    router.push("/education-content");
+    router.back();
   };
 
   const handleFeedback = (helpful: boolean) => {
     setIsHelpful(helpful);
-    // In real implementation, send feedback to API
+  };
+
+  // Calculate reading time (rough estimate: 200 words per minute)
+  const calculateReadingTime = (content: string) => {
+    try {
+      const parsedContent =
+        typeof content === "string" ? JSON.parse(content) : content;
+      const textContent = extractTextFromLexical(parsedContent);
+      const words = textContent.split(/\s+/).length;
+      const minutes = Math.max(1, Math.ceil(words / 200));
+      return `${minutes} menit`;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      return "5 menit";
+    }
+  };
+
+  // Helper function to extract text from Lexical content for reading time calculation
+  interface LexicalTextNode {
+    type: "text";
+    text?: string;
+  }
+
+  interface LexicalElementNode {
+    type: string;
+    children?: Array<LexicalTextNode | LexicalElementNode>;
+  }
+
+  interface LexicalRootNode {
+    children?: Array<LexicalTextNode | LexicalElementNode>;
+  }
+
+  interface LexicalContent {
+    root: LexicalRootNode;
+  }
+
+  const extractTextFromLexical = (content: LexicalContent): string => {
+    if (!content || !content.root) return "";
+
+    const extractText = (
+      node: LexicalTextNode | LexicalElementNode
+    ): string => {
+      if (node.type === "text") {
+        return (node as LexicalTextNode).text || "";
+      }
+
+      if ("children" in node && node.children && Array.isArray(node.children)) {
+        return node.children.map(extractText).join(" ");
+      }
+
+      return "";
+    };
+
+    return content.root.children?.map(extractText).join(" ") || "";
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto lg:px-8 py-8">
         {/* Back Button */}
         <div className="mb-6">
           <Button
@@ -92,69 +147,86 @@ export default function ArticleDetailPage() {
           </Button>
         </div>
 
-        {/* Article Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8 p-6 sm:p-8">
-          {/* Tags */}
-          <div className="px-6 pt-6">
-            <div className="flex flex-wrap gap-2 mb-4">
-              {/* Tags would be displayed here if they were part of the API response */}
-            </div>
-          </div>
+        {/* Article Content */}
+        <article className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          {/* Article Header */}
+          <div className="p-6 sm:p-8">
+            {/* Tags */}
+            {article.tags && article.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {article.tags.map((tag: any) => (
+                  <Badge
+                    key={tag.id}
+                    variant="secondary"
+                    className="bg-blue-100 text-blue-800 hover:bg-blue-200 flex items-center gap-1"
+                  >
+                    <TagIcon className="w-3 h-3" />
+                    {tag.title}
+                  </Badge>
+                ))}
+              </div>
+            )}
 
-          {/* Title */}
-          <div className="px-6">
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-4">
+            {/* Title */}
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-6">
               {article.title}
             </h1>
-          </div>
 
-          {/* Meta Info */}
-          <div className="px-6 pb-6">
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-              <div className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
-                <span>{new Date().toLocaleDateString("id-ID")}</span>
-              </div>
+            {/* Meta Info */}
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-8 pb-6 border-b border-gray-200">
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                <span>5 menit</span>
+                <span>
+                  {article.content
+                    ? calculateReadingTime(article.content)
+                    : "5 menit"}
+                </span>
               </div>
               <div className="flex items-center gap-1">
                 <User className="w-4 h-4" />
                 <span>Admin</span>
               </div>
             </div>
+
+            {/* Featured Image */}
+            {article.thumbnail && (
+              <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden mb-8">
+                <Image
+                  src={article.thumbnail}
+                  alt={article.title}
+                  fill
+                  className="object-cover"
+                  priority
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Introduction/Description */}
+            {article.description && (
+              <div className="mb-8">{article.description}</div>
+            )}
           </div>
 
-          {/* Featured Image */}
-          {article.thumbnail && (
-            <div className="relative aspect-video bg-gray-100">
-              <Image
-                src={article.thumbnail}
-                alt={article.title}
-                fill
-                className="object-cover"
-                priority
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
+          {/* Article Content */}
+          <div className="px-6 sm:px-8 pb-8">
+            <div className="border-t border-gray-200 pt-8">
+              {article.content ? (
+                <LexicalViewer
+                  content={article.content}
+                  className="article-content border-0 bg-transparent shadow-none"
+                />
+              ) : (
+                <div className="text-gray-500 italic text-center py-8">
+                  Konten artikel tidak tersedia
+                </div>
+              )}
             </div>
-          )}
-
-          {/* Introduction */}
-          <div className="my-8">
-            <p className="text-lg text-gray-700 leading-relaxed">
-              {article.description}
-            </p>
           </div>
-
-          {/* Content */}
-          <div
-            className="prose max-w-none"
-            dangerouslySetInnerHTML={{ __html: article.content }}
-          />
-        </div>
+        </article>
 
         {/* Feedback Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-8">
@@ -165,7 +237,11 @@ export default function ArticleDetailPage() {
             <Button
               variant={isHelpful === true ? "default" : "outline"}
               onClick={() => handleFeedback(true)}
-              className="flex items-center gap-2"
+              className={`flex items-center gap-2 ${
+                isHelpful === true
+                  ? "bg-green-600 hover:bg-green-700 text-white"
+                  : "border-green-300 text-green-600 hover:bg-green-50"
+              }`}
             >
               <ThumbsUp className="w-4 h-4" />
               Bermanfaat
@@ -173,19 +249,127 @@ export default function ArticleDetailPage() {
             <Button
               variant={isHelpful === false ? "default" : "outline"}
               onClick={() => handleFeedback(false)}
-              className="flex items-center gap-2"
+              className={`flex items-center gap-2 ${
+                isHelpful === false
+                  ? "bg-red-600 hover:bg-red-700 text-white"
+                  : "border-red-300 text-red-600 hover:bg-red-50"
+              }`}
             >
               <ThumbsDown className="w-4 h-4" />
-              Tidak
+              Tidak Bermanfaat
             </Button>
           </div>
           {isHelpful !== null && (
-            <p className="text-sm text-gray-600 mt-4">
-              Terima kasih atas feedback Anda!
-            </p>
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                ✓ Terima kasih atas feedback Anda! Feedback Anda membantu kami
+                meningkatkan kualitas konten.
+              </p>
+            </div>
           )}
         </div>
       </div>
+
+      {/* Custom styles for better article reading experience */}
+      <style jsx>{`
+        .article-content {
+          line-height: 1.8;
+        }
+
+        .article-content h1,
+        .article-content h2,
+        .article-content h3,
+        .article-content h4,
+        .article-content h5,
+        .article-content h6 {
+          color: #1f2937;
+          font-weight: 700;
+          margin-top: 2rem;
+          margin-bottom: 1rem;
+        }
+
+        .article-content p {
+          margin-bottom: 1.25rem;
+          color: #374151;
+        }
+
+        .article-content blockquote {
+          background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+          border-left: 4px solid #3b82f6;
+          padding: 1rem;
+          margin: 1.5rem 0;
+          border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .article-content code {
+          background-color: #f3f4f6;
+          padding: 0.125rem 0.375rem;
+          border-radius: 0.25rem;
+          font-size: 0.875rem;
+          color: #dc2626;
+          font-family: "JetBrains Mono", "Fira Code", monospace;
+        }
+
+        .article-content pre {
+          background: #1f2937 !important;
+          border-radius: 0.5rem;
+          overflow-x: auto;
+          padding: 1rem;
+          margin: 1.5rem 0;
+        }
+
+        .article-content pre code {
+          background: transparent;
+          color: #e5e7eb;
+          padding: 0;
+        }
+
+        .article-content ul,
+        .article-content ol {
+          padding-left: 1.5rem;
+          margin-bottom: 1.25rem;
+        }
+
+        .article-content li {
+          margin-bottom: 0.5rem;
+          color: #374151;
+        }
+
+        .article-content a {
+          color: #2563eb;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+
+        .article-content a:hover {
+          color: #1d4ed8;
+        }
+
+        .article-content img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 0.5rem;
+          margin: 1.5rem 0;
+        }
+
+        .article-content table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 1.5rem 0;
+        }
+
+        .article-content th,
+        .article-content td {
+          border: 1px solid #d1d5db;
+          padding: 0.75rem;
+          text-align: left;
+        }
+
+        .article-content th {
+          background-color: #f9fafb;
+          font-weight: 600;
+        }
+      `}</style>
     </div>
   );
 }
