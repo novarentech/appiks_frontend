@@ -359,6 +359,7 @@ export interface User {
     school_id: number;
   };
   mentor?: {
+    id: string;
     name: string;
     phone: string;
     username: string;

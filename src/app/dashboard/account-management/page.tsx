@@ -223,6 +223,7 @@ export default function AccountManagementPage() {
           createdAt: new Date().toLocaleDateString("id-ID"),
           nip: userData.nip,
           verified: false,
+          mentor: userData.mentor,
         };
         setUsers((prev) => [...prev, newUser]);
         toast.success("Pengguna berhasil ditambahkan");

@@ -17,6 +17,7 @@ import {
   IdCard,
   School,
   User as UserIcon,
+  UserCheck,
 } from "lucide-react";
 
 interface ViewUserDialogProps {
@@ -172,6 +173,20 @@ export function ViewUserDialog({
                     </div>
                   </div>
                 </>
+              )}
+
+              {user.mentor && (
+                <div className="flex items-start space-x-4 p-4 bg-white border rounded-lg hover:shadow-md transition-shadow">
+                  <div className="p-2 bg-gray-100 rounded-full">
+                    <UserCheck className="h-5 w-5 text-gray-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-500">
+                      {user.role === "siswa" ? "Guru BK" : "Mentor"}
+                    </p>
+                    <p className="font-semibold text-gray-900">{user.mentor}</p>
+                  </div>
+                </div>
               )}
 
               <div className="flex items-start space-x-4 p-4 bg-white border rounded-lg hover:shadow-md transition-shadow">

@@ -20,8 +20,8 @@ import {
 } from "@/components/ui/select";
 import { UserRole } from "@/types/auth";
 import { User } from "./user-table";
-import { getRooms } from "@/lib/api";
-import { RoomData } from "@/types/api";
+import { getRooms, getUsersByType } from "@/lib/api";
+import { RoomData, User as ApiUser } from "@/types/api";
 import { UserPlus, UserPen, Loader2, Check, X } from "lucide-react";
 import { useUsernameCheck } from "@/hooks/useUsernameCheck";
 
@@ -56,10 +56,14 @@ export function AddEditUserDialog({
     nip: "",
     class: "",
     password: "",
+    mentor: "",
   });
 
   const [rooms, setRooms] = useState<RoomData[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
+
+  const [mentors, setMentors] = useState<ApiUser[]>([]);
+  const [loadingMentors, setLoadingMentors] = useState(false);
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,6 +86,12 @@ export function AddEditUserDialog({
   const getSelectedClassName = (classId: string) => {
     const room = rooms.find((r: RoomData) => r.id.toString() === classId);
     return room ? room.mention : classId;
+  };
+
+  // Helper function to get mentor name by ID
+  const getMentorName = (mentorId: string) => {
+    const mentor = mentors.find((c: ApiUser) => c.id && c.id.toString() === mentorId);
+    return mentor ? mentor.name : mentorId;
   };
 
   // Password validation function
@@ -138,6 +148,7 @@ export function AddEditUserDialog({
         nip: user.nip || "",
         class: user.room ? user.room.id.toString() : "",
         password: user.password || "",
+        mentor: user.mentor || "",
       });
     } else {
       setFormData({
@@ -147,6 +158,7 @@ export function AddEditUserDialog({
         nip: "",
         class: "",
         password: "",
+        mentor: "",
       });
     }
     setErrors({});
@@ -266,6 +278,7 @@ export function AddEditUserDialog({
         ...formData,
         phone: formattedPhone,
         role: userRole,
+        mentor: formData.mentor,
       };
 
       if (user) {
@@ -322,6 +335,27 @@ export function AddEditUserDialog({
     fetchRooms();
   }, [shouldShowClass]);
 
+  // Fetch mentors data
+  useEffect(() => {
+    const fetchMentors = async () => {
+      if (userRole !== "siswa") return;
+
+      setLoadingMentors(true);
+      try {
+        const response = await getUsersByType("teacher");
+        if (response.success) {
+          setMentors(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching mentors:", error);
+      } finally {
+        setLoadingMentors(false);
+      }
+    };
+
+    fetchMentors();
+  }, [userRole]);
+
   // Ensure rooms are loaded when editing a user with class
   useEffect(() => {
     if (isEdit && shouldShowClass && user?.room && rooms.length === 0 && !loadingRooms) {
@@ -357,6 +391,47 @@ export function AddEditUserDialog({
       }
     }
   }, [rooms, loadingRooms, isEdit, shouldShowClass, user?.room, formData.class]);
+
+  // Ensure mentors are loaded when editing a student with mentor
+  useEffect(() => {
+    if (isEdit && userRole === "siswa" && user?.mentor && mentors.length === 0 && !loadingMentors) {
+      const fetchMentorsForEdit = async () => {
+        setLoadingMentors(true);
+        try {
+          const response = await getUsersByType("teacher");
+          if (response.success) {
+            setMentors(response.data);
+          }
+        } catch (error) {
+          console.error("Error fetching mentors for edit:", error);
+        } finally {
+          setLoadingMentors(false);
+        }
+      };
+
+      fetchMentorsForEdit();
+    }
+  }, [isEdit, userRole, user?.mentor, mentors.length, loadingMentors]);
+
+  // Update form data mentor value when mentors are loaded
+  useEffect(() => {
+    if (isEdit && userRole === "siswa" && user?.mentor && mentors.length > 0 && !loadingMentors) {
+      // Find mentor by name in the mentors list
+      const mentor = mentors.find(m => m.name === user.mentor);
+      
+      if (mentor && mentor.id && formData.mentor !== mentor.id.toString()) {
+        setFormData(prev => ({
+          ...prev,
+          mentor: mentor.id!.toString()
+        }));
+      } else if (mentor && mentor.identifier && formData.mentor !== mentor.identifier) {
+        setFormData(prev => ({
+          ...prev,
+          mentor: mentor.identifier
+        }));
+      }
+    }
+  }, [mentors, loadingMentors, isEdit, userRole, user?.mentor, formData.mentor]);
 
   // Check if form is valid
   const usernameValidation = validateUsername(formData.username);
@@ -804,6 +879,53 @@ export function AddEditUserDialog({
                  !rooms.some(room => room.id.toString() === formData.class) && (
                   <p className="text-sm text-gray-500">
                     Kelas saat ini: {formData.class}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Mentor dropdown - show for both add and edit student */}
+            {userRole === "siswa" && (
+              <div className="space-y-2">
+                <Label htmlFor="mentor">Guru Wali</Label>
+                <Select
+                  value={loadingMentors ? "" : formData.mentor}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, mentor: value })
+                  }
+                  disabled={loadingMentors}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={
+                        loadingMentors ? "Memuat data guru Wali..." :
+                        formData.mentor ? getMentorName(formData.mentor) : "Pilih guru Wali"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {loadingMentors ? (
+                      <SelectItem value="loading" disabled>
+                        Memuat data guru Wali...
+                      </SelectItem>
+                    ) : mentors.length > 0 ? (
+                     mentors.map((mentor) => (
+                       <SelectItem key={mentor.id || mentor.identifier} value={mentor.id?.toString() || mentor.identifier}>
+                         {mentor.name}
+                       </SelectItem>
+                     ))
+                    ) : (
+                      <SelectItem value="no-data" disabled>
+                        Tidak ada data guru Wali tersedia
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+                {/* Show current mentor if it exists but not in mentors list */}
+                {formData.mentor && !loadingMentors && mentors.length > 0 &&
+                 !mentors.some(m => m.id && m.id.toString() === formData.mentor) && (
+                  <p className="text-sm text-gray-500">
+                    Guru Wali saat ini: {getMentorName(formData.mentor)}
                   </p>
                 )}
               </div>
