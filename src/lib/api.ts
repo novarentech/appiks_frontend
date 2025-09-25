@@ -769,6 +769,22 @@ export async function deleteUser(username: string): Promise<{ success: boolean; 
 }
 
 /**
+ * Update user data
+ */
+export async function updateUser(username: string, userData: {
+  username?: string;
+  phone?: string;
+  identifier?: string;
+  room_id?: string;
+  mentor_id?: string;
+  name?: string;
+  password?: string | null;
+}): Promise<{ success: boolean; message: string; data?: unknown }> {
+  const response = await authPatch(`/edit-user/${username}`, userData);
+  return response;
+}
+
+/**
  * Get room and student count data
  */
 export async function getRoomStudentCount(): Promise<RoomStudentCountResponse> {

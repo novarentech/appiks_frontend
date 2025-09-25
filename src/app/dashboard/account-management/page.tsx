@@ -14,7 +14,7 @@ import {
 import { Search } from "lucide-react";
 import { UserRole } from "@/types/auth";
 import { User as ApiUser } from "@/types/api"; // Renamed to avoid conflict
-import { getAllUsers, uploadBulkImportFile, deleteUser } from "@/lib/api";
+import { getAllUsers, uploadBulkImportFile, deleteUser, updateUser, getRooms, getUsersByType } from "@/lib/api";
 
 import {
   UserDataTable,
@@ -202,18 +202,83 @@ export default function AccountManagementPage() {
     }
   };
 
+  // Extended interface for user data with class property
+  interface ExtendedUserData extends Partial<ComponentUser> {
+    class?: string;
+  }
+
   const handleSaveUser = async (userData: Partial<ComponentUser>) => {
     try {
       if (addEditDialog.user) {
-        // Edit existing user - TODO: Implement API call
-        setUsers((prev) =>
-          prev.map((u) =>
-            u.id === addEditDialog.user!.id ? { ...u, ...userData } : u
-          )
-        );
-        toast.success("Pengguna berhasil diperbarui");
+        // Edit existing user
+        const updateData: {
+          name?: string;
+          username?: string;
+          phone?: string;
+          identifier?: string;
+          room_id?: string;
+          mentor_id?: string;
+          password?: string | null;
+        } = {
+          name: userData.fullName,
+          username: userData.username,
+          phone: userData.phone,
+          identifier: userData.nip || userData.id,
+          password: userData.password || null,
+        };
+
+        // Add room_id and mentor_id only for students
+        if (userData.role === "siswa") {
+          // Get room code (8 karakter kode kelas)
+          // We need to fetch rooms data to get the room code
+          try {
+            const roomsResponse = await getRooms();
+            const extendedUserData = userData as ExtendedUserData;
+            if (roomsResponse.success && extendedUserData.class) {
+              const room = roomsResponse.data.find((r: { id: number; code: string }) =>
+                r.id.toString() === extendedUserData.class
+              );
+              if (room) {
+                updateData.room_id = room.code;
+              }
+            }
+          } catch (error) {
+            console.error("Error fetching rooms:", error);
+          }
+          
+          // Get mentor NIP
+          // We need to fetch mentors data to get the mentor identifier
+          try {
+            const mentorsResponse = await getUsersByType("teacher");
+            if (mentorsResponse.success && userData.mentor) {
+              const mentor = mentorsResponse.data.find((m: ApiUser) =>
+                (m.id && m.id.toString() === userData.mentor) ||
+                m.identifier === userData.mentor
+              );
+              if (mentor) {
+                updateData.mentor_id = mentor.identifier;
+              }
+            }
+          } catch (error) {
+            console.error("Error fetching mentors:", error);
+          }
+        }
+
+        const response = await updateUser(addEditDialog.user.username, updateData);
+        
+        if (response.success) {
+          // Update local state
+          setUsers((prev) =>
+            prev.map((u) =>
+              u.id === addEditDialog.user!.id ? { ...u, ...userData } : u
+            )
+          );
+          toast.success("Pengguna berhasil diperbarui");
+        } else {
+          throw new Error(response.message || "Gagal memperbarui pengguna");
+        }
       } else {
-        // Add new user - TODO: Implement API call
+        // Add new user - TODO: Implement API call for creating user
         const newUser: ComponentUser = {
           id: Date.now().toString(),
           fullName: userData.fullName!,

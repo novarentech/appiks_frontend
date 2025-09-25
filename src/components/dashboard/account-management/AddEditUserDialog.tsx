@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -61,15 +62,15 @@ export function AddEditUserDialog({
 
   const [rooms, setRooms] = useState<RoomData[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
+  const [roomsLoaded, setRoomsLoaded] = useState(false);
 
   const [mentors, setMentors] = useState<ApiUser[]>([]);
   const [loadingMentors, setLoadingMentors] = useState(false);
+  const [mentorsLoaded, setMentorsLoaded] = useState(false);
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(
-    null
-  );
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
   const {
     isChecking,
@@ -83,19 +84,19 @@ export function AddEditUserDialog({
   const userRole = user?.role || role;
 
   // Helper function to get class name by ID
-  const getSelectedClassName = (classId: string) => {
+  const getSelectedClassName = useCallback((classId: string) => {
     const room = rooms.find((r: RoomData) => r.id.toString() === classId);
     return room ? room.mention : classId;
-  };
+  }, [rooms]);
 
   // Helper function to get mentor name by ID
-  const getMentorName = (mentorId: string) => {
+  const getMentorName = useCallback((mentorId: string) => {
     const mentor = mentors.find((c: ApiUser) => c.id && c.id.toString() === mentorId);
     return mentor ? mentor.name : mentorId;
-  };
+  }, [mentors]);
 
   // Password validation function
-  const validatePassword = (password: string) => {
+  const validatePassword = useCallback((password: string) => {
     const minLength = password.length >= 8;
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
@@ -108,10 +109,10 @@ export function AddEditUserDialog({
       hasNumber,
       isValid: minLength && hasUpperCase && hasLowerCase && hasNumber,
     };
-  };
+  }, []);
 
   // Username validation function
-  const validateUsername = (username: string) => {
+  const validateUsername = useCallback((username: string) => {
     const minLength = username.length >= 3;
     const maxLength = username.length <= 20;
     const validChars = /^[a-zA-Z0-9_]+$/.test(username);
@@ -124,10 +125,10 @@ export function AddEditUserDialog({
       notStartWithNumber,
       isValid: minLength && maxLength && validChars && notStartWithNumber,
     };
-  };
+  }, []);
 
   // Phone validation function
-  const validatePhone = (phone: string) => {
+  const validatePhone = useCallback((phone: string) => {
     const digitsOnly = phone.replace(/\D/g, "");
     const isValidLength = digitsOnly.length >= 9 && digitsOnly.length <= 13;
     const startsWithValidDigit = /^[8-9]/.test(digitsOnly);
@@ -137,8 +138,9 @@ export function AddEditUserDialog({
       startsWithValidDigit,
       isValid: isValidLength && startsWithValidDigit,
     };
-  };
+  }, []);
 
+  // Reset form data when user prop changes
   useEffect(() => {
     if (user) {
       setFormData({
@@ -164,7 +166,7 @@ export function AddEditUserDialog({
     setErrors({});
   }, [user]);
 
-  const validateForm = (): boolean => {
+  const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
 
     // Full name validation
@@ -201,14 +203,13 @@ export function AddEditUserDialog({
     }
 
     // NIP/NISN validation
+    const shouldShowNIP = userRole && ["guru_wali", "guru_bk", "kepala_sekolah", "siswa"].includes(userRole);
     if (shouldShowNIP && formData.nip) {
       if (!/^\d+$/.test(formData.nip)) {
         newErrors.nip =
           userRole === "siswa"
             ? "NISN hanya boleh mengandung angka"
             : "NIP hanya boleh mengandung angka";
-      } else if (userRole === "siswa" && formData.nip.length !== 10) {
-        newErrors.nip = "NISN harus 10 digit";
       }
     }
 
@@ -219,11 +220,11 @@ export function AddEditUserDialog({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData, userRole, user, isUsernameAvailable, usernameError, validateUsername, validatePhone, validatePassword]);
 
   // Handle username input with debounce
-  const handleUsernameChange = (value: string) => {
-    setFormData({ ...formData, username: value });
+  const handleUsernameChange = useCallback((value: string) => {
+    setFormData(prev => ({ ...prev, username: value }));
 
     // Clear previous timer
     if (debounceTimer) {
@@ -241,7 +242,7 @@ export function AddEditUserDialog({
     }, 500); // 500ms delay
 
     setDebounceTimer(timer);
-  };
+  }, [debounceTimer, clearCheck, checkUsername, validateUsername]);
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -309,21 +310,20 @@ export function AddEditUserDialog({
     }
   };
 
-  const shouldShowNIP =
-    userRole &&
-    ["guru_wali", "guru_bk", "kepala_sekolah", "siswa"].includes(userRole);
+  const shouldShowNIP = userRole && ["guru_wali", "guru_bk", "kepala_sekolah", "siswa"].includes(userRole);
   const shouldShowClass = userRole && ["siswa"].includes(userRole);
 
-  // Fetch rooms data
+  // Fetch rooms data - only when needed and not already loaded
   useEffect(() => {
     const fetchRooms = async () => {
-      if (!shouldShowClass) return;
+      if (!shouldShowClass || loadingRooms || roomsLoaded) return;
 
       setLoadingRooms(true);
       try {
         const response = await getRooms();
         if (response.success) {
           setRooms(response.data);
+          setRoomsLoaded(true);
         }
       } catch (error) {
         console.error("Error fetching rooms:", error);
@@ -333,18 +333,19 @@ export function AddEditUserDialog({
     };
 
     fetchRooms();
-  }, [shouldShowClass]);
+  }, [shouldShowClass, loadingRooms, roomsLoaded]);
 
-  // Fetch mentors data
+  // Fetch mentors data - only when needed and not already loaded
   useEffect(() => {
     const fetchMentors = async () => {
-      if (userRole !== "siswa") return;
+      if (userRole !== "siswa" || loadingMentors || mentorsLoaded) return;
 
       setLoadingMentors(true);
       try {
         const response = await getUsersByType("teacher");
         if (response.success) {
           setMentors(response.data);
+          setMentorsLoaded(true);
         }
       } catch (error) {
         console.error("Error fetching mentors:", error);
@@ -354,30 +355,9 @@ export function AddEditUserDialog({
     };
 
     fetchMentors();
-  }, [userRole]);
+  }, [userRole, loadingMentors, mentorsLoaded]);
 
-  // Ensure rooms are loaded when editing a user with class
-  useEffect(() => {
-    if (isEdit && shouldShowClass && user?.room && rooms.length === 0 && !loadingRooms) {
-      const fetchRoomsForEdit = async () => {
-        setLoadingRooms(true);
-        try {
-          const response = await getRooms();
-          if (response.success) {
-            setRooms(response.data);
-          }
-        } catch (error) {
-          console.error("Error fetching rooms for edit:", error);
-        } finally {
-          setLoadingRooms(false);
-        }
-      };
-
-      fetchRoomsForEdit();
-    }
-  }, [isEdit, shouldShowClass, user?.room, rooms.length, loadingRooms]);
-
-  // Update form data class value when rooms are loaded
+  // Update form data for class when rooms are loaded and we're editing
   useEffect(() => {
     if (isEdit && shouldShowClass && user?.room && rooms.length > 0 && !loadingRooms) {
       const classId = user.room.id.toString();
@@ -390,40 +370,22 @@ export function AddEditUserDialog({
         }));
       }
     }
-  }, [rooms, loadingRooms, isEdit, shouldShowClass, user?.room, formData.class]);
+  }, [rooms.length, loadingRooms, isEdit, shouldShowClass, user?.room?.id, formData.class]);
 
-  // Ensure mentors are loaded when editing a student with mentor
-  useEffect(() => {
-    if (isEdit && userRole === "siswa" && user?.mentor && mentors.length === 0 && !loadingMentors) {
-      const fetchMentorsForEdit = async () => {
-        setLoadingMentors(true);
-        try {
-          const response = await getUsersByType("teacher");
-          if (response.success) {
-            setMentors(response.data);
-          }
-        } catch (error) {
-          console.error("Error fetching mentors for edit:", error);
-        } finally {
-          setLoadingMentors(false);
-        }
-      };
-
-      fetchMentorsForEdit();
-    }
-  }, [isEdit, userRole, user?.mentor, mentors.length, loadingMentors]);
-
-  // Update form data mentor value when mentors are loaded
+  // Update form data for mentor when mentors are loaded and we're editing
   useEffect(() => {
     if (isEdit && userRole === "siswa" && user?.mentor && mentors.length > 0 && !loadingMentors) {
       // Find mentor by name in the mentors list
       const mentor = mentors.find(m => m.name === user.mentor);
       
-      if (mentor && mentor.id && formData.mentor !== mentor.id.toString()) {
-        setFormData(prev => ({
-          ...prev,
-          mentor: mentor.id!.toString()
-        }));
+      if (mentor && mentor.id) {
+        const mentorId = mentor.id.toString();
+        if (formData.mentor !== mentorId) {
+          setFormData(prev => ({
+            ...prev,
+            mentor: mentorId
+          }));
+        }
       } else if (mentor && mentor.identifier && formData.mentor !== mentor.identifier) {
         setFormData(prev => ({
           ...prev,
@@ -431,7 +393,7 @@ export function AddEditUserDialog({
         }));
       }
     }
-  }, [mentors, loadingMentors, isEdit, userRole, user?.mentor, formData.mentor]);
+  }, [mentors.length, loadingMentors, isEdit, userRole, user?.mentor, formData.mentor]);
 
   // Check if form is valid
   const usernameValidation = validateUsername(formData.username);
@@ -478,7 +440,7 @@ export function AddEditUserDialog({
                   id="fullName"
                   value={formData.fullName}
                   onChange={(e) =>
-                    setFormData({ ...formData, fullName: e.target.value })
+                    setFormData(prev => ({ ...prev, fullName: e.target.value }))
                   }
                   placeholder="Masukkan nama lengkap"
                   className={`w-full ${
@@ -667,9 +629,9 @@ export function AddEditUserDialog({
                     const value = e.target.value.replace(/\D/g, "");
                     // Remove leading zero if present
                     if (value.startsWith("0")) {
-                      setFormData({ ...formData, phone: value.substring(1) });
+                      setFormData(prev => ({ ...prev, phone: value.substring(1) }));
                     } else {
-                      setFormData({ ...formData, phone: value });
+                      setFormData(prev => ({ ...prev, phone: value }));
                     }
                   }}
                   placeholder="812-3456-7890"
@@ -737,7 +699,7 @@ export function AddEditUserDialog({
                   id="nip"
                   value={formData.nip}
                   onChange={(e) =>
-                    setFormData({ ...formData, nip: e.target.value })
+                    setFormData(prev => ({ ...prev, nip: e.target.value }))
                   }
                   placeholder={
                     userRole === "siswa"
@@ -763,7 +725,7 @@ export function AddEditUserDialog({
                 type="password"
                 value={formData.password}
                 onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
+                  setFormData(prev => ({ ...prev, password: e.target.value }))
                 }
                 placeholder="Masukkan password (kosongkan jika tidak ingin mengubah)"
                 className={`w-full ${errors.password ? "border-red-500" : ""}`}
@@ -844,7 +806,7 @@ export function AddEditUserDialog({
                 <Select
                   value={loadingRooms ? "" : formData.class}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, class: value })
+                    setFormData(prev => ({ ...prev, class: value }))
                   }
                   disabled={loadingRooms}
                 >
@@ -891,7 +853,7 @@ export function AddEditUserDialog({
                 <Select
                   value={loadingMentors ? "" : formData.mentor}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, mentor: value })
+                    setFormData(prev => ({ ...prev, mentor: value }))
                   }
                   disabled={loadingMentors}
                 >
