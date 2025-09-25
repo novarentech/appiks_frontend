@@ -238,16 +238,6 @@ export function ContentManagementTable({ refreshData }: { refreshData?: () => vo
     setIsDeleteOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
-    if (selectedItem) {
-      setData((prevData) =>
-        prevData.filter((row) => row.id !== selectedItem.id)
-      );
-      setIsDeleteOpen(false);
-      setSelectedItem(null);
-    }
-  };
-
   const columns: ColumnDef<ContentItem>[] = [
     {
       accessorKey: "title",
