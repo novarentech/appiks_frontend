@@ -42,28 +42,28 @@ export function AccountManagementPanelStats({
     <Card className="w-full shadow-none">
       <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200">
         <div className="p-6 flex items-center space-x-4">
-          <div className="p-3 bg-blue-100 rounded-full">
-            <Users className="w-6 h-6 text-blue-600" />
+          <div className="p-3 bg-indigo-200 rounded-full">
+            <Users className="w-6 h-6 text-indigo-500" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">
+            <p className="text-sm font-medium text-indigo-500 uppercase tracking-wide">
               TOTAL {roleLabel}
             </p>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-3xl font-bold text-indigo-500">
               {roleUsers.length}
             </p>
           </div>
         </div>
 
         <div className="p-6 flex items-center space-x-4">
-          <div className="p-3 bg-orange-100 rounded-full">
-            <Calendar className="w-6 h-6 text-orange-600" />
+          <div className="p-3 bg-indigo-200 rounded-full">
+            <Calendar className="w-6 h-6 text-indigo-500" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">
+            <p className="text-sm font-medium text-indigo-500 uppercase tracking-wide">
               AKUN DIBUAT HARI INI
             </p>
-            <p className="text-3xl font-bold text-orange-600">{todayCreated}</p>
+            <p className="text-3xl font-bold text-indigo-500">{todayCreated}</p>
           </div>
         </div>
       </div>
