@@ -757,3 +757,53 @@ export interface VillageResponse {
   message: string;
   data: string[];
 }
+
+// School API types
+export interface School {
+  id: number;
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  district: string;
+  city: string;
+  province: string;
+}
+
+export interface SchoolResponse {
+  success: boolean;
+  message: string;
+  data: School[];
+}
+
+export interface SchoolDetailResponse {
+  success: boolean;
+  message: string;
+  data: School;
+}
+
+export interface CreateSchoolRequest {
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  district: string;
+  city: string;
+  province: string;
+}
+
+export interface UpdateSchoolRequest {
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  district: string;
+  city: string;
+  province: string;
+}
+
+export interface DeleteSchoolResponse {
+  success: boolean;
+  message: string;
+  data: School;
+}

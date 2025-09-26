@@ -51,6 +51,11 @@ import {
   CityResponse,
   DistrictResponse,
   VillageResponse,
+  SchoolResponse,
+  SchoolDetailResponse,
+  CreateSchoolRequest,
+  UpdateSchoolRequest,
+  DeleteSchoolResponse,
 } from "@/types/api";
 import { RoomResponse, RoomStudentCountResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
@@ -855,7 +860,7 @@ export async function createUser(userData: {
  * Get all provinces
  */
 export async function getProvinces(): Promise<ProvinceResponse> {
-  const response = await fetch("https://api.appiks.id/api/province", {
+  const response = await fetch(`${API_BASE_URL}/province`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -874,7 +879,7 @@ export async function getProvinces(): Promise<ProvinceResponse> {
  */
 export async function getCitiesByProvince(province: string): Promise<CityResponse> {
   const encodedProvince = encodeURIComponent(province);
-  const response = await fetch(`https://api.appiks.id/api/city/${encodedProvince}`, {
+  const response = await fetch(`${API_BASE_URL}/city/${encodedProvince}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -893,7 +898,7 @@ export async function getCitiesByProvince(province: string): Promise<CityRespons
  */
 export async function getDistrictsByCity(city: string): Promise<DistrictResponse> {
   const encodedCity = encodeURIComponent(city);
-  const response = await fetch(`https://api.appiks.id/api/district/${encodedCity}`, {
+  const response = await fetch(`${API_BASE_URL}/district/${encodedCity}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -912,7 +917,7 @@ export async function getDistrictsByCity(city: string): Promise<DistrictResponse
  */
 export async function getVillagesByDistrict(district: string): Promise<VillageResponse> {
   const encodedDistrict = encodeURIComponent(district);
-  const response = await fetch(`https://api.appiks.id/api/village/${encodedDistrict}`, {
+  const response = await fetch(`${API_BASE_URL}/village/${encodedDistrict}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -924,4 +929,40 @@ export async function getVillagesByDistrict(district: string): Promise<VillageRe
   }
 
   return response.json();
+}
+
+/**
+ * School API functions for school management
+ */
+
+/**
+ * Get all schools
+ */
+export async function getSchools(): Promise<SchoolResponse> {
+  const response = await authGet("/school");
+  return response;
+}
+
+/**
+ * Create a new school
+ */
+export async function createSchool(data: CreateSchoolRequest): Promise<SchoolDetailResponse> {
+  const response = await authPost("/school", data);
+  return response;
+}
+
+/**
+ * Update a school by ID
+ */
+export async function updateSchool(schoolId: number, data: UpdateSchoolRequest): Promise<SchoolDetailResponse> {
+  const response = await authPut(`/school/${schoolId}`, data);
+  return response;
+}
+
+/**
+ * Delete a school by ID
+ */
+export async function deleteSchool(schoolId: number): Promise<DeleteSchoolResponse> {
+  const response = await authDelete(`/school/${schoolId}`);
+  return response;
 }

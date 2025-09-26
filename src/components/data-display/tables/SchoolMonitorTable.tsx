@@ -27,99 +27,17 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { getProvinces, getCitiesByProvince, getDistrictsByCity } from "@/lib/api";
-
-// Dummy data sekolah dengan kecamatan, kota, provinsi
-const sampleData = [
-  {
-    id: "1",
-    nama: "SMA 01 Solo",
-    kecamatan: "Magelang Selatan",
-    alamat: "Jl. Merah Putih",
-    kota: "Solo",
-    provinsi: "Jawa Tengah",
-    telepon: "0271-12345",
-    email: "sma01solo@email.com",
-    waktu: "27/08/2025 10:00",
-  },
-  {
-    id: "2",
-    nama: "SMA 02 Magelang",
-    kecamatan: "Magelang Utara",
-    alamat: "Jl. Diponegoro",
-    kota: "Magelang",
-    provinsi: "Jawa Tengah",
-    telepon: "0293-54321",
-    email: "sma02magelang@email.com",
-    waktu: "28/08/2025 09:30",
-  },
-  {
-    id: "3",
-    nama: "SMA 03 Solo",
-    kecamatan: "Laweyan",
-    alamat: "Jl. Slamet Riyadi",
-    kota: "Solo",
-    provinsi: "Jawa Tengah",
-    telepon: "0271-67890",
-    email: "sma03solo@email.com",
-    waktu: "29/08/2025 08:15",
-  },
-  {
-    id: "4",
-    nama: "SMA 04 Bandung",
-    kecamatan: "Cicendo",
-    alamat: "Jl. Asia Afrika",
-    kota: "Bandung",
-    provinsi: "Jawa Barat",
-    telepon: "022-123456",
-    email: "sma04bandung@email.com",
-    waktu: "30/08/2025 11:00",
-  },
-  {
-    id: "5",
-    nama: "SMA 05 Surabaya",
-    kecamatan: "Genteng",
-    alamat: "Jl. Tunjungan",
-    kota: "Surabaya",
-    provinsi: "Jawa Timur",
-    telepon: "031-654321",
-    email: "sma05surabaya@email.com",
-    waktu: "31/08/2025 13:45",
-  },
-  {
-    id: "6",
-    nama: "SMA 06 Solo",
-    kecamatan: "Banjarsari",
-    alamat: "Jl. Adi Sucipto",
-    kota: "Solo",
-    provinsi: "Jawa Tengah",
-    telepon: "0271-112233",
-    email: "sma06solo@email.com",
-    waktu: "01/09/2025 07:50",
-  },
-  {
-    id: "7",
-    nama: "SMA 07 Magelang",
-    kecamatan: "Magelang Tengah",
-    alamat: "Jl. Sudirman",
-    kota: "Magelang",
-    provinsi: "Jawa Tengah",
-    telepon: "0293-998877",
-    email: "sma07magelang@email.com",
-    waktu: "02/09/2025 10:20",
-  },
-  {
-    id: "8",
-    nama: "SMA 08 Solo",
-    kecamatan: "Serengan",
-    alamat: "Jl. Veteran",
-    kota: "Solo",
-    provinsi: "Jawa Tengah",
-    telepon: "0271-445566",
-    email: "sma08solo@email.com",
-    waktu: "03/09/2025 12:10",
-  },
-];
+import { toast } from "sonner";
+import { 
+  getProvinces, 
+  getCitiesByProvince, 
+  getDistrictsByCity,
+  getSchools,
+  createSchool,
+  updateSchool,
+  deleteSchool
+} from "@/lib/api";
+import { School as ApiSchool } from "@/types/api";
 
 export interface School {
   id: string;
@@ -130,11 +48,10 @@ export interface School {
   provinsi: string;
   telepon: string;
   email: string;
-  waktu: string;
 }
 
 export default function SchoolMonitorTable() {
-  const [data, setData] = useState<School[]>(sampleData);
+  const [data, setData] = useState<School[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [kecamatanFilter, setKecamatanFilter] = useState("all");
   const [kotaFilter, setKotaFilter] = useState("all");
@@ -148,6 +65,7 @@ export default function SchoolMonitorTable() {
   const [loadingProvinces, setLoadingProvinces] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingDistricts, setLoadingDistricts] = useState(false);
+  const [loadingSchools, setLoadingSchools] = useState(false);
 
   // Form location states
   const [formCities, setFormCities] = useState<string[]>([]);
@@ -164,9 +82,10 @@ export default function SchoolMonitorTable() {
   // Form state
   const [form, setForm] = useState<Partial<School>>({});
 
-  // Load provinces on component mount
+  // Load provinces and schools on component mount
   useEffect(() => {
     loadProvinces();
+    loadSchools();
   }, []);
 
   // Load cities when province filter changes
@@ -235,6 +154,19 @@ export default function SchoolMonitorTable() {
   useEffect(() => {
     debouncedLoadFormDistricts(form.kota || "");
   }, [form.kota, debouncedLoadFormDistricts]);
+
+  // Phone validation function
+  const validatePhone = (phone: string) => {
+    const digitsOnly = phone.replace(/\D/g, "");
+    const isValidLength = digitsOnly.length >= 9 && digitsOnly.length <= 13;
+    const startsWithValidDigit = /^[8-9]/.test(digitsOnly);
+
+    return {
+      isValidLength,
+      startsWithValidDigit,
+      isValid: isValidLength && startsWithValidDigit,
+    };
+  };
 
   // Debounce utility function
   function debounce<T extends (...args: string[]) => void>(
@@ -318,6 +250,31 @@ export default function SchoolMonitorTable() {
     }
   };
 
+  const loadSchools = async () => {
+    setLoadingSchools(true);
+    try {
+      const response = await getSchools();
+      if (response.success) {
+        // Transform API data to component format
+        const transformedData = response.data.map((school: ApiSchool) => ({
+          id: school.id.toString(),
+          nama: school.name,
+          kecamatan: school.district,
+          alamat: school.address,
+          kota: school.city,
+          provinsi: school.province,
+          telepon: school.phone,
+          email: school.email,
+        }));
+        setData(transformedData);
+      }
+    } catch (error) {
+      console.error("Failed to load schools:", error);
+    } finally {
+      setLoadingSchools(false);
+    }
+  };
+
   // Filtering
   const filteredData = useMemo(() => {
     return data.filter((item) => {
@@ -354,11 +311,6 @@ export default function SchoolMonitorTable() {
       accessorKey: "provinsi",
       header: "Provinsi",
       cell: ({ row }) => <div>{row.original.provinsi}</div>,
-    },
-    {
-      accessorKey: "waktu",
-      header: "Waktu Dibuat",
-      cell: ({ row }) => <div>{row.original.waktu || "-"}</div>,
     },
     {
       id: "actions",
@@ -432,84 +384,163 @@ export default function SchoolMonitorTable() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }, []);
 
-  const handleTambah = () => {
+  const handleTambah = async (formData: Partial<School>) => {
+    // Validate the submitted form data
     if (
-      !form.nama ||
-      !form.kecamatan ||
-      !form.alamat ||
-      !form.kota ||
-      !form.provinsi ||
-      !form.telepon ||
-      !form.email
+      !formData.nama ||
+      !formData.kecamatan ||
+      !formData.alamat ||
+      !formData.kota ||
+      !formData.provinsi ||
+      !formData.telepon ||
+      !formData.email
     ) {
-      alert("Semua field wajib diisi!");
+      toast.error("Semua field wajib diisi!");
       return;
     }
-    const newId = `school-${Date.now()}`;
-    const formattedTime = new Date().toLocaleString("id-ID", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    setData((prev) => [
-      ...prev,
-      {
-        id: newId,
-        nama: form.nama!,
-        kecamatan: form.kecamatan!,
-        alamat: form.alamat!,
-        kota: form.kota!,
-        provinsi: form.provinsi!,
-        telepon: form.telepon!,
-        email: form.email!,
-        waktu: formattedTime,
-      },
-    ]);
-    setForm({});
-    setOpenDialog(null);
-  };
 
-  const handleEdit = () => {
-    if (
-      !form.nama ||
-      !form.kecamatan ||
-      !form.alamat ||
-      !form.kota ||
-      !form.provinsi ||
-      !form.telepon ||
-      !form.email ||
-      !form.id
-    ) {
-      alert("Semua field wajib diisi!");
+    // Validate phone number
+    const phoneValidation = validatePhone(formData.telepon);
+    if (!phoneValidation.isValid) {
+      toast.error("Nomor telepon tidak valid!");
       return;
     }
-    setData((prev) =>
-      prev.map((item) =>
-        item.id === form.id
-          ? {
-              ...item,
-              nama: form.nama!,
-              kecamatan: form.kecamatan!,
-              alamat: form.alamat!,
-              kota: form.kota!,
-              provinsi: form.provinsi!,
-              telepon: form.telepon!,
-              email: form.email!,
-            }
-          : item
-      )
-    );
-    setForm({});
-    setOpenDialog(null);
+
+    try {
+      const schoolData = {
+        name: formData.nama!,
+        address: formData.alamat!,
+        phone: formData.telepon!,
+        email: formData.email!,
+        district: formData.kecamatan!,
+        city: formData.kota!,
+        province: formData.provinsi!,
+      };
+
+      const response = await createSchool(schoolData);
+      
+      if (response.success) {
+        // Transform the response data to component format
+        const newSchool = {
+          id: response.data.id.toString(),
+          nama: response.data.name,
+          kecamatan: response.data.district,
+          alamat: response.data.address,
+          kota: response.data.city,
+          provinsi: response.data.province,
+          telepon: response.data.phone,
+          email: response.data.email,
+        };
+        
+        setData((prev) => [...prev, newSchool]);
+        setForm({});
+        setOpenDialog(null);
+        toast.success("Sekolah berhasil ditambahkan!");
+      } else {
+        toast.error("Gagal menambahkan sekolah: " + response.message);
+      }
+    } catch (error) {
+      console.error("Failed to create school:", error);
+      toast.error("Gagal menambahkan sekolah. Silakan coba lagi.");
+    }
   };
 
-  const handleDelete = () => {
+  const handleEdit = async (formData: Partial<School>) => {
+    // Validate the submitted form data
+    if (
+      !formData.nama ||
+      !formData.kecamatan ||
+      !formData.alamat ||
+      !formData.kota ||
+      !formData.provinsi ||
+      !formData.telepon ||
+      !formData.email ||
+      !formData.id
+    ) {
+      toast.error("Semua field wajib diisi!");
+      return;
+    }
+
+    // Validate phone number
+    const phoneValidation = validatePhone(formData.telepon);
+    if (!phoneValidation.isValid) {
+      toast.error("Nomor telepon tidak valid!");
+      return;
+    }
+
+    try {
+      const schoolId = parseInt(formData.id!, 10);
+      if (isNaN(schoolId)) {
+        toast.error("ID sekolah tidak valid!");
+        return;
+      }
+
+      const schoolData = {
+        name: formData.nama!,
+        address: formData.alamat!,
+        phone: formData.telepon!,
+        email: formData.email!,
+        district: formData.kecamatan!,
+        city: formData.kota!,
+        province: formData.provinsi!,
+      };
+
+      const response = await updateSchool(schoolId, schoolData);
+      
+      if (response.success) {
+        // Transform the response data to component format
+        const updatedSchool = {
+          id: response.data.id.toString(),
+          nama: response.data.name,
+          kecamatan: response.data.district,
+          alamat: response.data.address,
+          kota: response.data.city,
+          provinsi: response.data.province,
+          telepon: response.data.phone,
+          email: response.data.email,
+        };
+        
+        setData((prev) =>
+          prev.map((item) =>
+            item.id === formData.id ? updatedSchool : item
+          )
+        );
+        setForm({});
+        setOpenDialog(null);
+        toast.success("Sekolah berhasil diperbarui!");
+      } else {
+        toast.error("Gagal memperbarui sekolah: " + response.message);
+      }
+    } catch (error) {
+      console.error("Failed to update school:", error);
+      toast.error("Gagal memperbarui sekolah. Silakan coba lagi.");
+    }
+  };
+
+  const handleDelete = async () => {
     if (!openDialog?.row?.id) return;
-    setData((prev) => prev.filter((item) => item.id !== openDialog.row!.id));
-    setForm({});
-    setOpenDialog(null);
+
+    try {
+      const schoolId = parseInt(openDialog.row.id, 10);
+      if (isNaN(schoolId)) {
+        toast.error("ID sekolah tidak valid!");
+        return;
+      }
+
+      const response = await deleteSchool(schoolId);
+      
+      if (response.success) {
+        setData((prev) => prev.filter((item) => item.id !== openDialog.row!.id));
+        setForm({});
+        setOpenDialog(null);
+        toast.success("Sekolah berhasil dihapus!");
+      } else {
+        toast.error("Gagal menghapus sekolah: " + response.message);
+      }
+    } catch (error) {
+      console.error("Failed to delete school:", error);
+      toast.error("Gagal menghapus sekolah. Silakan coba lagi.");
+    }
   };
 
   // Extracted DialogForm component with local state management
@@ -539,6 +570,19 @@ export default function SchoolMonitorTable() {
     // Local form state to prevent re-renders from parent
     const [localForm, setLocalForm] = useState<Partial<School>>(initialData);
 
+    // Phone validation function
+    const validatePhone = (phone: string) => {
+      const digitsOnly = phone.replace(/\D/g, "");
+      const isValidLength = digitsOnly.length >= 9 && digitsOnly.length <= 13;
+      const startsWithValidDigit = /^[8-9]/.test(digitsOnly);
+
+      return {
+        isValidLength,
+        startsWithValidDigit,
+        isValid: isValidLength && startsWithValidDigit,
+      };
+    };
+
     // Sync with parent when initialData changes (for edit mode)
     useEffect(() => {
       setLocalForm(initialData);
@@ -557,6 +601,9 @@ export default function SchoolMonitorTable() {
       onSubmit(localForm);
     };
 
+    // Phone validation state
+    const phoneValidation = validatePhone(localForm.telepon || "");
+
     return (
       <form
         className="w-full"
@@ -567,17 +614,17 @@ export default function SchoolMonitorTable() {
             {type === "tambah" ? (
               <>
               <Plus className="h-6 w-6 text-[#6C63FF]" />
-              Tambah Admin TU
+              Tambah Sekolah
               </>
             ) : type === "edit" ? (
               <>
               <Edit className="h-6 w-6 text-[#6C63FF]" />
-              Edit Admin TU
+              Edit Sekolah
               </>
             ) : (
               <>
               <Eye className="h-6 w-6 text-[#6C63FF]" />
-              Detail Admin TU
+              Detail Sekolah
               </>
             )}
           </DialogTitle>
@@ -683,14 +730,71 @@ export default function SchoolMonitorTable() {
               <label className="text-sm font-medium mb-1 block">
                 Telepon<span className="text-red-500">*</span>
               </label>
-              <Input
-                placeholder="Telepon"
-                value={localForm.telepon || ""}
-                onChange={(e) => handleLocalFormChange("telepon", e.target.value)}
-                disabled={readOnly}
-                type="tel"
-                required
-              />
+              <div className="flex">
+                <div className="flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                  +62
+                </div>
+                <Input
+                  value={localForm.telepon || ""}
+                  onChange={(e) => {
+                    // Remove any non-digit characters
+                    let value = e.target.value.replace(/\D/g, "");
+                    // Remove leading zero if present
+                    if (value.startsWith("0")) {
+                      value = value.substring(1);
+                    }
+                    handleLocalFormChange("telepon", value);
+                  }}
+                  placeholder="812-3456-7890"
+                  type="tel"
+                  disabled={readOnly}
+                  className={
+                    localForm.telepon?.trim() === ""
+                      ? "border-red-300 focus:border-red-500 rounded-l-none"
+                      : "rounded-l-none"
+                  }
+                  required
+                />
+              </div>
+              {localForm.telepon?.trim() === "" && (
+                <p className="text-sm text-red-500 mt-1">
+                  Nomor telepon wajib diisi
+                </p>
+              )}
+              {localForm.telepon?.trim() !== "" && !phoneValidation.isValid && (
+                <div className="text-xs mt-1">
+                  <p className="text-red-500 font-medium mb-1">
+                    Nomor telepon harus memenuhi kriteria berikut:
+                  </p>
+                  <ul className="space-y-1">
+                    <li
+                      className={
+                        phoneValidation.isValidLength
+                          ? "text-green-600"
+                          : "text-red-500"
+                      }
+                    >
+                      9-13 digit (tanpa +62){" "}
+                      {phoneValidation.isValidLength ? "✓" : "✗"}
+                    </li>
+                    <li
+                      className={
+                        phoneValidation.startsWithValidDigit
+                          ? "text-green-600"
+                          : "text-red-500"
+                      }
+                    >
+                      Dimulai dengan 8 atau 9{" "}
+                      {phoneValidation.startsWithValidDigit ? "✓" : "✗"}
+                    </li>
+                  </ul>
+                </div>
+              )}
+              {localForm.telepon?.trim() !== "" && phoneValidation.isValid && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Format: 62{localForm.telepon}
+                </p>
+              )}
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">
@@ -701,6 +805,7 @@ export default function SchoolMonitorTable() {
                 value={localForm.email || ""}
                 onChange={(e) => handleLocalFormChange("email", e.target.value)}
                 disabled={readOnly}
+                type="email"
                 required
               />
             </div>
@@ -716,6 +821,16 @@ export default function SchoolMonitorTable() {
             <Button
               type="submit"
               className="bg-[#6C63FF] hover:bg-[#554fd8] text-white flex items-center gap-2"
+              disabled={
+                !localForm.nama ||
+                !localForm.kecamatan ||
+                !localForm.alamat ||
+                !localForm.kota ||
+                !localForm.provinsi ||
+                !localForm.telepon ||
+                !localForm.email ||
+                !phoneValidation.isValid
+              }
             >
               {type === "tambah" ? (
                 <>
