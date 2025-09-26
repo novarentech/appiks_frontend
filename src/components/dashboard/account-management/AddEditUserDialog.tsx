@@ -235,6 +235,7 @@ export function AddEditUserDialog({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData, userRole, user, isUsernameAvailable, usernameError, validateUsername, validatePhone, validatePassword]);
 
   // Handle username input with debounce
