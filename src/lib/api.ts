@@ -761,6 +761,28 @@ export async function createRoom(data: {
 }
 
 /**
+ * Update a room/class
+ */
+export async function updateRoom(
+  roomId: number,
+  data: {
+    name: string;
+    level: string;
+  }
+): Promise<RoomResponse> {
+  const response = await authPut(`/room/${roomId}`, data);
+  return response;
+}
+
+/**
+ * Delete a room/class
+ */
+export async function deleteRoom(roomId: number): Promise<{ success: boolean; message: string }> {
+  const response = await authDelete(`/room/${roomId}`);
+  return response;
+}
+
+/**
  * Delete user by username
  */
 export async function deleteUser(username: string): Promise<{ success: boolean; message: string }> {

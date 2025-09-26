@@ -715,3 +715,20 @@ export interface RoomStudentCountResponse {
   };
 }
 
+// Update Room API types
+export interface UpdateRoomRequest {
+  name: string;
+  level: "X" | "XI" | "XII";
+}
+
+export interface UpdateRoomResponse {
+  success: boolean;
+  message: string;
+  data: RoomData;
+}
+
+// Delete Room API types
+export interface DeleteRoomResponse {
+  success: boolean;
+  message: string;
+}

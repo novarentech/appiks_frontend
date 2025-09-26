@@ -27,7 +27,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { getRooms, createRoom } from "@/lib/api";
+import { getRooms, createRoom, updateRoom, deleteRoom } from "@/lib/api";
 import { toast } from "sonner";
 
 export interface ClassItem {
@@ -252,7 +252,7 @@ export default function ClassDataTable() {
         await fetchData();
         setForm({});
         setOpenDialog(null);
-        toast.success("Kelas berhasil ditambahkan");
+        toast.success("Kelas berhasil ditambahkan, data telah diperbarui");
       } else {
         setError(response.message || "Gagal menambah kelas");
         toast.error(response.message || "Gagal menambah kelas");
@@ -264,46 +264,62 @@ export default function ClassDataTable() {
     }
   };
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
     try {
       if (!openDialog?.row) {
         toast.error("Tidak ada data yang dipilih untuk diedit.");
         return;
       }
-      if (!form.school || !form.name || !form.level) {
-        toast.error("Form tidak lengkap. Semua field harus diisi.");
+      if (!form.name || !form.level) {
+        toast.error("Form tidak lengkap. Nama kelas dan tingkat harus diisi.");
         return;
       }
-      setData((prev) =>
-        prev.map((item) =>
-          item.id === openDialog.row!.id
-            ? {
-                ...item,
-                name: form.name!,
-                level: form.level!,
-                code: form.code!,
-              }
-            : item
-        )
-      );
-      setForm({});
-      setOpenDialog(null);
-      toast.success("Kelas berhasil diperbarui");
+      
+      // Call API to update room
+      const response = await updateRoom(openDialog.row.id, {
+        name: form.name,
+        level: form.level,
+      });
+      
+      if (response.success) {
+        // Refresh data after successful update
+        await fetchData();
+        setForm({});
+        setOpenDialog(null);
+        toast.success("Kelas berhasil diperbarui, data telah diperbarui");
+      } else {
+        setError(response.message || "Gagal memperbarui kelas");
+        toast.error(response.message || "Gagal memperbarui kelas");
+      }
     } catch (error) {
-      toast.error("Terjadi kesalahan saat mengedit kelas");
-      console.error("Error saat mengedit kelas:", error);
+      setError("Terjadi kesalahan saat memperbarui kelas");
+      toast.error("Terjadi kesalahan saat memperbarui kelas");
+      console.error("Error saat memperbarui kelas:", error);
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     try {
       if (!openDialog?.row) {
-        console.error("Tidak ada data yang dipilih untuk dihapus.");
+        toast.error("Tidak ada data yang dipilih untuk dihapus.");
         return;
       }
-      setData((prev) => prev.filter((item) => item.id !== openDialog.row!.id));
-      setOpenDialog(null);
+      
+      // Call API to delete room
+      const response = await deleteRoom(openDialog.row.id);
+      
+      if (response.success) {
+        // Refresh data after successful deletion
+        await fetchData();
+        setOpenDialog(null);
+        toast.success("Kelas berhasil dihapus, data telah diperbarui");
+      } else {
+        setError(response.message || "Gagal menghapus kelas");
+        toast.error(response.message || "Gagal menghapus kelas");
+      }
     } catch (error) {
+      setError("Terjadi kesalahan saat menghapus kelas");
+      toast.error("Terjadi kesalahan saat menghapus kelas");
       console.error("Error saat menghapus kelas:", error);
     }
   };
@@ -358,7 +374,7 @@ export default function ClassDataTable() {
                 placeholder="Nama Sekolah"
                 value={form.school || ""}
                 onChange={(e) => handleFormChange("school", e.target.value)}
-                disabled={readOnly}
+                disabled={true}
                 className=""
                 required
               />
@@ -414,7 +430,7 @@ export default function ClassDataTable() {
               disabled={
                 isTambah
                   ? !form.name || !form.level
-                  : !form.school || !form.name || !form.level
+                  : !form.name || !form.level
               }
             >
               {isTambah ? (
