@@ -130,7 +130,7 @@ const roleBasedNavigation: Record<string, NavigationItem[]> = {
       icon: University,
     },
     {
-      title: "Data TU",
+      title: "Kelola TU",
       url: "/dashboard/admin-management",
       icon: ShieldUserIcon,
     },
