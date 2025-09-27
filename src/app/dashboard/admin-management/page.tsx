@@ -1,6 +1,6 @@
 "use client";
 
-import TuPanel from "@/components/dashboard/panels/TuPanel";
+
 import TuDataTable from "@/components/data-display/tables/TuDataTable";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
@@ -54,8 +54,6 @@ export default function ClassDataPage() {
         <h1 className="text-3xl font-bold">Data Admin TU</h1>
         <p className="text-gray-600 mt-2">Kelola Data Admin TU</p>
       </div>
-      <TuPanel />
-
       <TuDataTable />
     </div>
   );
