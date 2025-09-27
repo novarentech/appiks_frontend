@@ -503,6 +503,7 @@ interface TuDialogFormsProps {
   onEdit: (formData: Partial<TuAdmin>) => void;
   onDelete: () => void;
   setOpenDialog: (dialog: null | { type: "lihat" | "edit" | "hapus" | "tambah"; row?: TuAdmin }) => void;
+  deleteLoading?: boolean;
 }
 
 export default function TuDialogForms({
@@ -510,6 +511,7 @@ export default function TuDialogForms({
   onTambah,
   onEdit,
   onDelete,
+  deleteLoading = false,
 }: TuDialogFormsProps) {
   // Local form state - this prevents parent re-renders on every keystroke
   const [localForm, setLocalForm] = useState<Partial<TuAdmin>>({});
@@ -570,14 +572,24 @@ export default function TuDialogForms({
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Batal</Button>
+            <Button variant="outline" disabled={deleteLoading}>
+              Batal
+            </Button>
           </DialogClose>
           <Button
             variant="destructive"
             onClick={onDelete}
             className="bg-red-500 hover:bg-red-600 text-white"
+            disabled={deleteLoading}
           >
-            Hapus
+            {deleteLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Menghapus...
+              </>
+            ) : (
+              "Hapus"
+            )}
           </Button>
         </DialogFooter>
       </div>

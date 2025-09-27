@@ -19,11 +19,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Eye, Edit, Trash2, Plus, Search, Loader2 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
-import { getUsersByType } from "@/lib/api";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { getUsersByType, deleteUser } from "@/lib/api";
 import { User } from "@/types/api";
 import TuDialogForms from "./TuDialogForms";
 
@@ -34,19 +31,21 @@ function mapUserToTuAdmin(user: User): TuAdmin {
     username: user.username,
     sekolah: user.room?.name || "Unknown",
     kontak: user.phone,
-    waktu: user.created_at ? new Date(user.created_at).toLocaleString("id-ID", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }) : new Date().toLocaleString("id-ID", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+    waktu: user.created_at
+      ? new Date(user.created_at).toLocaleString("id-ID", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : new Date().toLocaleString("id-ID", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
     email: user.username + "@example.com", // Generate email since API doesn't provide it
     nama: user.name,
     nip: user.identifier,
@@ -70,6 +69,7 @@ export default function TuDataTable() {
   const [data, setData] = useState<TuAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [schoolFilter, setSchoolFilter] = useState("all");
   const [pageSize, setPageSize] = useState(10);
@@ -121,9 +121,12 @@ export default function TuDataTable() {
 
   // Get unique schools for filter dropdown
   const uniqueSchools = useMemo(() => {
-    const schools = [...new Set(data.map(item => item.sekolah))];
-    return schools.length > 0 
-      ? [{ value: "all", label: "Pilih Sekolah" }, ...schools.map(school => ({ value: school, label: school }))]
+    const schools = [...new Set(data.map((item) => item.sekolah))];
+    return schools.length > 0
+      ? [
+          { value: "all", label: "Pilih Sekolah" },
+          ...schools.map((school) => ({ value: school, label: school })),
+        ]
       : [{ value: "all", label: "Pilih Sekolah" }];
   }, [data]);
 
@@ -270,13 +273,26 @@ export default function TuDataTable() {
     setOpenDialog(null);
   }, []);
 
-  const handleDelete = useCallback(() => {
-    if (!openDialog?.row?.id) return;
-    setData((prev) => prev.filter((item) => item.id !== openDialog.row!.id));
-    setForm({});
-    setOpenDialog(null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openDialog?.row?.id]);
+  const handleDelete = useCallback(async () => {
+    if (!openDialog?.row?.username) return;
+    
+    try {
+      setDeleteLoading(true);
+      const response = await deleteUser(openDialog.row.username);
+      
+      if (response.success) {
+        setData((prev) => prev.filter((item) => item.username !== openDialog.row!.username));
+        setForm({});
+        setOpenDialog(null);
+      } else {
+        alert(response.message || "Gagal menghapus admin TU");
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus admin TU");
+    } finally {
+      setDeleteLoading(false);
+    }
+  }, [openDialog]);
 
   return (
     <div className="w-full space-y-6">
@@ -347,8 +363,8 @@ export default function TuDataTable() {
       ) : error ? (
         <div className="text-center py-8">
           <div className="text-red-500 mb-2">Error: {error}</div>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             variant="outline"
             className="text-[#6C63FF] border-[#6C63FF]"
           >
@@ -376,6 +392,7 @@ export default function TuDataTable() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             setOpenDialog={setOpenDialog}
+            deleteLoading={deleteLoading}
           />
         </DialogContent>
       </Dialog>
