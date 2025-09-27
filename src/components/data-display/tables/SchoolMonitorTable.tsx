@@ -748,6 +748,7 @@ export default function SchoolMonitorTable() {
                   placeholder="812-3456-7890"
                   type="tel"
                   disabled={readOnly}
+                  maxLength={13}
                   className={
                     localForm.telepon?.trim() === ""
                       ? "border-red-300 focus:border-red-500 rounded-l-none"
