@@ -56,6 +56,8 @@ import {
   CreateSchoolRequest,
   UpdateSchoolRequest,
   DeleteSchoolResponse,
+  SchoolMoodTrendsResponse,
+  SchoolRoomsResponse,
 } from "@/types/api";
 import { RoomResponse, RoomStudentCountResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
@@ -952,6 +954,25 @@ export async function updateSchool(schoolId: number, data: UpdateSchoolRequest):
  */
 export async function deleteSchool(schoolId: number): Promise<DeleteSchoolResponse> {
   const response = await authDelete(`/school/${schoolId}`);
+  return response;
+}
+
+/**
+ * Get school mood trends data
+ */
+export async function getSchoolMoodTrends(
+  schoolId: number,
+  type: "weekly" | "monthly"
+): Promise<SchoolMoodTrendsResponse> {
+  const response = await authGet(`/mood-trends/${schoolId}/${type}`);
+  return response;
+}
+
+/**
+ * Get school rooms/classes data
+ */
+export async function getSchoolRooms(schoolId: number): Promise<SchoolRoomsResponse> {
+  const response = await authGet(`/room/school/${schoolId}`);
   return response;
 }
 

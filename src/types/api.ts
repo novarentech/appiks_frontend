@@ -820,3 +820,76 @@ export interface DeleteSchoolResponse {
   message: string;
   data: School;
 }
+
+// School Mood Trends API types
+export interface SchoolMoodTrendItem {
+  recorded: string;
+  status: string;
+  total: number;
+}
+
+export interface SchoolMoodTrendsStudent {
+  id: number;
+  name: string;
+  phone: string;
+  username: string;
+  identifier: string;
+  verified: boolean;
+  role: string;
+  mentor_id: number;
+  counselor_id: number;
+  room_id: number;
+  school_id: number;
+  created_at: string;
+}
+
+export interface SchoolMoodTrendsSchool {
+  id: number;
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  district: string;
+  city: string;
+  province: string;
+  students: SchoolMoodTrendsStudent[];
+}
+
+export interface SchoolMoodTrendsData {
+  moods: SchoolMoodTrendItem[];
+  school: SchoolMoodTrendsSchool;
+}
+
+export interface SchoolMoodTrendsResponse {
+  success: boolean;
+  message: string;
+  data: SchoolMoodTrendsData;
+}
+
+// School Rooms API types
+export interface SchoolRoom {
+  id: number;
+  name: string;
+  level: string;
+  code: string;
+  school_id: number;
+  created_at: string;
+  students_count: number;
+  school: {
+    id: number;
+    name: string;
+    address: string;
+    phone: string;
+    email: string;
+    district: string;
+    city: string;
+    province: string;
+  };
+  mention: string;
+}
+
+export interface SchoolRoomsResponse {
+  success: boolean;
+  message: string;
+  data: SchoolRoom[];
+}

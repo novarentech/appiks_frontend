@@ -1,6 +1,6 @@
 "use client";
 
-import SchoolMonitorTable from "@/components/data-display/tables/SchoolMonitorTable";
+import SuperSchoolDataTable from "@/components/data-display/tables/SuperSchoolDataTable";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -54,7 +54,7 @@ export default function ClassDataPage() {
         <p className="text-gray-600 mt-2">Kelola Data Sekolah</p>
       </div>
       
-      <SchoolMonitorTable />
+      <SuperSchoolDataTable />
     </div>
   );
 }
