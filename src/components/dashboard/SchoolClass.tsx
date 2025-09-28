@@ -15,7 +15,7 @@ import { FaChalkboardTeacher } from "react-icons/fa";
 import Link from "next/link";
 
 interface SchoolClassProps {
-  schoolId: string;
+  schoolName: string;
   roomsData: SchoolRoomsResponse["data"] | null;
   searchTerm: string;
   selectedLevel: string;
@@ -26,7 +26,7 @@ interface SchoolClassProps {
 }
 
 export default function SchoolClass({
-  schoolId,
+  schoolName,
   searchTerm,
   selectedLevel,
   onSearchChange,
@@ -77,8 +77,8 @@ export default function SchoolClass({
                 <span className="text-sm">{room.students_count} Siswa</span>
               </div>
               <div className="flex items-center gap-2 justify-end">
-                <Link 
-                  href={`/dashboard/school-monitor/${schoolId}/${room.id}`}
+                <Link
+                  href={`/dashboard/school-monitor/${schoolName}/${room.code}`}
                   className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
                 >
                   Lihat Detail

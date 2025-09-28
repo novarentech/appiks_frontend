@@ -1,13 +1,15 @@
 "use client";
 
-import SchoolMonitorTable from "@/components/data-display/tables/SchoolMonitorTable";
+import ClassDetailTable from "@/components/data-display/tables/ClassDetailTables";
 import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useEffect } from "react";
 
-export default function SchoolMonitorPage() {
+export default function ClassDataPage() {
   const { isLoading, isAuthenticated, isVerified, user } = useAuth();
   const router = useRouter();
+  const params = useParams();
+  const classCode = params.class as string;
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !isVerified)) {
@@ -50,10 +52,12 @@ export default function SchoolMonitorPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Monitoring Sekolah</h1>
+        <h1 className="text-3xl font-bold">Monitoring Kelas</h1>
         <p className="text-gray-600 mt-2">Sistem pelacakan data sekolah, kelas, dan siswa</p>
       </div>
-      <SchoolMonitorTable />
+
+      <ClassDetailTable roomCode={classCode} />
+
     </div>
   );
 }

@@ -4,11 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { getMoodPattern } from "@/lib/api";
 import { MoodPatternResponse } from "@/types/api";
-import MoodChart from "@/components/dashboard/MoodChart";
+import StudentDetailTabs from "@/components/data-display/StudentDetailTabs";
 
 export default function MoodDetailPage() {
   const params = useParams();
-  const username = params.username as string;
+  const username = params.student as string;
 
   const [selectedPeriod, setSelectedPeriod] = useState<string>("7");
   const [moodData, setMoodData] = useState<MoodPatternResponse | null>(null);
@@ -31,47 +31,15 @@ export default function MoodDetailPage() {
     }
   }, [username, selectedPeriod]);
 
-  // Fetch data when component mounts or when period changes
+  // Fetch data when component mounts
   useEffect(() => {
     if (username) {
       fetchMoodData();
     }
-  }, [username, selectedPeriod, fetchMoodData]);
-
-
-  // Get current mood stats
-  const currentMoodStats = moodData?.data.recap || {
-    sad: 0,
-    neutral: 0,
-    angry: 0,
-    happy: 0,
-  };
+  }, [username, fetchMoodData]);
 
   // Get student name
   const studentName = moodData?.data.user.name || "Siswa";
-
-  // Mood analysis based on mean
-  const getMoodAnalysis = () => {
-    const mean = moodData?.data.mean || "neutral";
-
-    if (mean === "insecure" || mean === "sad" || mean === "angry") {
-      return {
-        trend: "tidak aman",
-        description: `Mood rata-rata siswa ${studentName} tercatat berada di kategori tidak aman dalam ${
-          selectedPeriod === "7" ? "7 hari" : "30 hari"
-        } terakhir. Hal ini dapat menjadi tanda bahwa siswa sedang mengalami tekanan emosional atau perasaan negatif yang cukup serius. Disarankan untuk menghubungi siswa secara personal, menawarkan sesi konseling secara private, atau memantau perubahan mood di minggu berikutnya.`,
-      };
-    } else {
-      return {
-        trend: "aman",
-        description: `Mood rata-rata siswa ${studentName} tercatat berada di kategori aman dalam ${
-          selectedPeriod === "7" ? "7 hari" : "30 hari"
-        } terakhir. Hal ini menunjukkan bahwa siswa memiliki kondisi emosional yang stabil. Tetap pantau perkembangan mood siswa untuk memastikan kondisinya tetap baik.`,
-      };
-    }
-  };
-
-  const moodAnalysis = getMoodAnalysis();
 
   if (loading) {
     return (
@@ -101,19 +69,20 @@ export default function MoodDetailPage() {
   }
 
   return (
-    <MoodChart
-      title={`Lihat Pola Mood ${studentName}`}
-      subtitle="Laporan Pola Mood"
-      selectedPeriod={selectedPeriod}
-      moodData={moodData?.data.moods || []}
-      currentMoodStats={currentMoodStats}
-      moodAnalysis={moodAnalysis}
-      onPeriodChange={setSelectedPeriod}
-      showDownloadButton={true}
-      onDownload={() => {
-        // TODO: Implement download functionality
-        console.log("Download functionality not implemented yet");
-      }}
-    />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Monitoring Siswa</h1>
+        <p className="text-gray-600 mt-2">
+          Sistem pelacakan data sekolah, kelas, dan siswa
+        </p>
+      </div>
+      <StudentDetailTabs
+        username={username}
+        studentName={studentName}
+        selectedPeriod={selectedPeriod}
+        moodData={moodData}
+        onPeriodChange={setSelectedPeriod}
+      />
+    </div>
   );
 }

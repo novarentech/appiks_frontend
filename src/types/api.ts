@@ -893,3 +893,110 @@ export interface SchoolRoomsResponse {
   message: string;
   data: SchoolRoom[];
 }
+
+// Interface for room detail by code
+export interface RoomStudent {
+  id: number;
+  name: string;
+  phone: string;
+  username: string;
+  identifier: string;
+  verified: boolean;
+  role: string;
+  created_at: string;
+  mentor: {
+    id: number;
+    name: string;
+    phone: string;
+    username: string;
+    identifier: string;
+    verified: boolean;
+    role: string;
+    mentor_id: string | null;
+    counselor_id: string | null;
+    room_id: number | null;
+    school_id: number;
+    created_at: string;
+  };
+}
+
+export interface RoomDetailSchool {
+  id: number;
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  district: string;
+  city: string;
+  province: string;
+}
+
+export interface RoomDetailResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    name: string;
+    level: string;
+    code: string;
+    school_id: number;
+    created_at: string;
+    students_count: number;
+    students: RoomStudent[];
+    school: RoomDetailSchool;
+    mention: string;
+  };
+}
+
+// Student Sharing API types
+export interface StudentSharingItem {
+  id: number;
+  user_id: number;
+  title: string;
+  description: string;
+  reply: string | null;
+  replied_at: string | null;
+  replied_by: string | null;
+  priority: "tinggi" | "rendah";
+  created_at: string;
+}
+
+export interface StudentSharingResponse {
+  success: boolean;
+  message: string;
+  data: StudentSharingItem[];
+}
+
+// Student Report API types
+export interface StudentReportCounselor {
+  id: number;
+  name: string;
+  phone: string;
+  username: string;
+  identifier: string;
+  verified: boolean;
+  role: string;
+  created_at: string;
+}
+
+export interface StudentReportItem {
+  id: number;
+  user_id: number;
+  counselor_id: number;
+  topic: string;
+  room: string;
+  date: string;
+  time: string;
+  status: "selesai" | "dibatalkan" | "disetujui" | "menunggu" | "dijadwalkan";
+  priority: "tinggi" | "rendah";
+  notes: string;
+  result: string;
+  created_at: string;
+  counselor: StudentReportCounselor;
+}
+
+export interface StudentReportResponse {
+  success: boolean;
+  message: string;
+  data: StudentReportItem[];
+}

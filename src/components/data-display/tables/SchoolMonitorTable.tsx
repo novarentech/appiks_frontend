@@ -12,13 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Eye } from "lucide-react";
 import Link from "next/link";
-import { 
-  getProvinces, 
-  getCitiesByProvince, 
+import {
+  getProvinces,
+  getCitiesByProvince,
   getDistrictsByCity,
-  getSchools
+  getSchools,
 } from "@/lib/api";
 import { School as ApiSchool } from "@/types/api";
 
@@ -49,8 +49,6 @@ export default function SchoolMonitorTable() {
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [, setLoadingSchools] = useState(false);
-
-
 
   // Load provinces and schools on component mount
   useEffect(() => {
@@ -86,7 +84,6 @@ export default function SchoolMonitorTable() {
       setKecamatanFilter("all");
     }
   }, [provinsiFilter]);
-
 
   const loadProvinces = async () => {
     setLoadingProvinces(true);
@@ -130,7 +127,6 @@ export default function SchoolMonitorTable() {
     }
   };
 
-
   const loadSchools = async () => {
     setLoadingSchools(true);
     try {
@@ -167,7 +163,9 @@ export default function SchoolMonitorTable() {
       const matchesKota = kotaFilter === "all" || item.kota === kotaFilter;
       const matchesProvinsi =
         provinsiFilter === "all" || item.provinsi === provinsiFilter;
-      return matchesSearch && matchesKecamatan && matchesKota && matchesProvinsi;
+      return (
+        matchesSearch && matchesKecamatan && matchesKota && matchesProvinsi
+      );
     });
   }, [data, searchQuery, kecamatanFilter, kotaFilter, provinsiFilter]);
 
@@ -199,23 +197,25 @@ export default function SchoolMonitorTable() {
       cell: ({ row }) => {
         const item = row.original;
         return (
-          <div className="flex items-center gap-2">
-            <Link href={`/dashboard/school-monitor/${item.id}`}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className=" bg-blue-100 text-blue-700 hover:bg-blue-200"
+          <div className="flex items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              className="min-w-30 text-blue-600 border-blue-200 hover:bg-blue-50 text-xs px-3 py-1 h-8"
+            >
+              <Link
+                href={`/dashboard/school-monitor/${item.nama}`}
+                className="flex items-center"
               >
+                <Eye className="w-3 h-3 mr-1" />
                 Pantau Sekolah
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         );
       },
     },
   ];
-
-
 
   return (
     <div className="w-full space-y-6">
@@ -231,7 +231,11 @@ export default function SchoolMonitorTable() {
               className="pl-9 w-full sm:w-48"
             />
           </div>
-          <Select value={kecamatanFilter} onValueChange={setKecamatanFilter} disabled={!kotaFilter || kotaFilter === "all" || loadingDistricts}>
+          <Select
+            value={kecamatanFilter}
+            onValueChange={setKecamatanFilter}
+            disabled={!kotaFilter || kotaFilter === "all" || loadingDistricts}
+          >
             <SelectTrigger className="w-full sm:w-40">
               {loadingDistricts ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -248,7 +252,13 @@ export default function SchoolMonitorTable() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={kotaFilter} onValueChange={setKotaFilter} disabled={!provinsiFilter || provinsiFilter === "all" || loadingCities}>
+          <Select
+            value={kotaFilter}
+            onValueChange={setKotaFilter}
+            disabled={
+              !provinsiFilter || provinsiFilter === "all" || loadingCities
+            }
+          >
             <SelectTrigger className="w-full sm:w-40">
               {loadingCities ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -265,7 +275,11 @@ export default function SchoolMonitorTable() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={provinsiFilter} onValueChange={setProvinsiFilter} disabled={loadingProvinces}>
+          <Select
+            value={provinsiFilter}
+            onValueChange={setProvinsiFilter}
+            disabled={loadingProvinces}
+          >
             <SelectTrigger className="w-full sm:w-40">
               {loadingProvinces ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -316,7 +330,6 @@ export default function SchoolMonitorTable() {
         pageSizeOptions={[5, 10, 20, 50]}
         showPageSizeSelector={false}
       />
-
     </div>
   );
 }

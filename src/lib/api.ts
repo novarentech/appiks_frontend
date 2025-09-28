@@ -58,6 +58,9 @@ import {
   DeleteSchoolResponse,
   SchoolMoodTrendsResponse,
   SchoolRoomsResponse,
+  RoomDetailResponse,
+  StudentSharingResponse,
+  StudentReportResponse,
 } from "@/types/api";
 import { RoomResponse, RoomStudentCountResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
@@ -961,18 +964,26 @@ export async function deleteSchool(schoolId: number): Promise<DeleteSchoolRespon
  * Get school mood trends data
  */
 export async function getSchoolMoodTrends(
-  schoolId: number,
+  school: string,
   type: "weekly" | "monthly"
 ): Promise<SchoolMoodTrendsResponse> {
-  const response = await authGet(`/mood-trends/${schoolId}/${type}`);
+  const response = await authGet(`/mood-trends/${school}/${type}`);
   return response;
 }
 
 /**
  * Get school rooms/classes data
  */
-export async function getSchoolRooms(schoolId: number): Promise<SchoolRoomsResponse> {
-  const response = await authGet(`/room/school/${schoolId}`);
+export async function getSchoolRooms(school: string): Promise<SchoolRoomsResponse> {
+  const response = await authGet(`/room/school/${school}`);
+  return response;
+}
+
+/**
+ * Get room detail by code
+ */
+export async function getRoomByCode(code: string): Promise<RoomDetailResponse> {
+  const response = await authGet(`/room/${code}`);
   return response;
 }
 
@@ -1077,6 +1088,22 @@ export async function getLatestSharingNotifications(): Promise<Notification[]> {
   });
 
   return notifications;
+}
+
+/**
+ * Get student sharing/curhat data by username
+ */
+export async function getStudentSharingData(username: string): Promise<StudentSharingResponse> {
+  const response = await authGet(`/sharing/student/${username}`);
+  return response;
+}
+
+/**
+ * Get student report/counseling data by username
+ */
+export async function getStudentReportData(username: string): Promise<StudentReportResponse> {
+  const response = await authGet(`/report/student/${username}`);
+  return response;
 }
 
 /**

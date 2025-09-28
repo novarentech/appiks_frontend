@@ -11,7 +11,7 @@ import SchoolClass from "@/components/dashboard/SchoolClass";
 
 export default function SchoolMonitorDetailPage() {
   const params = useParams();
-  const schoolId = params.school as string;
+  const schoolName = params.school as string;
 
   const [selectedPeriod, setSelectedPeriod] = useState<string>("7");
   const [moodData, setMoodData] = useState<
@@ -33,14 +33,13 @@ export default function SchoolMonitorDetailPage() {
       setLoading(true);
       setError(null);
       const type = selectedPeriod === "7" ? "weekly" : "monthly";
-      const schoolIdNum = parseInt(schoolId, 10);
 
-      if (isNaN(schoolIdNum)) {
-        setError("ID sekolah tidak valid.");
+      if (!schoolName) {
+        setError("Nama sekolah tidak valid.");
         return;
       }
 
-      const response = await getSchoolMoodTrends(schoolIdNum, type);
+      const response = await getSchoolMoodTrends(schoolName, type);
 
       if (response.success) {
         setMoodData(response.data);
@@ -54,19 +53,17 @@ export default function SchoolMonitorDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [schoolId, selectedPeriod]);
+  }, [schoolName, selectedPeriod]);
 
   // Fetch school rooms data
   const fetchRoomsData = useCallback(async () => {
     try {
-      const schoolIdNum = parseInt(schoolId, 10);
-
-      if (isNaN(schoolIdNum)) {
-        setError("ID sekolah tidak valid.");
+      if (!schoolName) {
+        setError("Nama sekolah tidak valid.");
         return;
       }
 
-      const response = await getSchoolRooms(schoolIdNum);
+      const response = await getSchoolRooms(schoolName);
 
       if (response.success) {
         setRoomsData(response.data);
@@ -77,15 +74,15 @@ export default function SchoolMonitorDetailPage() {
       setError("Gagal memuat data kelas sekolah. Silakan coba lagi.");
       console.error("Error fetching school rooms data:", err);
     }
-  }, [schoolId]);
+  }, [schoolName]);
 
   // Fetch data when component mounts or when period changes
   useEffect(() => {
-    if (schoolId) {
+    if (schoolName) {
       fetchMoodData();
       fetchRoomsData();
     }
-  }, [schoolId, selectedPeriod, fetchMoodData, fetchRoomsData]);
+  }, [schoolName, selectedPeriod, fetchMoodData, fetchRoomsData]);
 
 
   // Calculate current mood stats from moods data
@@ -105,8 +102,8 @@ export default function SchoolMonitorDetailPage() {
     return stats;
   }, [moodData?.moods]);
 
-  // Get school name
-  const schoolName = schoolData?.name || "Sekolah";
+  // Get display school name (fallback to URL parameter if API data not available)
+  const displaySchoolName = schoolData?.name || schoolName || "Sekolah";
 
   // Mood analysis based on mood distribution
   const getMoodAnalysis = () => {
@@ -121,14 +118,14 @@ export default function SchoolMonitorDetailPage() {
     if (negativePercentage > 40) {
       return {
         trend: "tidak aman",
-        description: `Mood rata-rata siswa di ${schoolName} tercatat berada di kategori tidak aman dalam ${
+        description: `Mood rata-rata siswa di ${displaySchoolName} tercatat berada di kategori tidak aman dalam ${
           selectedPeriod === "7" ? "7 hari" : "30 hari"
         } terakhir. Hal ini dapat menjadi tanda bahwa banyak siswa sedang mengalami tekanan emosional atau perasaan negatif yang cukup serius. Disarankan untuk meningkatkan perhatian dan dukungan psikologis di sekolah.`,
       };
     } else {
       return {
         trend: "aman",
-        description: `Mood rata-rata siswa di ${schoolName} tercatat berada di kategori aman dalam ${
+        description: `Mood rata-rata siswa di ${displaySchoolName} tercatat berada di kategori aman dalam ${
           selectedPeriod === "7" ? "7 hari" : "30 hari"
         } terakhir. Hal ini menunjukkan bahwa kondisi emosional siswa secara umum stabil. Tetap pantau perkembangan mood siswa untuk memastikan kondisinya tetap baik.`,
       };
@@ -184,7 +181,7 @@ export default function SchoolMonitorDetailPage() {
   return (
     <>
       <SchoolChart
-        schoolName={schoolName}
+        schoolName={displaySchoolName}
         selectedPeriod={selectedPeriod}
         moodData={moodData}
         currentMoodStats={currentMoodStats}
@@ -193,7 +190,7 @@ export default function SchoolMonitorDetailPage() {
       />
 
       <SchoolClass
-        schoolId={schoolId}
+        schoolName={schoolName}
         roomsData={roomsData}
         searchTerm={searchTerm}
         selectedLevel={selectedLevel}
