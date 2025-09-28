@@ -10,7 +10,6 @@ import {
   ShieldUserIcon,
   University,
   ScanEye,
-  KeyRound,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -138,11 +137,6 @@ const roleBasedNavigation: Record<string, NavigationItem[]> = {
       title: "Monitor Sekolah",
       url: "/dashboard/school-monitor",
       icon: ScanEye,
-    },
-    {
-      title: "Kelola API",
-      url: "/dashboard/api-management",
-      icon: KeyRound,
     },
   ],
 };
