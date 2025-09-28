@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/questionnaire`, {
+    const response = await fetch(`${API_BASE_URL}/questionnaire`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,

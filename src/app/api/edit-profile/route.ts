@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "../../../../auth";
+import { API_BASE_URL } from "@/lib/config";
 
 export async function PATCH(request: Request) {
   const session = await auth();
@@ -20,7 +21,7 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const backendUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/edit-profile`;
+  const backendUrl = `${API_BASE_URL}/edit-profile`;
 
   const response = await fetch(backendUrl, {
     method: "PATCH",

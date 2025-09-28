@@ -49,7 +49,7 @@ export async function POST(
 
     // Submit to external API
     const response = await fetch(
-      `${API_BASE_URL}/api/questionnaire/${type}`,
+      `${API_BASE_URL}/questionnaire/${type}`,
       {
         method: "POST",
         headers: {
