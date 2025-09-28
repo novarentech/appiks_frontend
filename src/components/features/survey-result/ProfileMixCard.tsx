@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
+import { getArchetypeImage } from "@/lib/archtype-mapping";
 
 interface ProfileMixCardProps {
   secondaryType: string;
@@ -27,8 +28,8 @@ export function ProfileMixCard({ secondaryType }: ProfileMixCardProps) {
       </div>
       <div className="p-3 sm:p-4 lg:p-6 space-y-3 text-center">
         <Image
-          src="/icon/ico-walk-3.webp"
-          alt="Mix Profile"
+          src={getArchetypeImage(secondaryType)}
+          alt={`Secondary Archetype: ${secondaryType}`}
           width={100}
           height={100}
           className="w-32 h-32 sm:w-48 sm:h-48 lg:w-64 lg:h-64 mx-auto"

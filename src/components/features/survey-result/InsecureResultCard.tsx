@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ProfileDisplay } from "./ProfileDisplay";
 import { InfoCard } from "./InfoCard";
 import { NotesCard } from "./NotesCard";
+import { getArchetypeImage, getLearningModeImage } from "@/lib/archtype-mapping";
 
 interface InsecureResultCardProps {
   resultData: InsecureSurveyResultData;
@@ -51,14 +52,22 @@ export function InsecureResultCard({
           >
             Ekspedisimu berhasil mengungkap PROFIL PAHLAWAN mu:
           </motion.p>
+          <motion.p
+            className="text-sm sm:text-base"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 1.4 }}
+          >
+            Berdasarkan jawabanmu, kami melihat profil seorang:
+          </motion.p>
         </CardHeader>
 
         <CardContent className="p-4 sm:p-6">
           <ProfileDisplay
-            imageSrc="/icon/ico-walk-3.webp"
-            imageAlt={resultData.hero_name}
-            name={resultData.hero_name}
-            subtitle={`Kekuatan super: ${resultData.super_strength}`}
+            imageSrc={getArchetypeImage(resultData.archtype.type.main)}
+            imageAlt={resultData.archtype.type.main}
+            name={resultData.archtype.type.main}
+            subtitle={`${resultData.archtype.character}`}
           />
 
           <motion.div
@@ -67,34 +76,68 @@ export function InsecureResultCard({
             initial="hidden"
             animate="visible"
           >
-            {/* Hero sections */}
+            {/* Archetype Info */}
             <InfoCard
-              title="Kekuatan Super"
-              content={resultData.super_strength}
+              title="Tipe Utama"
+              content={resultData.archtype.type.main}
               color="blue-600"
-              className="lg:col-span-3"
+              className="lg:col-span-1"
             />
 
             <InfoCard
+              title="Tipe Sekunder"
+              content={resultData.archtype.type.secondary}
+              color="purple-600"
+              className="lg:col-span-1"
+            />
+
+            <InfoCard
+              title="Kebiasaan"
+              content={resultData.archtype.habits}
+              color="green-600"
+              className="lg:col-span-1"
+            />
+
+            {/* Learning Info */}
+            <InfoCard
               title="Mode Belajar"
-              content={resultData.learning_mode}
+              content={resultData.learn.mode}
               color="yellow-500"
+              className="lg:col-span-1"
+              showImage
+              imageSrc={getLearningModeImage(resultData.learn.mode)}
+              imageAlt={`Learning Mode: ${resultData.learn.mode}`}
+              imagePosition="bottom"
+            />
+
+            <InfoCard
+              title="Gaya Belajar"
+              content={resultData.learn.style}
+              color="sky-900"
               className="lg:col-span-2"
               showImage
-              imagePosition="left"
+              imagePosition="bottom"
+              imageSrc="/image/survey/flame.webp"
+              imageAlt="Learning Style Icon"
+            />
+
+            {/* Power and Fuel */}
+            <InfoCard
+              title="Kekuatan Super"
+              content={resultData.archtype.power}
+              color="red-600"
+              className="lg:col-span-2"
             />
 
             <InfoCard
               title="Bahan Bakar"
-              content={resultData.motivation_fuel}
-              color="sky-900"
+              content={resultData.fuel}
+              color="orange-600"
               className="lg:col-span-1"
-              showImage
-              imagePosition="bottom"
             />
 
-            {/* Notes Card */}
-            <NotesCard content={resultData.note} />
+            {/* Description */}
+            <NotesCard content={resultData.archtype.description} />
           </motion.div>
         </CardContent>
       </Card>

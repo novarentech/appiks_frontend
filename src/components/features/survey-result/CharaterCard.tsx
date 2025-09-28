@@ -1,14 +1,16 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-interface InfoCardProps {
+interface CharacterProps {
   title: string;
   content: string;
   color: string;
   className?: string;
   showImage?: boolean;
+  values?: string;
   imageSrc?: string;
   imageAlt?: string;
   imagePosition?: "left" | "right" | "top" | "bottom";
@@ -55,16 +57,17 @@ const colorMap = {
   },
 };
 
-export function InfoCard({
+export function CharacterCard({
   title,
   content,
   color,
+  values,
   className = "",
   showImage = false,
   imageSrc = "/icon/ico-walk-3.webp",
   imageAlt = "Icon",
   imagePosition = "right",
-}: InfoCardProps) {
+}: CharacterProps) {
   // Get color classes from map, fallback to blue-600 if color not found
   const colorClasses =
     colorMap[color as keyof typeof colorMap] || colorMap["blue-600"];
@@ -113,9 +116,20 @@ export function InfoCard({
         </h3>
       </div>
       <div className={`p-3 sm:p-4 lg:p-6 ${getLayoutClasses()}`}>
-        <p className={`text-xs sm:text-sm lg:text-base ${getTextClasses()}`}>
-          {content}
-        </p>
+        <div className={`text-xs sm:text-sm lg:text-base ${getTextClasses()}`}>
+          <p>{content}</p>
+          <p className="space-x-2">
+            {values?.split(",").map((value: string, index: number) => (
+              <Badge
+                key={index}
+                className="bg-yellow-50 text-yellow-500 px-2 py-1 rounded-full text-xs sm:text-sm hover:bg-yellow-200 transition-colors cursor-default"
+              >
+                {value.trim()}
+              </Badge>
+            ))}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2 mt-3"></div>
         {showImage && (
           <Image
             src={imageSrc}

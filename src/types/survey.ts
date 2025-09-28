@@ -36,50 +36,62 @@ export interface SurveySubmission {
   completedAt: string;
 }
 
-export interface SurveyResultArchetype {
-  primary: string;
-  name: string;
+// Insecure Survey Result (Pahlawan)
+export interface InsecureArchetypeType {
+  main: string;
+  secondary: string;
 }
 
-export interface SurveyResultSummary {
-  "Kompas Nilai": string;
-  "Peralatan Andalan": string;
-  "Medan Ideal": string;
+export interface InsecureArchetype {
+  type: InsecureArchetypeType;
+  character: string;
+  habits: string;
+  description: string;
+  power: string;
 }
 
-export interface SurveyResultMissionChallenge {
-  title: string;
-  mission_1: string;
-  mission_2: string;
+export interface InsecureLearn {
+  mode: string;
+  style: string;
+}
+
+export interface InsecureMission {
+  first: {
+    title: string;
+    text: string;
+  };
+  second: {
+    title: string;
+    text: string;
+  };
+}
+
+export interface InsecureSurveyResultData {
+  archtype: InsecureArchetype;
+  learn: InsecureLearn;
+  fuel: string;
+  mission: InsecureMission;
 }
 
 // Secure Survey Result (Navigator)
-export interface SecureSurveyResultData {
-  archetype: {
-    primary: string;
-    secondary: string;
-    name: string;
-  };
-  summary: {
-    "Kompas Nilai": string;
-    "Peralatan Andalan": string;
-    "Medan Ideal": string;
-    "Path Karir": string;
-  };
+export interface SecureArchetype {
+  primary: string;
+  secondary: string;
   description: string;
-  mission_challenge: SurveyResultMissionChallenge;
-  note: string;
 }
 
-// Insecure Survey Result (Pahlawan)
-export interface InsecureSurveyResultData {
-  title: string;
-  hero_name: string;
-  super_strength: string;
-  learning_mode: string;
-  motivation_fuel: string;
-  mission_challenge: SurveyResultMissionChallenge;
-  note: string;
+export interface SecureSurveyResultData {
+  archtype: SecureArchetype;
+  archtype_character: string;
+  archtype_values: string[];
+  tools: string;
+  ideal_field: string;
+  carier_path: string[];
+  personal_message: string;
+  mission: {
+    carier: string;
+    practice: string;
+  };
 }
 
 // Union type for both result formats
@@ -91,13 +103,13 @@ export type SurveyResultData =
 export function isSecureResult(
   data: SurveyResultData
 ): data is SecureSurveyResultData {
-  return "archetype" in data;
+  return "archtype_character" in data;
 }
 
 export function isInsecureResult(
   data: SurveyResultData
 ): data is InsecureSurveyResultData {
-  return "title" in data;
+  return "learn" in data;
 }
 
 export interface SurveyResultResponse {

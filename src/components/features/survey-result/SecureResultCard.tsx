@@ -8,6 +8,8 @@ import { ProfileMixCard } from "./ProfileMixCard";
 import { InfoCard } from "./InfoCard";
 import { CareerPathCard } from "./CareerPathCard";
 import { NotesCard } from "./NotesCard";
+import { CharacterCard } from "./CharaterCard";
+import { getArchetypeImage } from "@/lib/archtype-mapping";
 
 interface SecureResultCardProps {
   resultData: SecureSurveyResultData;
@@ -65,10 +67,10 @@ export function SecureResultCard({
 
         <CardContent className="p-4 sm:p-6">
           <ProfileDisplay
-            imageSrc="/icon/ico-walk-3.webp"
-            imageAlt={resultData.archetype.name}
-            name={resultData.archetype.name}
-            subtitle={`Kompasmu menunjuk pada: ${resultData.summary["Kompas Nilai"]}`}
+            imageSrc={getArchetypeImage(resultData.archtype.primary)}
+            imageAlt={`${resultData.archtype.primary}`}
+            name={`${resultData.archtype.primary}`}
+            subtitle={resultData.archtype_character}
           />
 
           <motion.div
@@ -78,41 +80,47 @@ export function SecureResultCard({
             animate="visible"
           >
             {/* Profile Mix Card */}
-            <ProfileMixCard secondaryType={resultData.archetype.secondary} />
+            {resultData.archtype.secondary && (
+              <ProfileMixCard secondaryType={resultData.archtype.secondary} />
+            )}
 
-            {/* Summary Cards */}
-            <InfoCard
-              title="Kompas Nilai"
-              content={`${resultData.summary["Kompas Nilai"]} Lorem ipsum dolor sit amet, consectetur adipisicing elit.`}
+            {/* Character Info */}
+            <CharacterCard
+              title="Karakter"
+              content={resultData.archtype.description || "-"}
+              values={resultData.archtype_values.join(",") || "-"}
               color="yellow-500"
               className="lg:col-span-2"
+              imageAlt="Character Icon"
+              imageSrc="/image/survey/compass.webp"
               showImage
               imagePosition="right"
             />
 
             <InfoCard
-              title="Peralatan Andalan"
-              content={resultData.summary["Peralatan Andalan"]}
+              title="Tools"
+              content={resultData.tools}
               color="sky-900"
               className="lg:col-span-1"
+              imageSrc="/image/survey/tools.webp"
+              imageAlt="Tools Icon"
               showImage
               imagePosition="top"
             />
 
             <InfoCard
-              title="Medan Ideal"
-              content={resultData.summary["Medan Ideal"]}
+              title="Lingkungan Ideal"
+              content={resultData.ideal_field}
               color="rose-500"
               className="lg:col-span-1"
-              showImage
               imagePosition="bottom"
             />
 
             {/* Career Path Card */}
-            <CareerPathCard careers={resultData.summary["Path Karir"]} />
+            <CareerPathCard careers={resultData.carier_path.join(", ")} />
 
-            {/* Notes Card */}
-            <NotesCard content={resultData.description} />
+            {/* Personal Message */}
+            <NotesCard content={resultData.personal_message} />
           </motion.div>
         </CardContent>
       </Card>

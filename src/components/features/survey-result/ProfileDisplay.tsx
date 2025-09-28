@@ -38,7 +38,7 @@ export function ProfileDisplay({
       />
       <div className="p-4 sm:p-6">
         <p className="text-lg sm:text-xl font-bold mb-2">{name}</p>
-        <p className="text-sm sm:text-base text-gray-600">{subtitle}</p>
+        <p className="text-sm sm:text-base text-gray-600">Kompasmu merujuk pada : {subtitle}</p>
         {additionalInfo && (
           <div className="mt-3">
             <Badge className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs sm:text-sm lg:text-base">
