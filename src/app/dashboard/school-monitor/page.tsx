@@ -51,8 +51,8 @@ export default function ClassDataPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Data Admin TU</h1>
-        <p className="text-gray-600 mt-2">Kelola Data Admin TU</p>
+        <h1 className="text-3xl font-bold">Monitoring Sekolah</h1>
+        <p className="text-gray-600 mt-2">Sistem pelacakan data sekolah, kelas, dan siswa</p>
       </div>
       <TuPanel />
 
