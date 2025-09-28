@@ -10,8 +10,8 @@ import {
   IdCard,
   Calendar,
 } from "lucide-react";
-import { TuAdmin } from "./TuDataTable";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { TuAdmin } from "@/components/data-display/tables/TuDataTable";
 
 interface TuAdminDetailProps {
   admin: TuAdmin;

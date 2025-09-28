@@ -22,8 +22,8 @@ import { Eye, Edit, Trash2, Plus, Search, Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { getUsersByType, deleteUser, createAdmin, getSchools, updateUser } from "@/lib/api";
 import { User, School } from "@/types/api";
-import TuDialogForms from "./TuDialogForms";
 import { toast } from "sonner";
+import TuDialogForms from "@/components/dashboard/dialogs/TuDialogForms";
 
 // Function to map API User data to TuAdmin interface
 function mapUserToTuAdmin(user: User): TuAdmin {
