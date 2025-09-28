@@ -3,25 +3,51 @@
 import { Bell, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { NotificationItem } from "@/components/features/notifications/NotificationItem";
-import { allNotifications } from "@/data/notifications";
+import { getLatestSharingNotifications, getLatestCounselingNotifications } from "@/lib/api";
+import { Notification } from "@/types/notifications";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function NotificationsPage() {
   const { isLoading, isAuthenticated, isVerified } = useAuth();
   const router = useRouter();
   const [filter, setFilter] = useState<"all" | "counseling" | "curhat">("all");
-  const [expandedNotification, setExpandedNotification] = useState<
-    number | null
-  >(null);
+  const [expandedNotification, setExpandedNotification] = useState<number | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const [curhatNotifications, counselingNotifications] = await Promise.all([
+          getLatestSharingNotifications(),
+          getLatestCounselingNotifications()
+        ]);
+        
+        // Combine both types of notifications
+        const allNotifications = [...curhatNotifications, ...counselingNotifications];
+        setNotifications(allNotifications);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+        // Fallback to empty array if API fails
+        setNotifications([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isAuthenticated && isVerified) {
+      fetchNotifications();
+    }
+  }, [isAuthenticated, isVerified]);
 
   const toggleExpand = (id: number) => {
     setExpandedNotification(expandedNotification === id ? null : id);
   };
 
-  const filteredNotifications = allNotifications.filter((notification) => {
+  const filteredNotifications = notifications.filter((notification) => {
     if (filter === "all") return true;
     return notification.type === filter;
   });
@@ -50,30 +76,30 @@ export default function NotificationsPage() {
   return (
     <div className="min-h-screen container mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 py-10 sm:py-16 lg:py-20">
       {/* Header */}
-    <motion.div
+      <motion.div
         className="space-y-6 sm:space-y-8 lg:space-y-12 mb-8 sm:mb-12 lg:mb-16"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-    >
+      >
         {/* Back Button */}
         <Button
-            variant="ghost"
-            className="p-0 h-auto text-gray-600 hover:text-gray-900 hover:bg-transparent group"
-            onClick={() => router.back()}
+          variant="ghost"
+          className="p-0 h-auto text-gray-600 hover:text-gray-900 hover:bg-transparent group"
+          onClick={() => router.back()}
         >
-            <ChevronLeft className="w-4 h-4 mr-1 group-hover:-translate-x-0.5 transition-transform" />
-            Ke Halaman Beranda
+          <ChevronLeft className="w-4 h-4 mr-1 group-hover:-translate-x-0.5 transition-transform" />
+          Ke Halaman Beranda
         </Button>
 
         <div className="text-center">
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">
             History Notifikasi
-            </h1>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          </h1>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             Riwayat lengkap jadwal konseling dan curhatan
-            </p>
+          </p>
         </div>
-    </motion.div>
+      </motion.div>
 
       {/* Filter Tabs */}
       <motion.div
@@ -87,20 +113,19 @@ export default function NotificationsPage() {
             key: "all",
             label: "Semua",
             shortLabel: "Semua",
-            count: allNotifications.length,
+            count: notifications.length,
           },
           {
             key: "counseling",
             label: "Jadwal Konseling",
             shortLabel: "Konseling",
-            count: allNotifications.filter((n) => n.type === "counseling")
-              .length,
+            count: notifications.filter((n) => n.type === "counseling").length,
           },
           {
             key: "curhat",
             label: "Status Curhat",
             shortLabel: "Curhat",
-            count: allNotifications.filter((n) => n.type === "curhat").length,
+            count: notifications.filter((n) => n.type === "curhat").length,
           },
         ].map((tab) => (
           <motion.button
@@ -131,7 +156,12 @@ export default function NotificationsPage() {
 
       {/* Notifications List */}
       <div className="space-y-3 sm:space-y-4">
-        {filteredNotifications.map((notification, index) => (
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="text-gray-500 mt-2 text-sm">Memuat notifikasi...</p>
+          </div>
+        ) : filteredNotifications.map((notification: Notification, index: number) => (
           <motion.div
             key={notification.id}
             className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300"
@@ -145,14 +175,13 @@ export default function NotificationsPage() {
               isExpanded={expandedNotification === notification.id}
               index={index}
               size="md"
-              showActions={true}
             />
           </motion.div>
         ))}
       </div>
 
       {/* Empty State */}
-      {filteredNotifications.length === 0 && (
+      {!loading && filteredNotifications.length === 0 && (
         <motion.div
           className="text-center py-12 sm:py-16 bg-white rounded-xl sm:rounded-2xl shadow-lg"
           initial={{ opacity: 0 }}
