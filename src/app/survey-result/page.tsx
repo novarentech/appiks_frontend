@@ -54,6 +54,10 @@ export default function SurveyResultPage() {
     router.push("/dashboard");
   }, [router]);
 
+  const goToMissionPage = useCallback(() => {
+    router.push("/survey-result/mission");
+  }, [router]);
+
   useEffect(() => {
     const storedResult = sessionStorage.getItem("surveyResult");
     if (storedResult) {
@@ -105,7 +109,7 @@ export default function SurveyResultPage() {
 
         <SecureResultCard resultData={resultData} userName={getUserName()} />
 
-        <BackButton onClick={handleBackToDashboard} />
+        <BackButton onClick={goToMissionPage} />
       </motion.div>
     );
   }
@@ -132,7 +136,7 @@ export default function SurveyResultPage() {
 
         <InsecureResultCard resultData={resultData} userName={getUserName()} />
 
-        <BackButton onClick={handleBackToDashboard} />
+        <BackButton onClick={goToMissionPage} />
       </motion.div>
     );
   }
