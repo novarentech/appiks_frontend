@@ -207,7 +207,7 @@ export function NotificationCard() {
       </div>
 
       {/* Empty state */}
-      {activeNotifications.length === 0 && (
+      {activeNotifications.length === 0 && !loading && (
         <motion.div
           className="text-center py-8 sm:py-12 px-4"
           initial={{ opacity: 0 }}
