@@ -59,6 +59,8 @@ import {
 } from "@/types/api";
 import { RoomResponse, RoomStudentCountResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
+import { Bell, CheckCircle } from "lucide-react";
+import { Notification, CurhatNotification, CounselingNotification } from "@/types/notifications";
 
 /**
  * Get CSRF token from cookie
@@ -982,4 +984,182 @@ export async function updateUser(username: string, userData: {
 }): Promise<{ success: boolean; message: string; data?: unknown }> {
   const response = await authPatch(`/edit-user/${username}`, userData);
   return response;
+}
+
+/**
+ * Get latest sharing/curhat notifications
+ */
+export async function getLatestSharingNotifications(): Promise<Notification[]> {
+  const session = await getSession();
+
+  if (!session?.user?.token) {
+    throw new Error("No authentication token available");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/notification/latest-sharing`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${session.user.token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`GET /notification/latest-sharing failed with status ${response.status}`);
+  }
+
+  const apiResponse = await response.json();
+  
+  if (!apiResponse.success || !apiResponse.data) {
+    return [];
+  }
+
+  // Transform API data to match Notification interface
+  const notifications: CurhatNotification[] = apiResponse.data.map((item: {
+    id: number;
+    title: string;
+    description: string;
+    reply: string | null;
+    replied_at: string | null;
+    created_at: string;
+  }) => {
+    const createdDate = new Date(item.created_at);
+    const formattedDate = createdDate.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).replace(/\//g, '/');
+
+    // Determine status based on reply
+    const status: "dibalas" | "dikirim" = item.reply ? "dibalas" : "dikirim";
+    const statusText = item.reply ? "Dibalas" : "Dikirim";
+    const statusColor = item.reply ? "blue" : "amber";
+
+    return {
+      id: item.id,
+      type: "curhat" as const,
+      title: "Status Curhatmu",
+      description: item.title,
+      teacher: "System", // Since API doesn't provide teacher info
+      date: formattedDate,
+      status: status,
+      statusText: statusText,
+      statusColor: statusColor,
+      borderColor: item.reply ? "border-blue-400" : "border-amber-400",
+      icon: Bell,
+      isNew: true, // Always show as new since user wants fresh data
+      curhatDescription: item.description,
+      reply: item.reply,
+      replyDate: item.replied_at ? new Date(item.replied_at).toLocaleString('id-ID') : undefined,
+    };
+  });
+
+  return notifications;
+}
+
+/**
+ * Get latest counseling schedule notifications
+ */
+export async function getLatestCounselingNotifications(): Promise<Notification[]> {
+  const session = await getSession();
+
+  if (!session?.user?.token) {
+    throw new Error("No authentication token available");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/notification/latest-report`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${session.user.token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`GET /notification/latest-report failed with status ${response.status}`);
+  }
+
+  const apiResponse = await response.json();
+  
+  if (!apiResponse.success || !apiResponse.data) {
+    return [];
+  }
+
+  // Transform API data to match Notification interface
+  const notifications: CounselingNotification[] = apiResponse.data.map((item: {
+    id: number;
+    topic: string;
+    room: string;
+    date: string;
+    time: string;
+    status: string;
+    priority: string;
+    notes: string;
+    result: string;
+    created_at: string;
+    counselor: {
+      name: string;
+    };
+  }) => {
+    const createdDate = new Date(item.created_at);
+    const formattedDate = createdDate.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).replace(/\//g, '/');
+
+    // Map API status to notification status
+    let status: "disetujui" | "dijadwal_ulang" | "selesai" | "dibatalkan" = "disetujui";
+    let statusText = "Disetujui";
+    let statusColor = "green";
+    let borderColor = "border-green-400";
+
+    switch (item.status) {
+      case "selesai":
+        status = "selesai";
+        statusText = "Selesai";
+        statusColor = "emerald";
+        borderColor = "border-emerald-400";
+        break;
+      case "dijadwalkan":
+        status = "disetujui";
+        statusText = "Disetujui";
+        statusColor = "green";
+        borderColor = "border-green-400";
+        break;
+      case "dibatalkan":
+        status = "dibatalkan";
+        statusText = "Dibatalkan";
+        statusColor = "red";
+        borderColor = "border-red-400";
+        break;
+      case "dijadwal_ulang":
+        status = "dijadwal_ulang";
+        statusText = "Dijadwal Ulang";
+        statusColor = "orange";
+        borderColor = "border-orange-400";
+        break;
+    }
+
+    return {
+      id: item.id,
+      type: "counseling" as const,
+      title: "Jadwal Konseling",
+      description: item.topic,
+      teacher: item.counselor.name,
+      date: formattedDate,
+      time: item.time,
+      room: item.room,
+      status: status,
+      statusText: statusText,
+      statusColor: statusColor,
+      borderColor: borderColor,
+      icon: CheckCircle,
+      isNew: true,
+      notes: item.notes,
+      noteDate: formattedDate,
+    };
+  });
+
+  return notifications;
 }

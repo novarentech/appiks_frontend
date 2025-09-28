@@ -2,21 +2,43 @@
 
 import { Bell, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { NotificationGroup } from "@/components/features/notifications/NotificationGroup";
 import { Notification, GroupConfig } from "@/types/notifications";
-import { sampleNotifications } from "@/data/notifications";
+import { getLatestSharingNotifications, getLatestCounselingNotifications } from "@/lib/api";
 
 export function NotificationCard() {
   const router = useRouter();
   const [expandedNotification, setExpandedNotification] = useState<
     number | null
   >(null);
-  const [dismissedNotifications, setDismissedNotifications] = useState<
-    number[]
-  >([]);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const [curhatNotifications, counselingNotifications] = await Promise.all([
+          getLatestSharingNotifications(),
+          getLatestCounselingNotifications()
+        ]);
+        
+        // Combine both types of notifications
+        const allNotifications = [...curhatNotifications, ...counselingNotifications];
+        setNotifications(allNotifications);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+        // Fallback to empty array if API fails
+        setNotifications([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
 
   const toggleExpand = (id: number) => {
     setExpandedNotification(expandedNotification === id ? null : id);
@@ -26,12 +48,8 @@ export function NotificationCard() {
     setExpandedGroup(expandedGroup === groupType ? null : groupType);
   };
 
-  const dismissNotification = (id: number) => {
-    setDismissedNotifications([...dismissedNotifications, id]);
-  };
-
-  const activeNotifications = sampleNotifications.filter(
-    (n) => !dismissedNotifications.includes(n.id) && n.isNew
+  const activeNotifications = notifications.filter(
+    (n) => n.isNew
   );
 
   // Group notifications by type
@@ -104,7 +122,12 @@ export function NotificationCard() {
 
       {/* Notifications by Groups */}
       <div className="p-4 sm:p-6 space-y-3 sm:space-y-4 max-h-80 sm:max-h-96 overflow-y-auto">
-        {Object.entries(groupedNotifications).map(
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="text-gray-500 mt-2 text-sm">Memuat notifikasi...</p>
+          </div>
+        ) : Object.entries(groupedNotifications).map(
           ([groupType, groupNotifications]) => {
             const config = groupConfig[groupType];
             if (!config) return null;
@@ -118,7 +141,6 @@ export function NotificationCard() {
                 isExpanded={expandedGroup === groupType}
                 onToggleGroup={toggleGroupExpand}
                 onToggleNotification={toggleExpand}
-                onDismissNotification={dismissNotification}
                 expandedNotificationId={expandedNotification}
                 size="sm"
               />

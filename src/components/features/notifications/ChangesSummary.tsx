@@ -40,9 +40,6 @@ export function ChangesSummary({
             Guru:
           </span>
           <div className="text-right">
-            <div className="line-through text-red-600">
-              {notification.changes.oldTeacher}
-            </div>
             <div className="text-green-600 font-medium">
               {notification.teacher}
             </div>
@@ -53,9 +50,6 @@ export function ChangesSummary({
             Tanggal:
           </span>
           <div className="text-right">
-            <div className="line-through text-red-600">
-              {notification.changes.oldDate}
-            </div>
             <div className="text-green-600 font-medium">
               {notification.date}
             </div>
@@ -66,9 +60,6 @@ export function ChangesSummary({
             Jam:
           </span>
           <div className="text-right">
-            <div className="line-through text-red-600">
-              {notification.changes.oldTime}
-            </div>
             <div className="text-green-600 font-medium">
               {notification.time}
             </div>
@@ -79,9 +70,6 @@ export function ChangesSummary({
             Ruang:
           </span>
           <div className="text-right">
-            <div className="line-through text-red-600">
-              {notification.changes.oldRoom}
-            </div>
             <div className="text-green-600 font-medium">
               {notification.room}
             </div>

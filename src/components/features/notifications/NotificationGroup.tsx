@@ -12,7 +12,6 @@ interface NotificationGroupProps {
   isExpanded: boolean;
   onToggleGroup: (groupType: string) => void;
   onToggleNotification?: (id: number) => void;
-  onDismissNotification?: (id: number) => void;
   expandedNotificationId?: number | null;
   size?: "sm" | "md";
 }
@@ -24,7 +23,6 @@ export function NotificationGroup({
   isExpanded,
   onToggleGroup,
   onToggleNotification,
-  onDismissNotification,
   expandedNotificationId,
   size = "sm",
 }: NotificationGroupProps) {
@@ -110,7 +108,6 @@ export function NotificationGroup({
             <NotificationItem
               key={notification.id}
               notification={notification}
-              onDismiss={onDismissNotification}
               onToggleExpand={onToggleNotification}
               isExpanded={expandedNotificationId === notification.id}
               index={index}

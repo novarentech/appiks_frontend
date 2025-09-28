@@ -9,22 +9,18 @@ import { NotificationContent } from "./NotificationContent";
 
 interface NotificationItemProps {
   notification: Notification;
-  onDismiss?: (id: number) => void;
   onToggleExpand?: (id: number) => void;
   isExpanded?: boolean;
   index?: number;
   size?: "sm" | "md";
-  showActions?: boolean;
 }
 
 export function NotificationItem({
   notification,
-  onDismiss,
   onToggleExpand,
   isExpanded = false,
   index = 0,
   size = "sm",
-  showActions = true,
 }: NotificationItemProps) {
   const Icon = notification.icon;
   const isSm = size === "sm";
@@ -35,11 +31,6 @@ export function NotificationItem({
     }
   };
 
-  const handleDismiss = () => {
-    if (onDismiss) {
-      onDismiss(notification.id);
-    }
-  };
 
   return (
     <motion.div
@@ -134,37 +125,6 @@ export function NotificationItem({
               <div className="space-y-3">
                 <NotificationContent notification={notification} size={size} />
 
-                {/* Actions */}
-                {showActions && (
-                  <div
-                    className={`flex flex-col gap-2 ${
-                      isSm ? "sm:gap-3" : "sm:gap-3"
-                    }`}
-                  >
-                    <motion.button
-                      onClick={handleDismiss}
-                      className={`${
-                        isSm ? "text-xs" : "text-xs sm:text-sm"
-                      } text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-full transition-colors w-full sm:w-auto`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      Hapus notifikasi
-                    </motion.button>
-                    {notification.type === "counseling" &&
-                      notification.status === "disetujui" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={`bg-green-50 border-green-200 text-green-700 hover:bg-green-100 w-full sm:w-auto ${
-                            isSm ? "text-xs" : "text-xs sm:text-sm"
-                          }`}
-                        >
-                          Join Meeting
-                        </Button>
-                      )}
-                  </div>
-                )}
               </div>
             </div>
           </motion.div>
