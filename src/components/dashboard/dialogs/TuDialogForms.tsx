@@ -204,8 +204,8 @@ const DialogForm = memo(function DialogForm({
       return;
     }
     
-    if (localForm.nip.length !== 10) {
-      toast.error("NIP/NUPTK harus 10 karakter!");
+    if (localForm.nip.length !== 18) {
+      toast.error("NIP/NUPTK harus 18 karakter!");
       return;
     }
 
@@ -249,7 +249,7 @@ const DialogForm = memo(function DialogForm({
     (!localForm.password || validatePassword(localForm.password).isValid) &&
     (!usernameChanged || (isUsernameAvailable === true && !usernameError)) &&
     /^\d+$/.test(localForm.nip || "") &&
-    (localForm.nip?.length === 10);
+    (localForm.nip?.length === 18);
 
   return (
     <form
@@ -442,14 +442,14 @@ const DialogForm = memo(function DialogForm({
               }}
               disabled={readOnly}
               required
-              maxLength={10}
+              maxLength={18}
             />
             {localForm.nip && (
               <div className="text-xs mt-1">
                 {!/^\d+$/.test(localForm.nip) ? (
                   <p className="text-red-500">NIP/NUPTK hanya boleh mengandung angka</p>
-                ) : localForm.nip.length !== 10 ? (
-                  <p className="text-red-500">NIP/NUPTK harus 10 karakter</p>
+                ) : localForm.nip.length !== 18 ? (
+                  <p className="text-red-500">NIP/NUPTK harus 18 karakter</p>
                 ) : (
                   <p className="text-green-600">NIP/NUPTK valid</p>
                 )}
