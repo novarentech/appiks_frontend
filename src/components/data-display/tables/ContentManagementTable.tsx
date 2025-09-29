@@ -62,69 +62,6 @@ export interface ContentItem {
   created_at?: string;
 }
 
-// Sample data - replace with actual API call
-const sampleData: ContentItem[] = [
-  {
-    id: "1",
-    title: "Self-Awareness untuk Siswa: Kunci Hidup Sehat & Bahagia",
-    type: "Artikel",
-    createdAt: "27/08/2025 10:00 AM",
-    thumbnail: "/image/imgPic.webp",
-    content: "Content about self-awareness...",
-    author: "Admin",
-    category: "Self Awareness",
-  },
-  {
-    id: "2",
-    title: "Stop Intoleransi di Lingkungan Sekolah",
-    type: "Video",
-    createdAt: "27/08/2025 10:00 AM",
-    url: "https://youtube.com/cara-menjaga-kondisi-emosional",
-    category: "Self Awareness",
-  },
-  {
-    id: "3",
-    title: "Stop Intoleransi di Lingkungan Sekolah",
-    type: "Video",
-    createdAt: "27/08/2025 10:00 AM",
-    url: "https://youtube.com/stop-intoleransi",
-    category: "Mental Health",
-  },
-  {
-    id: "4",
-    title: "Self-Awareness untuk Siswa: Kunci Hidup Sehat & Bahagia",
-    type: "Artikel",
-    createdAt: "27/08/2025 10:00 AM",
-    content: "Another article content...",
-    category: "Self Awareness",
-  },
-  {
-    id: "5",
-    title:
-      "Satu-satunya hal yang akan membuatmu bahagia adalah mencintai siapa dirimu",
-    type: "Quotes",
-    createdAt: "27/08/2025 10:00 AM",
-    content: "Inspiring quote content...",
-    author: "Unknown",
-  },
-  {
-    id: "6",
-    title: "Percayalah pada dirimu sendiri dan semua yang ada dalam...",
-    type: "Quotes",
-    createdAt: "27/08/2025 10:00 AM",
-    content: "Another inspiring quote...",
-    author: "Unknown",
-  },
-  {
-    id: "7",
-    title: "Tidak setiap hari harus sempurna",
-    type: "Quotes",
-    createdAt: "27/08/2025 10:00 AM",
-    content: "Daily motivation quote...",
-    author: "Unknown",
-  },
-];
-
 export function ContentManagementTable({ refreshData }: { refreshData?: () => void }) {
   const router = useRouter();
   const { data: tagsData, loading: tagsLoading } = useTags();
@@ -132,8 +69,8 @@ export function ContentManagementTable({ refreshData }: { refreshData?: () => vo
   
   // Transform API data to ContentItem format
   const transformedData = useMemo(() => {
-    if (!dashboardContentData) return sampleData;
-    
+    if (!dashboardContentData) return [];
+
     return dashboardContentData.map((item: DashboardContentItem) => {
       // Map API type to UI type
       let uiType: "Artikel" | "Video" | "Quotes";
