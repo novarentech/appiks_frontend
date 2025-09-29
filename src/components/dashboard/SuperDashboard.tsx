@@ -1,10 +1,7 @@
 "use client";
 
-import { KeyRound } from "lucide-react";
-import SchoolAndClassChart from "../data-display/charts/SchoolAndClass";
-import { Button } from "../ui/button";
 import TuPanel from "./panels/TuPanel";
-import Link from "next/link";
+import AverageStudentMood from "../data-display/charts/AverageStudentMood";
 
 export function SuperDashboard() {
   return (
@@ -14,15 +11,7 @@ export function SuperDashboard() {
         <p className="text-gray-600 mt-2">Kendali Penuh Appiks</p>
       </div>
       <TuPanel />
-      <SchoolAndClassChart />
-      <div className="flex items-center justify-end">
-        <Button asChild>
-          <Link href="/dashboard/api-management">
-            <KeyRound className="h-4 w-4" />
-            Kelola API
-          </Link>
-        </Button>
-      </div>
+      <AverageStudentMood />
     </div>
   );
 }
