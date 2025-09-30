@@ -143,7 +143,7 @@ export default function ArticleDetailPage() {
             onClick={handleGoBack}
           >
             <ChevronLeft className="w-4 h-4 mr-1 group-hover:-translate-x-0.5 transition-transform" />
-            Kembali ke Daftar Artikel
+            Kembali 
           </Button>
         </div>
 
