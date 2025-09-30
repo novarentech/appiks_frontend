@@ -1,12 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { NotificationCard } from "./NotificationCard";
-import { MoodCalendar } from "./MoodCalendar";
+import { NotificationCard } from "../data-display/cards/NotificationCard";
+import { MoodCalendar } from "../data-display/cards/MoodCalendar";
 import { StreakCard } from "../data-display/cards/StreakCard";
 import { TipsCard } from "../data-display/cards/TipsCard";
 import { QuoteCard } from "../data-display/cards/QuoteCard";
-import { WelcomeCard } from "./WelcomeCard";
+import { WelcomeCard } from "../data-display/cards/WelcomeCard";
 
 export function StudentDashboard() {
   const containerVariants = {
