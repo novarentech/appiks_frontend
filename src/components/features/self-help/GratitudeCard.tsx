@@ -7,11 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCheck, PlusCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function GratitudeCard() {
   const [achievement, setAchievement] = useState("");
   const [progress, setProgress] = useState<string[]>(["", "", ""]);
   const [selfAppreciation, setSelfAppreciation] = useState("");
+  const router = useRouter();
+
+  const handleGoToDashboard = () => {
+    router.push("/dashboard");
+  };
 
   return (
     <>
@@ -127,6 +133,7 @@ export default function GratitudeCard() {
             progress.slice(0, 1).some((p) => p.trim() === "") ||
             !selfAppreciation
           }
+          onClick={handleGoToDashboard}
         >
           Simpan Journal
           <CheckCheck />

@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const categories = ["Sekolah", "Rumah", "Teman", "Cinta", "Belajar", "Guru"];
 
@@ -25,6 +26,11 @@ export default function DailyJournallingCard() {
   const [story, setStory] = useState("");
   const [selectedEmotions, setSelectedEmotions] = useState<string[]>([]);
   const [thought, setThought] = useState("");
+  const router = useRouter();
+
+  const handleGoToDashboard = () => {
+    router.push("/dashboard");
+  };
 
   const handleEmotionToggle = (value: string) => {
     setSelectedEmotions((prev) =>
@@ -39,8 +45,8 @@ export default function DailyJournallingCard() {
       emotions: selectedEmotions,
       thought,
     };
-    console.log("📒 Journal disimpan:", payload);
-    // TODO: kirim ke API dengan fetch/axios
+    handleGoToDashboard();
+    console.log("Saved Journal:", payload);
   };
 
   return (
@@ -143,7 +149,9 @@ export default function DailyJournallingCard() {
       <div className="flex justify-end mt-7">
         <Button
           onClick={handleSave}
-          disabled={!selectedCategory && !story && selectedEmotions.length === 0}
+          disabled={
+            !selectedCategory && !story && selectedEmotions.length === 0
+          }
         >
           Simpan Journal
           <CheckCheck className="ml-2" />

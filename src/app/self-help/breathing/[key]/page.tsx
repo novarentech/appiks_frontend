@@ -8,9 +8,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
 
 const breathingVideos = {
-  short: "YOUTUBE_ID_1",
-  medium: "YOUTUBE_ID_2",
-  long: "YOUTUBE_ID_3",
+  short: "0LqWXlBfBxE",
+  medium: "W4P228EhxXc",
+  long: "Wv1Likcjjho",
 };
 
 export default function BreathingVideoPage() {

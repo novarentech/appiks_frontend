@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const activities = [
   {
@@ -39,6 +40,10 @@ const activities = [
 export default function SensoryRelaxationCard() {
   const [selected, setSelected] = useState<number[]>([]);
   const [reflection, setReflection] = useState("");
+  const router = useRouter();
+  const handleGoToDashboard = () => {
+    router.push("/dashboard");
+  }
 
   const handleSelect = (idx: number) => {
     setSelected((prev) =>
@@ -52,6 +57,7 @@ export default function SensoryRelaxationCard() {
       reflection,
     };
     console.log("📒 Journal disimpan:", payload);
+    handleGoToDashboard();
   };
 
   return (
@@ -135,7 +141,7 @@ export default function SensoryRelaxationCard() {
           onClick={handleSave}
           disabled={selected.length === 0 || reflection.trim() === ""}
         >
-          Simpan Journal
+          Selesai
           <CheckCheck className="ml-2" />
         </Button>
       </div>
