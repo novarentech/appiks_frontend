@@ -1107,6 +1107,23 @@ export async function getStudentReportData(username: string): Promise<StudentRep
 }
 
 /**
+ * Get dashboard report count data
+ */
+export async function getDashboardReportCount(): Promise<{
+  success: boolean;
+  message: string;
+  data: {
+    dijadwalkan: number;
+    menunggu: number;
+    selesai: number;
+    dibatalkan: number;
+  };
+}> {
+  const response = await authGet("/dashboard/report-count");
+  return response;
+}
+
+/**
  * Get latest counseling schedule notifications
  */
 export async function getLatestCounselingNotifications(): Promise<Notification[]> {

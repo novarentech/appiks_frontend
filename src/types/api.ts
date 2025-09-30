@@ -1000,3 +1000,15 @@ export interface StudentReportResponse {
   message: string;
   data: StudentReportItem[];
 }
+
+// Dashboard Report Count API types
+export interface DashboardReportCountResponse {
+  success: boolean;
+  message: string;
+  data: {
+    dijadwalkan: number;
+    menunggu: number;
+    selesai: number;
+    dibatalkan: number;
+  };
+}
