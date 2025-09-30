@@ -236,7 +236,7 @@ export default function ConfirmationDialog({
 
             <div>
               <label className="text-sm font-medium">
-                Catatan Konfirmasi (Opsional)
+                Catatan Konfirmasi
               </label>
               <Textarea
                 value={confirmationData.catatan}
@@ -262,7 +262,7 @@ export default function ConfirmationDialog({
           </Button>
           <Button
             onClick={handleSubmitConfirmation}
-            disabled={!confirmationData.ruangan || !confirmationData.guruBK}
+            disabled={!confirmationData.ruangan || !confirmationData.guruBK || !confirmationData.catatan}
           >
             Konfirmasi <Check className="ml-2 h-4 w-4" />
           </Button>
