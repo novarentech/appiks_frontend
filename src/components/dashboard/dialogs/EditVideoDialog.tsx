@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -32,13 +33,11 @@ export function EditVideoDialog({
   tagsLoading,
   onSuccess,
 }: EditVideoDialogProps) {
-  const [youtubeUrl, setYoutubeUrl] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (video && open) {
-      setYoutubeUrl(video.url || "");
       setSelectedTags(video.category ? [video.category] : []);
     }
   }, [video, open]);
@@ -54,15 +53,8 @@ export function EditVideoDialog({
   };
 
   const handleSubmit = async () => {
-    if (!youtubeUrl.trim() || selectedTags.length === 0 || !video) {
-      alert("Mohon lengkapi URL YouTube dan pilih minimal satu tag");
-      return;
-    }
-
-    // Basic YouTube URL validation
-    const youtubeRegex = /^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
-    if (!youtubeRegex.test(youtubeUrl)) {
-      alert("Mohon masukkan URL YouTube yang valid");
+    if (selectedTags.length === 0 || !video) {
+      toast.error("Mohon pilih minimal satu tag");
       return;
     }
 
@@ -72,18 +64,17 @@ export function EditVideoDialog({
     setTimeout(() => {
       const updatedVideo: ContentItem = {
         ...video,
-        url: youtubeUrl.trim(),
         category: selectedTags[0] || "Uncategorized",
       };
 
       onSuccess(updatedVideo);
       setIsSubmitting(false);
+      toast.success("Video berhasil diperbarui");
     }, 1000);
   };
 
   const handleCancel = () => {
     if (video) {
-      setYoutubeUrl(video.url || "");
       setSelectedTags(video.category ? [video.category] : []);
     }
     onOpenChange(false);
@@ -176,7 +167,7 @@ export function EditVideoDialog({
             type="button"
             onClick={handleSubmit}
             disabled={
-              isSubmitting || !youtubeUrl.trim() || selectedTags.length === 0
+              isSubmitting || selectedTags.length === 0
             }
             className="bg-blue-600 hover:bg-blue-700"
           >
