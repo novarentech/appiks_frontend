@@ -5,11 +5,24 @@ import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { getSchoolMoodTrends, getSchoolRooms } from "@/lib/api";
-import { SchoolMoodTrendsResponse, SchoolRoomsResponse, SchoolRoom } from "@/types/api";
+import {
+  SchoolMoodTrendsResponse,
+  SchoolRoomsResponse,
+  SchoolRoom,
+} from "@/types/api";
 import SchoolChart from "@/components/dashboard/SchoolChart";
 import SchoolClass from "@/components/dashboard/SchoolClass";
+import { RoleGuard } from "@/components/auth/guards/RoleGuard";
 
 export default function SchoolMonitorDetailPage() {
+  return (
+    <RoleGuard permissionType="school-monitor">
+      <SchoolMonitorDetailPageContent />
+    </RoleGuard>
+  );
+}
+
+function SchoolMonitorDetailPageContent() {
   const params = useParams();
   const schoolName = params.school as string;
 
@@ -21,7 +34,9 @@ export default function SchoolMonitorDetailPage() {
   const [schoolData, setSchoolData] = useState<
     SchoolMoodTrendsResponse["data"]["school"] | null
   >(null);
-  const [roomsData, setRoomsData] = useState<SchoolRoomsResponse["data"] | null>(null);
+  const [roomsData, setRoomsData] = useState<
+    SchoolRoomsResponse["data"] | null
+  >(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(true);
@@ -84,7 +99,6 @@ export default function SchoolMonitorDetailPage() {
     }
   }, [schoolName, selectedPeriod, fetchMoodData, fetchRoomsData]);
 
-
   // Calculate current mood stats from moods data
   const currentMoodStats = useMemo(() => {
     if (!moodData?.moods) {
@@ -135,14 +149,16 @@ export default function SchoolMonitorDetailPage() {
   // Filter rooms based on search term and selected level
   const filteredRooms = useMemo(() => {
     if (!roomsData) return [];
-    
+
     return roomsData.filter((room: SchoolRoom) => {
-      const matchesSearch = searchTerm === "" || 
+      const matchesSearch =
+        searchTerm === "" ||
         room.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         room.mention.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesLevel = selectedLevel === "all" || room.level === selectedLevel;
-      
+
+      const matchesLevel =
+        selectedLevel === "all" || room.level === selectedLevel;
+
       return matchesSearch && matchesLevel;
     });
   }, [roomsData, searchTerm, selectedLevel]);
@@ -150,7 +166,9 @@ export default function SchoolMonitorDetailPage() {
   // Get unique levels for filter dropdown
   const availableLevels = useMemo(() => {
     if (!roomsData) return [];
-    const levels = [...new Set(roomsData.map((room: SchoolRoom) => room.level))];
+    const levels = [
+      ...new Set(roomsData.map((room: SchoolRoom) => room.level)),
+    ];
     return levels.sort();
   }, [roomsData]);
 

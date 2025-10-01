@@ -1,57 +1,24 @@
 "use client";
 
 import SchoolMonitorTable from "@/components/data-display/tables/SchoolMonitorTable";
-import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { RoleGuard } from "@/components/auth/guards/RoleGuard";
 
 export default function SchoolMonitorPage() {
-  const { isLoading, isAuthenticated, isVerified, user } = useAuth();
-  const router = useRouter();
+  return (
+    <RoleGuard permissionType="school-monitor">
+      <SchoolMonitorPageContent />
+    </RoleGuard>
+  );
+}
 
-  useEffect(() => {
-    if (!isLoading && (!isAuthenticated || !isVerified)) {
-      router.push("/login");
-      return;
-    }
-
-    if (!isLoading && user && !["super"].includes(user.role)) {
-      router.push("/dashboard");
-      return;
-    }
-  }, [isLoading, isAuthenticated, isVerified, user, router]);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (
-    !isAuthenticated ||
-    !isVerified ||
-    !user ||
-    !["super"].includes(user.role)
-  ) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p>Redirecting...</p>
-        </div>
-      </div>
-    );
-  }
-
+function SchoolMonitorPageContent() {
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Monitoring Sekolah</h1>
-        <p className="text-gray-600 mt-2">Sistem pelacakan data sekolah, kelas, dan siswa</p>
+        <p className="text-gray-600 mt-2">
+          Sistem pelacakan data sekolah, kelas, dan siswa
+        </p>
       </div>
       <SchoolMonitorTable />
     </div>
