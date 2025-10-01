@@ -3,18 +3,28 @@ import "@fontsource/plus-jakarta-sans";
 import "./globals.css";
 import AuthProvider from "@/components/providers/AuthProvider";
 import { Toaster } from "sonner";
+import { Plus_Jakarta_Sans } from "next/font/google";
+
 
 export const metadata: Metadata = {
   title: "Appiks - Platform Kesehatan Mental Siswa",
-  description: "Platform kesehatan mental untuk siswa yang menyediakan layanan konseling, tracking mood, dan konten edukatif.",
+  description:
+    "Platform kesehatan mental untuk siswa yang menyediakan layanan konseling, tracking mood, dan konten edukatif.",
   keywords: ["kesehatan mental", "konseling", "siswa", "mood tracking"],
   authors: [{ name: "Appiks 2025" }],
   openGraph: {
     title: "Appiks - Platform Kesehatan Mental Siswa",
-    description: "Platform kesehatan mental untuk siswa yang menyediakan layanan konseling, tracking mood, dan konten edukatif.",
+    description:
+      "Platform kesehatan mental untuk siswa yang menyediakan layanan konseling, tracking mood, dan konten edukatif.",
     type: "website",
   },
 };
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+
 
 export default function RootLayout({
   children,
@@ -22,10 +32,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body
-        className="antialiased bg-white text-black min-h-screen font-sans"
-      >
+    <html lang="en" className={`${plusJakartaSans.variable}`}>
+      <body className="antialiased bg-white text-black min-h-screen">
         <AuthProvider>
           <main className="w-full min-h-screen flex flex-col">{children}</main>
           <Toaster position="top-right" richColors />
