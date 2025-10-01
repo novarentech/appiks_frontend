@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  ChevronLeft,
   Filter,
   RotateCcw,
   SlidersHorizontal,
@@ -144,10 +143,6 @@ export function AngerManagement() {
     setSelectedTagIds([]);
   };
 
-  const handleGoToDashboard = () => {
-    router.push("/dashboard");
-  };
-
   const hasActiveFilters = selectedTagIds.length > 0;
 
   const handleVideoPlay = (videoId: string) => {
@@ -190,28 +185,6 @@ export function AngerManagement() {
 
   return (
     <>
-      {/* Back Button */}
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          className="p-0 h-auto text-gray-600 hover:text-gray-900 hover:bg-transparent group"
-          onClick={handleGoToDashboard}
-        >
-          <ChevronLeft className="w-4 h-4 mr-1 group-hover:-translate-x-0.5 transition-transform" />
-          Ke Halaman Dashboard
-        </Button>
-      </div>
-
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
-          Video & Artikel Rekomendasi
-        </h1>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-          Pilihan Video dan Artikel untuk Menemani Perjalananmu
-        </p>
-      </div>
-
       <div>
         {/* Filter Bar */}
         {tagsLoading ? (

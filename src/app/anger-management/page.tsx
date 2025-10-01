@@ -1,10 +1,18 @@
 "use client";
 
 import { AngerManagement } from "@/components/features/anger-management/AngerManagement";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { ChevronLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function AngerManagementPage() {
   const { isLoading, isAuthenticated, isVerified } = useAuth();
+  const router = useRouter();
+
+  const handleGoToDashboard = () => {
+    router.push("/dashboard");
+  };
 
   // Auth check
   if (isLoading) {
@@ -30,6 +38,27 @@ export default function AngerManagementPage() {
 
   return (
     <div className="min-h-screen container max-w-6xl mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 py-10 sm:py-16 lg:py-20">
+      {/* Back Button */}
+      <div className="mb-6">
+        <Button
+          variant="ghost"
+          className="p-0 h-auto text-gray-600 hover:text-gray-900 hover:bg-transparent group"
+          onClick={handleGoToDashboard}
+        >
+          <ChevronLeft className="w-4 h-4 mr-1 group-hover:-translate-x-0.5 transition-transform" />
+          Ke Halaman Dashboard
+        </Button>
+      </div>
+
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+          Video & Artikel Rekomendasi
+        </h1>
+        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          Pilihan Video dan Artikel untuk Menemani Perjalananmu
+        </p>
+      </div>
       <AngerManagement />
     </div>
   );
