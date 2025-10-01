@@ -77,7 +77,7 @@ const getInitials = (name: string): string => {
 
 const NavbarUserDashboard = ({
   logo = {
-    url: "/",
+    url: "/dashboard",
     src: "/logo.webp",
     alt: "Appiks-logo",
     title: "Appiks",
