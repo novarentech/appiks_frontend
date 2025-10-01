@@ -9,11 +9,11 @@ interface RoleGuardProps {
   LoadingComponent?: React.ComponentType;
 }
 
-export function RoleGuard({ 
-  permissionType, 
-  children, 
+export function RoleGuard({
+  permissionType,
+  children,
   fallback,
-  LoadingComponent 
+  LoadingComponent,
 }: RoleGuardProps) {
   const { hasAccess, isLoading } = useRoleAccess(permissionType);
 
@@ -22,7 +22,7 @@ export function RoleGuard({
     if (LoadingComponent) {
       return <LoadingComponent />;
     }
-    
+
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -38,7 +38,7 @@ export function RoleGuard({
     if (fallback) {
       return <>{fallback}</>;
     }
-    
+
     // Default fallback - will be redirected by the hook
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -67,11 +67,13 @@ export function SimpleRoleGuard({
   allowedRoles,
   children,
   fallback,
-  LoadingComponent
+  LoadingComponent,
 }: SimpleRoleGuardProps) {
   // Create a custom permission type for this specific use case
-  const customPermissionType = `custom-${allowedRoles.join('-')}` as keyof typeof import("@/hooks/useRoleAccess").ROLE_PERMISSIONS;
-  
+  const customPermissionType = `custom-${allowedRoles.join(
+    "-"
+  )}` as keyof typeof import("@/hooks/useRoleAccess").ROLE_PERMISSIONS;
+
   return (
     <RoleGuard
       permissionType={customPermissionType}
@@ -85,33 +87,9 @@ export function SimpleRoleGuard({
 
 // Specific guard components for common patterns
 export function StudentGuard({ children }: { children: React.ReactNode }) {
-  return (
-    <RoleGuard permissionType="student-only">
-      {children}
-    </RoleGuard>
-  );
-}
-
-export function AdminGuard({ children }: { children: React.ReactNode }) {
-  return (
-    <RoleGuard permissionType="admin-only">
-      {children}
-    </RoleGuard>
-  );
-}
-
-export function ContentGuard({ children }: { children: React.ReactNode }) {
-  return (
-    <RoleGuard permissionType="content">
-      {children}
-    </RoleGuard>
-  );
+  return <RoleGuard permissionType="student-only">{children}</RoleGuard>;
 }
 
 export function DashboardGuard({ children }: { children: React.ReactNode }) {
-  return (
-    <RoleGuard permissionType="dashboard">
-      {children}
-    </RoleGuard>
-  );
+  return <RoleGuard permissionType="dashboard">{children}</RoleGuard>;
 }

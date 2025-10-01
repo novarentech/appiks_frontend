@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 // Role types
-export type AppRole = "student" | "teacher" | "counselor" | "headteacher" | "admin" | "super";
+export type AppRole =
+  | "student"
+  | "teacher"
+  | "counselor"
+  | "headteacher"
+  | "admin"
+  | "super";
 
 // Role permissions configuration
 export interface RolePermission {
@@ -17,15 +23,11 @@ export interface RolePermission {
 // Default role permissions for different page types
 export const ROLE_PERMISSIONS: Record<string, RolePermission> = {
   // Public pages
-  "landing": {
+  landing: {
     allowedRoles: [], // Empty means no auth required
   },
-  "login": {
+  login: {
     allowedRoles: [], // No auth required
-  },
-  "fill-data": {
-    allowedRoles: ["student"],
-    requireVerification: false,
   },
 
   // Student-only pages
@@ -34,50 +36,15 @@ export const ROLE_PERMISSIONS: Record<string, RolePermission> = {
     requireVerification: true,
     redirectTo: "/dashboard",
   },
+
   "checkin": {
     allowedRoles: ["student"],
     requireVerification: true,
     redirectTo: "/dashboard",
   },
-  "survey": {
-    allowedRoles: ["student"],
-    requireVerification: true,
-    redirectTo: "/dashboard",
-  },
-  "survey-result": {
-    allowedRoles: ["student"],
-    requireVerification: true,
-    redirectTo: "/dashboard",
-  },
-  "quote": {
-    allowedRoles: ["student"],
-    requireVerification: true,
-    redirectTo: "/dashboard",
-  },
 
-  // Student + Staff pages
-  "content": {
-    allowedRoles: ["student", "teacher", "counselor", "headteacher", "admin", "super"],
-    requireVerification: true,
-    redirectTo: "/login",
-  },
-  "self-help": {
-    allowedRoles: ["student", "teacher", "counselor", "headteacher", "admin", "super"],
-    requireVerification: true,
-    redirectTo: "/login",
-  },
-  "notifications": {
-    allowedRoles: ["student"],
-    requireVerification: true,
-    redirectTo: "/login",
-  },
   "article-detail": {
     allowedRoles: ["student", "admin"],
-    requireVerification: true,
-    redirectTo: "/login",
-  },
-  "videos": {
-    allowedRoles: ["student", "teacher", "counselor", "headteacher", "admin", "super"],
     requireVerification: true,
     redirectTo: "/login",
   },
@@ -89,67 +56,47 @@ export const ROLE_PERMISSIONS: Record<string, RolePermission> = {
   },
 
   // Admin-only pages
-  "admin-only": {
-    allowedRoles: ["admin", "super"],
-    requireVerification: true,
-    redirectTo: "/dashboard",
-  },
   "account-management": {
-    allowedRoles: ["admin", "super"],
+    allowedRoles: ["admin"],
     requireVerification: true,
     redirectTo: "/dashboard",
   },
+  
   "content-management": {
-    allowedRoles: ["admin", "super"],
+    allowedRoles: ["admin"],
     requireVerification: true,
     redirectTo: "/dashboard",
   },
 
   // Admin + Teacher pages
-  "admin-teacher": {
-    allowedRoles: ["admin", "super", "teacher", "headteacher"],
-    requireVerification: true,
-    redirectTo: "/dashboard",
-  },
   "class-data": {
-    allowedRoles: ["admin", "super", "teacher", "headteacher"],
+    allowedRoles: ["admin"],
     requireVerification: true,
     redirectTo: "/dashboard",
   },
+
   "student-data": {
-    allowedRoles: ["admin", "super", "teacher", "counselor", "headteacher"],
+    allowedRoles: ["teacher", "counselor"],
     requireVerification: true,
     redirectTo: "/dashboard",
   },
   "school-data": {
-    allowedRoles: ["admin", "super", "headteacher"],
+    allowedRoles: ["headteacher"],
     requireVerification: true,
     redirectTo: "/dashboard",
   },
 
-  // Admin + Counselor pages
-  "admin-counselor": {
-    allowedRoles: ["admin", "super", "counselor"],
-    requireVerification: true,
-    redirectTo: "/dashboard",
-  },
   "counseling-schedule": {
-    allowedRoles: ["admin", "super", "counselor"],
+    allowedRoles: ["counselor"],
     requireVerification: true,
     redirectTo: "/dashboard",
   },
   "student-share": {
-    allowedRoles: ["admin", "super", "counselor"],
+    allowedRoles: ["counselor"],
     requireVerification: true,
     redirectTo: "/dashboard",
   },
 
-  // Super-only pages
-  "super-only": {
-    allowedRoles: ["super"],
-    requireVerification: true,
-    redirectTo: "/dashboard",
-  },
   "school-management": {
     allowedRoles: ["super"],
     requireVerification: true,
@@ -167,13 +114,27 @@ export const ROLE_PERMISSIONS: Record<string, RolePermission> = {
   },
 
   // Dashboard (all roles but different rendering)
-  "dashboard": {
-    allowedRoles: ["student", "teacher", "counselor", "headteacher", "admin", "super"],
+  dashboard: {
+    allowedRoles: [
+      "student",
+      "teacher",
+      "counselor",
+      "headteacher",
+      "admin",
+      "super",
+    ],
     requireVerification: true,
     redirectTo: "/login",
   },
-  "profile": {
-    allowedRoles: ["student", "teacher", "counselor", "headteacher", "admin", "super"],
+  profile: {
+    allowedRoles: [
+      "student",
+      "teacher",
+      "counselor",
+      "headteacher",
+      "admin",
+      "super",
+    ],
     requireVerification: true,
     redirectTo: "/login",
   },
@@ -224,13 +185,20 @@ export function useRoleAccess(permissionType: keyof typeof ROLE_PERMISSIONS) {
       // Map API role to AppRole
       const mapApiRoleToAppRole = (apiRole: string): AppRole => {
         switch (apiRole) {
-          case "student": return "student";
-          case "teacher": return "teacher";
-          case "counselor": return "counselor";
-          case "headteacher": return "headteacher";
-          case "admin": return "admin";
-          case "super": return "super";
-          default: return "student"; // fallback
+          case "student":
+            return "student";
+          case "teacher":
+            return "teacher";
+          case "counselor":
+            return "counselor";
+          case "headteacher":
+            return "headteacher";
+          case "admin":
+            return "admin";
+          case "super":
+            return "super";
+          default:
+            return "student"; // fallback
         }
       };
 
@@ -271,18 +239,6 @@ export function useRoleAccess(permissionType: keyof typeof ROLE_PERMISSIONS) {
           }
         } catch (error) {
           console.error("Error checking mood record:", error);
-          router.replace("/dashboard");
-          return;
-        }
-      }
-
-      if (permissionType === "quote") {
-        // Check if student came from checkin
-        const referrer = document.referrer;
-        const sessionStorageFlag = sessionStorage.getItem("quote_access_from_checkin");
-        const isFromCheckin = referrer.includes("/checkin") || sessionStorageFlag === "true";
-
-        if (!isFromCheckin) {
           router.replace("/dashboard");
           return;
         }
