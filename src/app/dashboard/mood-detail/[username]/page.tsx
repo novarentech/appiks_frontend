@@ -5,8 +5,17 @@ import { useParams } from "next/navigation";
 import { getMoodPattern } from "@/lib/api";
 import { MoodPatternResponse } from "@/types/api";
 import MoodChart from "@/components/dashboard/MoodChart";
+import { RoleGuard } from "@/components/auth/guards/RoleGuard";
 
 export default function MoodDetailPage() {
+  return (
+    <RoleGuard permissionType="mood-detail">
+      <MoodDetailPageContent />
+    </RoleGuard>
+  );
+}
+
+function MoodDetailPageContent() {
   const params = useParams();
   const username = params.username as string;
 

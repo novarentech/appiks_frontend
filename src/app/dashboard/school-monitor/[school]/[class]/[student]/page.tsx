@@ -5,8 +5,17 @@ import { useParams } from "next/navigation";
 import { getMoodPattern } from "@/lib/api";
 import { MoodPatternResponse } from "@/types/api";
 import StudentDetailTabs from "@/components/data-display/StudentDetailTabs";
+import { RoleGuard } from "@/components/auth/guards/RoleGuard";
 
 export default function MoodDetailPage() {
+  return (
+    <RoleGuard permissionType="school-monitor">
+      <MoodDetailPageContent />
+    </RoleGuard>
+  );
+}
+
+function MoodDetailPageContent() {
   const params = useParams();
   const username = params.student as string;
 

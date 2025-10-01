@@ -117,7 +117,7 @@ export const ROLE_PERMISSIONS: Record<string, RolePermission> = {
     redirectTo: "/dashboard",
   },
   "student-data": {
-    allowedRoles: ["admin", "super", "teacher", "headteacher"],
+    allowedRoles: ["admin", "super", "teacher", "counselor", "headteacher"],
     requireVerification: true,
     redirectTo: "/dashboard",
   },
@@ -138,12 +138,49 @@ export const ROLE_PERMISSIONS: Record<string, RolePermission> = {
     requireVerification: true,
     redirectTo: "/dashboard",
   },
+  "student-share": {
+    allowedRoles: ["admin", "super", "counselor"],
+    requireVerification: true,
+    redirectTo: "/dashboard",
+  },
+
+  // Super-only pages
+  "super-only": {
+    allowedRoles: ["super"],
+    requireVerification: true,
+    redirectTo: "/dashboard",
+  },
+  "school-management": {
+    allowedRoles: ["super"],
+    requireVerification: true,
+    redirectTo: "/dashboard",
+  },
+  "admin-management": {
+    allowedRoles: ["super"],
+    requireVerification: true,
+    redirectTo: "/dashboard",
+  },
+  "school-monitor": {
+    allowedRoles: ["super"],
+    requireVerification: true,
+    redirectTo: "/dashboard",
+  },
 
   // Dashboard (all roles but different rendering)
   "dashboard": {
     allowedRoles: ["student", "teacher", "counselor", "headteacher", "admin", "super"],
     requireVerification: true,
     redirectTo: "/login",
+  },
+  "profile": {
+    allowedRoles: ["student", "teacher", "counselor", "headteacher", "admin", "super"],
+    requireVerification: true,
+    redirectTo: "/login",
+  },
+  "mood-detail": {
+    allowedRoles: ["teacher", "counselor"],
+    requireVerification: true,
+    redirectTo: "/dashboard",
   },
 };
 
