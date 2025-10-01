@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { getMoodPattern } from "@/lib/api";
+import { getMoodPattern, getStudentMoodExport } from "@/lib/api";
 import { MoodPatternResponse } from "@/types/api";
 import MoodChart from "@/components/dashboard/MoodChart";
 import { RoleGuard } from "@/components/auth/guards/RoleGuard";
+import { toast } from "sonner";
 
 export default function MoodDetailPage() {
   return (
@@ -23,6 +24,7 @@ function MoodDetailPageContent() {
   const [moodData, setMoodData] = useState<MoodPatternResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
 
   // Fetch mood pattern data
   const fetchMoodData = useCallback(async () => {
@@ -82,6 +84,48 @@ function MoodDetailPageContent() {
 
   const moodAnalysis = getMoodAnalysis();
 
+  // Handle download functionality
+  const handleDownload = async () => {
+    try {
+      setIsDownloading(true);
+      
+      // Get the actual username from mood data
+      const actualUsername = moodData?.data.user.username || username;
+      const type = selectedPeriod === "7" ? "weekly" : "monthly";
+      
+      // Get the export URL from API
+      const response = await getStudentMoodExport(actualUsername, type);
+      
+      if (response.success && response.data?.url) {
+        // Create a temporary link element to trigger download
+        const link = document.createElement('a');
+        link.href = response.data.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        
+        // Extract filename from URL or create a default one
+        const urlParts = response.data.url.split('/');
+        const filename = urlParts[urlParts.length - 1] || `student-mood-${actualUsername}-${type}-${new Date().toISOString().split('T')[0]}.xlsx`;
+        
+        link.download = filename;
+        
+        // Trigger the download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast.success("Data mood siswa berhasil diunduh");
+      } else {
+        throw new Error(response.message || "Gagal mendapatkan URL export");
+      }
+    } catch (error) {
+      console.error("Error downloading student mood data:", error);
+      toast.error(error instanceof Error ? error.message : "Gagal mengunduh data mood siswa");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -119,6 +163,8 @@ function MoodDetailPageContent() {
       moodAnalysis={moodAnalysis}
       onPeriodChange={setSelectedPeriod}
       showDownloadButton={true}
+      onDownload={handleDownload}
+      isDownloading={isDownloading}
     />
   );
 }

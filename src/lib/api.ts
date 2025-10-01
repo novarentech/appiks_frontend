@@ -62,6 +62,7 @@ import {
   StudentSharingResponse,
   StudentReportResponse,
   MoodRecordExportResponse,
+  StudentMoodExportResponse,
 } from "@/types/api";
 import { RoomResponse, RoomStudentCountResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
@@ -1096,6 +1097,14 @@ export async function getLatestSharingNotifications(): Promise<Notification[]> {
  */
 export async function getMoodRecordExportToday(): Promise<MoodRecordExportResponse> {
   const response = await authGet("/mood_record/export/today");
+  return response;
+}
+
+/**
+ * Get student mood record export URL
+ */
+export async function getStudentMoodExport(username: string, type: "weekly" | "monthly"): Promise<StudentMoodExportResponse> {
+  const response = await authGet(`/mood_record/export/${username}/${type}`);
   return response;
 }
 

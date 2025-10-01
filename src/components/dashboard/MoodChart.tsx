@@ -63,6 +63,7 @@ interface MoodChartProps {
   onPeriodChange: (period: string) => void;
   showDownloadButton?: boolean;
   onDownload?: () => void;
+  isDownloading?: boolean;
 }
 
 export default function MoodChart({
@@ -75,6 +76,7 @@ export default function MoodChart({
   onPeriodChange,
   showDownloadButton = false,
   onDownload,
+  isDownloading = false,
 }: MoodChartProps) {
   // Transform mood data for chart
   const getCurrentData = () => {
@@ -138,8 +140,9 @@ export default function MoodChart({
             </SelectContent>
           </Select>
           {showDownloadButton && onDownload && (
-            <Button onClick={onDownload}>
-              <Download className="w-4 h-4 mr-2" /> Download
+            <Button onClick={onDownload} disabled={isDownloading}>
+              <Download className="w-4 h-4 mr-2" /> 
+              {isDownloading ? "Mengunduh..." : "Download"}
             </Button>
           )}
         </div>

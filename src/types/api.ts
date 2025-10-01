@@ -1032,3 +1032,12 @@ export interface MoodRecordExportResponse {
     url: string;
   };
 }
+
+// Student Mood Record Export API types
+export interface StudentMoodExportResponse {
+  success: boolean;
+  message: string;
+  data: {
+    url: string;
+  };
+}
