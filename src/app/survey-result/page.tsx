@@ -11,8 +11,17 @@ import {
 } from "@/types/survey";
 import { useAuth } from "@/hooks/useAuth";
 import { BackButton, EmptyState, ErrorState, InsecureResultCard, LoadingState, SecureResultCard, SurveyHeader } from "@/components/features/survey-result";
+import { RoleGuard } from "@/components/auth/guards/RoleGuard";
 
 export default function SurveyResultPage() {
+  return (
+    <RoleGuard permissionType="student-only">
+      <SurveyResultContent />
+    </RoleGuard>
+  );
+}
+
+function SurveyResultContent() {
   const router = useRouter();
   const [resultData, setResultData] = useState<SurveyResultData | null>(null);
   const [isLoading, setIsLoading] = useState(true);

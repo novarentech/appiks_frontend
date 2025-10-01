@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { StudentRedirectGuard } from "@/components/auth/guards/StudentRedirectGuard";
+import { RoleGuard } from "@/components/auth/guards/RoleGuard";
 import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 import { TeacherDashboard } from "@/components/dashboard/TeacherDashboard";
 import { CounselorDashboard } from "@/components/dashboard/CounselorDashboard";
@@ -10,28 +11,15 @@ import { SuperDashboard } from "@/components/dashboard/SuperDashboard";
 import { StudentDashboard } from "@/components/dashboard/StudentDashboard";
 
 export default function DashboardPage() {
-  const { isLoading, isAuthenticated, isVerified, user } = useAuth();
+  return (
+    <RoleGuard permissionType="dashboard">
+      <DashboardContent />
+    </RoleGuard>
+  );
+}
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated || !isVerified) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p>Redirecting...</p>
-        </div>
-      </div>
-    );
-  }
+function DashboardContent() {
+  const { user } = useAuth();
 
   // Role-based dashboard rendering
   const renderDashboard = () => {
@@ -53,7 +41,7 @@ export default function DashboardPage() {
           <div className="text-center">
             <h1 className="text-2xl font-bold">Unknown Role</h1>
             <p className="text-gray-600 mt-2">
-              Your role &quot;{user?.role}&quot; is not recognized. Please
+              Your role <span className="font-semibold">{user?.role}</span> is not recognized. Please
               contact administrator.
             </p>
           </div>
@@ -61,7 +49,7 @@ export default function DashboardPage() {
     }
   };
 
-  // Student menggunakan guard khusus
+  // Student menggunakan guard khusus untuk checkin redirect
   if (user?.role === "student") {
     return <StudentRedirectGuard>{renderDashboard()}</StudentRedirectGuard>;
   }

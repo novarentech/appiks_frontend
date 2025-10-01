@@ -5,14 +5,21 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
 import { useVideoDetail } from "@/hooks/useVideos";
 import { ChevronLeft, ThumbsUp, ThumbsDown, Clock, Eye } from "lucide-react";
+import { RoleGuard } from "@/components/auth/guards/RoleGuard";
 
 export default function VideoPlayerPage() {
+  return (
+    <RoleGuard permissionType="video-player">
+      <VideoPlayerPageContent />
+    </RoleGuard>
+  );
+}
+
+function VideoPlayerPageContent() {
   const params = useParams();
   const router = useRouter();
-  const { isLoading, isAuthenticated, isVerified } = useAuth();
   const videoId = params.videoId as string;
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [feedback, setFeedback] = useState<"helpful" | "not-helpful" | null>(
@@ -38,23 +45,12 @@ export default function VideoPlayerPage() {
     }
   };
 
-  // Auth check
-  if (isLoading || videoLoading) {
+  if (videoLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
           <p className="mt-4">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated || !isVerified) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p>Redirecting...</p>
         </div>
       </div>
     );

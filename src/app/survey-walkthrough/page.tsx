@@ -2,27 +2,22 @@
 
 import { SurveyWalkthrough } from "@/components/features/survey/SurveyWalkthrough";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { RoleGuard } from "@/components/auth/guards/RoleGuard";
 
 export default function SurveyWalkthroughPage() {
+  return (
+    <RoleGuard permissionType="student-only">
+      <SurveyWalkthroughPageContent />
+    </RoleGuard>
+  );
+}
+
+function SurveyWalkthroughPageContent() {
   const router = useRouter();
-  const { isLoading, isAuthenticated, isVerified, user } = useAuth();
   const [surveyType, setSurveyType] = useState<"secure" | "insecure">("secure");
-
-  useEffect(() => {
-    if (!isLoading && (!isAuthenticated || !isVerified)) {
-      router.push("/login");
-      return;
-    }
-
-    if (!isLoading && user && !["student"].includes(user.role)) {
-      router.push("/dashboard");
-      return;
-    }
-  }, [isLoading, isAuthenticated, isVerified, user, router]);
 
   // Get survey type from sessionStorage based on isSafe value
   useEffect(() => {
@@ -38,28 +33,6 @@ export default function SurveyWalkthroughPage() {
       setSurveyType("secure");
     }
   }, []);
-
-  // Auth check
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated || !isVerified) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p>Redirecting...</p>
-        </div>
-      </div>
-    );
-  }
 
   const handleGoToDashboard = () => {
     router.push("/dashboard");

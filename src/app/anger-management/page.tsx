@@ -2,39 +2,24 @@
 
 import { AngerManagement } from "@/components/features/anger-management/AngerManagement";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { RoleGuard } from "@/components/auth/guards/RoleGuard";
 
 export default function AngerManagementPage() {
-  const { isLoading, isAuthenticated, isVerified } = useAuth();
+  return (
+    <RoleGuard permissionType="student-only">
+      <AngerManagementPageContent />
+    </RoleGuard>
+  );
+}
+
+function AngerManagementPageContent() {
   const router = useRouter();
 
   const handleGoToDashboard = () => {
     router.push("/dashboard");
   };
-
-  // Auth check
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated || !isVerified) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p>Redirecting...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen container max-w-6xl mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 py-10 sm:py-16 lg:py-20">

@@ -8,10 +8,17 @@ import { useRouter } from "next/navigation";
 import { NotificationItem } from "@/components/features/notifications/NotificationItem";
 import { getSharingList, getReportList } from "@/lib/api";
 import { Notification } from "@/types/notifications";
-import { useAuth } from "@/hooks/useAuth";
+import { RoleGuard } from "@/components/auth/guards/RoleGuard";
 
 export default function NotificationsPage() {
-  const { isLoading, isAuthenticated, isVerified } = useAuth();
+  return (
+    <RoleGuard permissionType="student-only">
+      <NotificationsPageContent />
+    </RoleGuard>
+  );
+}
+
+function NotificationsPageContent() {
   const router = useRouter();
   const [filter, setFilter] = useState<"all" | "counseling" | "curhat">("all");
   const [expandedNotification, setExpandedNotification] = useState<number | null>(null);
@@ -155,10 +162,8 @@ export default function NotificationsPage() {
       }
     };
 
-    if (isAuthenticated && isVerified) {
-      fetchNotifications();
-    }
-  }, [isAuthenticated, isVerified]);
+    fetchNotifications();
+  }, []);
 
   const toggleExpand = (id: number) => {
     setExpandedNotification(expandedNotification === id ? null : id);
@@ -168,27 +173,6 @@ export default function NotificationsPage() {
     if (filter === "all") return true;
     return notification.type === filter;
   });
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated || !isVerified) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p>Redirecting...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen container mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 py-10 sm:py-16 lg:py-20">

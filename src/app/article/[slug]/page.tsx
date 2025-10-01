@@ -1,7 +1,6 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,11 +16,19 @@ import { useState } from "react";
 import { useArticleDetail } from "@/hooks/useArticleDetail";
 import { LexicalViewer } from "@/components/blocks/LexicalViewer";
 import { Card, CardContent } from "@/components/ui/card";
+import { RoleGuard } from "@/components/auth/guards/RoleGuard";
 
 export default function ArticleDetailPage() {
+  return (
+    <RoleGuard permissionType="article-detail">
+      <ArticleDetailPageContent />
+    </RoleGuard>
+  );
+}
+
+function ArticleDetailPageContent() {
   const params = useParams();
   const router = useRouter();
-  const { isLoading, isAuthenticated, isVerified } = useAuth();
   const [feedback, setFeedback] = useState<"helpful" | "not-helpful" | null>(
     null
   );
@@ -36,23 +43,12 @@ export default function ArticleDetailPage() {
     error: articleError,
   } = useArticleDetail(articleSlug);
 
-  // Auth check
-  if (isLoading || articleLoading) {
+  if (articleLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
           <p className="mt-4">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated || !isVerified) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p>Redirecting...</p>
         </div>
       </div>
     );

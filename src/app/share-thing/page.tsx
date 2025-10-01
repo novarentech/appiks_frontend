@@ -3,38 +3,24 @@
 import ShareThingCard from "@/components/features/share-thing/ShareThingCard";
 import ShareThingDialog from "@/components/features/share-thing/ShareThingDialog";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { RoleGuard } from "@/components/auth/guards/RoleGuard";
 
 export default function GroundingPage() {
-  const { isLoading, isAuthenticated, isVerified } = useAuth();
+  return (
+    <RoleGuard permissionType="student-only">
+      <GroundingPageContent />
+    </RoleGuard>
+  );
+}
+
+function GroundingPageContent() {
   const router = useRouter();
 
   const handleGoToDashboard = () => {
     router.push("/dashboard");
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated || !isVerified) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p>Redirecting...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
