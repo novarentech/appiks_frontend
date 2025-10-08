@@ -1,7 +1,6 @@
 "use client";
 
 import { FillData } from "@/components/auth/FillData";
-import { RoleGuard } from "@/components/auth/guards/RoleGuard";
 
 export default function FillDataPage() {
   return <FillDataContent />;
