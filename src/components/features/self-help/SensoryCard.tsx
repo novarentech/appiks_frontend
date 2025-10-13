@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { createSensoryRelaxation } from "@/lib/api";
+import { toast } from "sonner";
 
 const activities = [
   {
@@ -51,13 +53,25 @@ export default function SensoryRelaxationCard() {
     );
   };
 
-  const handleSave = () => {
-    const payload = {
-      activities: selected.map((i) => activities[i].label),
-      reflection,
-    };
-    console.log("📒 Journal disimpan:", payload);
-    handleGoToDashboard();
+  const handleSave = async () => {
+    try {
+      const payload = {
+        activity: selected.map((i) => activities[i].label),
+        reflection,
+      };
+
+      const response = await createSensoryRelaxation(payload);
+      
+      if (response.success) {
+        toast.success("Sensory relaxation berhasil disimpan!");
+        handleGoToDashboard();
+      } else {
+        toast.error(response.message || "Gagal menyimpan sensory relaxation");
+      }
+    } catch (error) {
+      console.error("Error saving sensory relaxation:", error);
+      toast.error("Terjadi kesalahan saat menyimpan sensory relaxation");
+    }
   };
 
   return (

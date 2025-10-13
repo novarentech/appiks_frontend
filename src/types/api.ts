@@ -1090,6 +1090,56 @@ export interface SelfHelpItem {
   updated_at: string;
 }
 
+export interface CreateDailyJournalingRequest {
+  mind: string;
+  story: string;
+  category: string;
+  emotions: string[];
+}
+
+export interface CreateDailyJournalingResponse {
+  success: boolean;
+  message: string;
+  data?: unknown;
+}
+
+export interface CreateGratitudeJournalingRequest {
+  apreciation: string;
+  progress: string[];
+  achievement: string[];
+}
+
+export interface CreateGratitudeJournalingResponse {
+  success: boolean;
+  message: string;
+  data?: unknown;
+}
+
+export interface CreateGroundingTechniqueRequest {
+  one: string[];
+  two: string[];
+  three: string[];
+  four: string[];
+  five: string[];
+}
+
+export interface CreateGroundingTechniqueResponse {
+  success: boolean;
+  message: string;
+  data?: unknown;
+}
+
+export interface CreateSensoryRelaxationRequest {
+  reflection: string;
+  activity: string[];
+}
+
+export interface CreateSensoryRelaxationResponse {
+  success: boolean;
+  message: string;
+  data?: unknown;
+}
+
 export interface SelfHelpResponse {
   success: boolean;
   message: string;

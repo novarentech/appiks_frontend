@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCheck, PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { createGratitudeJournaling } from "@/lib/api";
+import { toast } from "sonner";
 
 export default function GratitudeCard() {
   const [achievement, setAchievement] = useState("");
@@ -17,6 +19,28 @@ export default function GratitudeCard() {
 
   const handleGoToDashboard = () => {
     router.push("/dashboard");
+  };
+
+  const handleSave = async () => {
+    try {
+      const payload = {
+        apreciation: selfAppreciation,
+        progress: progress.filter(item => item.trim() !== ""),
+        achievement: [achievement].filter(item => item.trim() !== ""),
+      };
+
+      const response = await createGratitudeJournaling(payload);
+      
+      if (response.success) {
+        toast.success("Gratitude journal berhasil disimpan!");
+        handleGoToDashboard();
+      } else {
+        toast.error(response.message || "Gagal menyimpan gratitude journal");
+      }
+    } catch (error) {
+      console.error("Error saving gratitude journal:", error);
+      toast.error("Terjadi kesalahan saat menyimpan gratitude journal");
+    }
   };
 
   return (
@@ -128,12 +152,11 @@ export default function GratitudeCard() {
         <Button
           type="button"
           disabled={
-            !achievement ||
-            progress.length < 1 ||
-            progress.slice(0, 1).some((p) => p.trim() === "") ||
-            !selfAppreciation
+            !achievement.trim() ||
+            progress.filter(item => item.trim() !== "").length === 0 ||
+            !selfAppreciation.trim()
           }
-          onClick={handleGoToDashboard}
+          onClick={handleSave}
         >
           Simpan Journal
           <CheckCheck />

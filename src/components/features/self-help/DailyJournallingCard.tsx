@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { createDailyJournaling } from "@/lib/api";
+import { toast } from "sonner";
 
 const categories = ["Sekolah", "Rumah", "Teman", "Cinta", "Belajar", "Guru"];
 
@@ -38,15 +40,27 @@ export default function DailyJournallingCard() {
     );
   };
 
-  const handleSave = () => {
-    const payload = {
-      category: selectedCategory,
-      story,
-      emotions: selectedEmotions,
-      thought,
-    };
-    handleGoToDashboard();
-    console.log("Saved Journal:", payload);
+  const handleSave = async () => {
+    try {
+      const payload = {
+        mind: thought,
+        story,
+        category: selectedCategory || "",
+        emotions: selectedEmotions,
+      };
+
+      const response = await createDailyJournaling(payload);
+      
+      if (response.success) {
+        toast.success("Journal berhasil disimpan!");
+        handleGoToDashboard();
+      } else {
+        toast.error(response.message || "Gagal menyimpan journal");
+      }
+    } catch (error) {
+      console.error("Error saving journal:", error);
+      toast.error("Terjadi kesalahan saat menyimpan journal");
+    }
   };
 
   return (

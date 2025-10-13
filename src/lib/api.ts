@@ -64,6 +64,14 @@ import {
   MoodRecordExportResponse,
   StudentMoodExportResponse,
   SelfHelpResponse,
+  CreateDailyJournalingRequest,
+  CreateDailyJournalingResponse,
+  CreateGratitudeJournalingRequest,
+  CreateGratitudeJournalingResponse,
+  CreateGroundingTechniqueRequest,
+  CreateGroundingTechniqueResponse,
+  CreateSensoryRelaxationRequest,
+  CreateSensoryRelaxationResponse,
 } from "@/types/api";
 import { RoomResponse, RoomStudentCountResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
@@ -1167,6 +1175,46 @@ export async function getSelfHelpData(
 ): Promise<SelfHelpResponse> {
   const encodedType = encodeURIComponent(type);
   const response = await authGet(`/self-help/${encodedType}/${username}`);
+  return response;
+}
+
+/**
+ * Create daily journaling entry
+ */
+export async function createDailyJournaling(
+  data: CreateDailyJournalingRequest
+): Promise<CreateDailyJournalingResponse> {
+  const response = await authPost("/self-help/daily-journaling", data);
+  return response;
+}
+
+/**
+ * Create gratitude journaling entry
+ */
+export async function createGratitudeJournaling(
+  data: CreateGratitudeJournalingRequest
+): Promise<CreateGratitudeJournalingResponse> {
+  const response = await authPost("/self-help/gratitude-journaling", data);
+  return response;
+}
+
+/**
+ * Create grounding technique entry
+ */
+export async function createGroundingTechnique(
+  data: CreateGroundingTechniqueRequest
+): Promise<CreateGroundingTechniqueResponse> {
+  const response = await authPost("/self-help/grounding-technique", data);
+  return response;
+}
+
+/**
+ * Create sensory relaxation entry
+ */
+export async function createSensoryRelaxation(
+  data: CreateSensoryRelaxationRequest
+): Promise<CreateSensoryRelaxationResponse> {
+  const response = await authPost("/self-help/sensory-relaxation", data);
   return response;
 }
 

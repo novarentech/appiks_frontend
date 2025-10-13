@@ -13,6 +13,8 @@ import {
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { createGroundingTechnique } from "@/lib/api";
+import { toast } from "sonner";
 
 const stepConfig = [
   {
@@ -78,15 +80,34 @@ export default function GroundingCard() {
     router.push("/dashboard");
   };
 
+  const handleSubmit = async () => {
+    try {
+      const payload = {
+        one: answers[4].filter(item => item.trim() !== ""),
+        two: answers[3].filter(item => item.trim() !== ""),
+        three: answers[2].filter(item => item.trim() !== ""),
+        four: answers[1].filter(item => item.trim() !== ""),
+        five: answers[0].filter(item => item.trim() !== ""),
+      };
+
+      const response = await createGroundingTechnique(payload);
+      
+      if (response.success) {
+        toast.success("Grounding technique berhasil disimpan!");
+        handleGoToDashboard();
+      } else {
+        toast.error(response.message || "Gagal menyimpan grounding technique");
+      }
+    } catch (error) {
+      console.error("Error saving grounding technique:", error);
+      toast.error("Terjadi kesalahan saat menyimpan grounding technique");
+    }
+  };
+
   const isAllCompleted = answers.every((stepAnswers) =>
     stepAnswers.every((answer) => answer.trim() !== "")
   );
 
-  const handleSubmit = () => {
-    // Handle form submission
-    console.log("Form submitted with answers:", answers);
-    handleGoToDashboard();
-  };
 
   return (
     <>
