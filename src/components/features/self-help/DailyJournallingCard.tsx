@@ -13,14 +13,14 @@ import { toast } from "sonner";
 const categories = ["Sekolah", "Rumah", "Teman", "Cinta", "Belajar", "Guru"];
 
 const emotions = [
-  { label: "Gembira", value: "gembira", emoji: "😍" },
-  { label: "Percaya", value: "percaya", emoji: "😊" },
-  { label: "Takut", value: "takut", emoji: "😨" },
-  { label: "Terkejut", value: "terkejut", emoji: "😲" },
-  { label: "Sedih", value: "sedih", emoji: "😢" },
-  { label: "Muak", value: "muak", emoji: "🤢" },
-  { label: "Marah", value: "marah", emoji: "😡" },
-  { label: "Antisipatif", value: "antisipatif", emoji: "🤔" },
+  { label: "Gembira", value: "gembira", emoji: "/icon/ico-happy.webp" },
+  { label: "Percaya", value: "percaya", emoji: "/icon/ico-confident.webp" },
+  { label: "Takut", value: "takut", emoji: "/icon/ico-scared.webp" },
+  { label: "Terkejut", value: "terkejut", emoji: "/icon/ico-surprised.webp" },
+  { label: "Sedih", value: "sedih", emoji: "/icon/ico-sad.webp" },
+  { label: "Muak", value: "muak", emoji: "/icon/ico-nauseated.webp" },
+  { label: "Marah", value: "marah", emoji: "/icon/ico-angry.webp" },
+  { label: "Antisipatif", value: "antisipatif", emoji: "/icon/ico-anticipating.webp" },
 ];
 
 export default function DailyJournallingCard() {
@@ -137,8 +137,13 @@ export default function DailyJournallingCard() {
                       : "border-gray-200 bg-white text-gray-700 hover:border-indigo-200"
                   }`}
               >
-                <span className="text-2xl mb-1">{emo.emoji}</span>
-                <span className="text-xs font-medium">{emo.label}</span>
+                <Image
+                  src={emo.emoji}
+                  alt={emo.label}
+                  width={32}
+                  height={32}
+                />
+                <span className="text-xs font-medium mt-2">{emo.label}</span>
               </button>
             ))}
           </div>
