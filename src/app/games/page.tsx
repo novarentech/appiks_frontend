@@ -6,8 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
-import { Droplet, Droplets, Gift, ShoppingCart } from "lucide-react";
+import {
+  useRef,
+  useState,
+  useEffect,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
+import { Droplet, Droplets, Gift, ShoppingCart, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,17 +20,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { claimWater, buyItems, getCirrusData } from "@/lib/api";
+import type { ClaimRequest, BuyRequest, CirrusResponse } from "@/types/api";
 
 export default function GamesPage() {
-  const [waterDrops, setWaterDrops] = useState(122);
-  const [happiness, setHappiness] = useState(15);
-  const [experience, setExperience] = useState(50);
+  const [waterDrops, setWaterDrops] = useState(0);
+  const [happiness, setHappiness] = useState(0);
+  const [experience, setExperience] = useState(0);
+  const [level, setLevel] = useState(1);
+  const [streak, setStreak] = useState(0);
   const [isCloudHappy, setIsCloudHappy] = useState(false);
   const [tapCooldown, setTapCooldown] = useState(false);
   const [showFoodStore, setShowFoodStore] = useState(false);
   const [showDailyReward, setShowDailyReward] = useState(false);
-  const [dailyStreak, setDailyStreak] = useState(2);
-  const [canClaimReward, setCanClaimReward] = useState(true);
+  const [canClaimReward, setCanClaimReward] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isClaiming, setIsClaiming] = useState(false);
+  const [isBuying, setIsBuying] = useState(false);
 
   // Cute effects: particles and ripples
   const cloudRef = useRef<HTMLDivElement | null>(null);
@@ -83,15 +94,15 @@ export default function GamesPage() {
     },
   ];
 
-  const dailyRewards = [
-    { day: 1, reward: 50, claimed: true },
-    { day: 2, reward: 60, claimed: true },
-    { day: 3, reward: 70, claimed: true },
-    { day: 4, reward: 80, claimed: false, current: true },
+  const [dailyRewards, setDailyRewards] = useState([
+    { day: 1, reward: 50, claimed: false },
+    { day: 2, reward: 60, claimed: false },
+    { day: 3, reward: 70, claimed: false },
+    { day: 4, reward: 80, claimed: false, current: false },
     { day: 5, reward: 100, claimed: false },
     { day: 6, reward: 120, claimed: false },
     { day: 7, reward: 200, claimed: false },
-  ];
+  ]);
 
   const spawnRipple = (x: number, y: number) => {
     const id = Date.now() + Math.random();
@@ -115,9 +126,9 @@ export default function GamesPage() {
     }> = [];
     for (let i = 0; i < count; i++) {
       const id = Date.now() + Math.random() + i;
-      const driftX = (Math.random() - 0.5) * 80; 
+      const driftX = (Math.random() - 0.5) * 80;
       const driftY = 60 + Math.random() * 80;
-      const rotate = (Math.random() - 0.5) * 40; 
+      const rotate = (Math.random() - 0.5) * 40;
       const emoji = emojis[Math.floor(Math.random() * emojis.length)];
       created.push({ id, x, y, emoji, driftX, driftY, rotate });
       // schedule removal
@@ -147,34 +158,143 @@ export default function GamesPage() {
     setTimeout(() => setTapCooldown(false), 800);
   };
 
-  const handleBuyFood = (food: (typeof foods)[0]) => {
+  const handleBuyFood = async (food: (typeof foods)[0]) => {
+    if (isBuying) return;
+
     if (waterDrops >= food.price) {
-      setWaterDrops((prev) => prev - food.price);
-      setHappiness((prev) => Math.min(prev + food.happinessBoost, 100));
-      setExperience((prev) => Math.min(prev + food.xpBoost, 100));
-      toast.success(
-        `Cirrus menikmati ${food.name}! Kebahagiaan +${food.happinessBoost}%, XP +${food.xpBoost}`
-      );
-      setShowFoodStore(false);
+      setIsBuying(true);
+      try {
+        const buyData: BuyRequest = {
+          water: food.price,
+          exp: food.xpBoost,
+          happiness: food.happinessBoost,
+        };
+
+        const response = await buyItems(buyData);
+
+        if (response.success) {
+          // Update local state with API response
+          setWaterDrops((prev) => prev - food.price);
+          setHappiness((prev) => Math.min(prev + food.happinessBoost, 100));
+          setExperience((prev) => Math.min(prev + food.xpBoost, 100));
+
+          toast.success(
+            `Cirrus menikmati ${food.name}! Kebahagiaan +${food.happinessBoost}%, XP +${food.xpBoost}`
+          );
+          setShowFoodStore(false);
+
+          // Refresh data after purchase
+          await loadGameData();
+        } else {
+          toast.error(response.message || "Gagal membeli makanan!");
+        }
+      } catch (error) {
+        console.error("Error buying food:", error);
+        toast.error("Terjadi kesalahan saat membeli makanan!");
+      } finally {
+        setIsBuying(false);
+      }
     } else {
       toast.error("Tetesan embun tidak cukup!");
     }
   };
 
-  const handleClaimReward = () => {
-    if (canClaimReward) {
-      const todayReward = dailyRewards.find((r) => r.current);
-      if (todayReward) {
-        setWaterDrops((prev) => prev + todayReward.reward);
-        setDailyStreak((prev) => prev + 1);
-        setCanClaimReward(false);
-        toast.success(
-          `Selamat! Kamu mendapat ${todayReward.reward} tetesan embun!`
-        );
-        setShowDailyReward(false);
+  const handleClaimReward = async () => {
+    if (isClaiming || !canClaimReward) return;
+
+    setIsClaiming(true);
+    try {
+      const claimData: ClaimRequest = {
+        water: 0,
+      };
+
+      const response = await claimWater(claimData);
+
+      if (response.success) {
+        const todayReward = dailyRewards.find((r) => r.current);
+        if (todayReward) {
+          // Update rewards array
+          const updatedRewards = dailyRewards.map((reward) =>
+            reward.current
+              ? { ...reward, claimed: true, current: false }
+              : reward.day === todayReward.day + 1
+              ? { ...reward, current: true }
+              : reward
+          );
+          setDailyRewards(updatedRewards);
+
+          // Refresh game data to get updated values
+          await loadGameData();
+
+          toast.success(`Selamat! Kamu mendapat hadiah harian!`);
+          setShowDailyReward(false);
+        }
+      } else {
+        toast.error(response.message || "Gagal mengklaim hadiah!");
       }
+    } catch (error) {
+      console.error("Error claiming reward:", error);
+      toast.error("Terjadi kesalahan saat mengklaim hadiah!");
+    } finally {
+      setIsClaiming(false);
     }
   };
+
+  // Load game data from API
+  const loadGameData = async () => {
+    setIsLoading(true);
+    try {
+      const response: CirrusResponse = await getCirrusData();
+
+      if (response.success && response.data) {
+        const data = response.data;
+        setWaterDrops(data.water);
+        setHappiness(data.happiness);
+        setExperience(data.exp);
+        setLevel(data.level);
+        setStreak(data.streak);
+
+        // Check if can claim reward based on last_in timestamp
+        if (data.last_in) {
+          const lastIn = new Date(data.last_in);
+          const now = new Date();
+          const diffHours =
+            (now.getTime() - lastIn.getTime()) / (1000 * 60 * 60);
+          setCanClaimReward(diffHours >= 24);
+        }
+
+        // Update daily rewards based on streak
+        const updatedRewards = dailyRewards.map((reward, index) => ({
+          ...reward,
+          claimed: index < data.streak,
+          current: index === data.streak && data.streak < 7,
+        }));
+        setDailyRewards(updatedRewards);
+      }
+    } catch (error) {
+      console.error("Error loading game data:", error);
+      toast.error("Gagal memuat data game!");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    loadGameData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-white animate-spin mx-auto mb-4" />
+          <p className="text-white text-lg">Memuat data game...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -240,7 +360,9 @@ export default function GamesPage() {
                       <div className="text-white text-3xl sm:text-4xl font-bold tracking-tight drop-shadow">
                         Cirrus
                       </div>
-                      <div className="text-white/90 mt-1 text-sm">Level 1</div>
+                      <div className="text-white/90 mt-1 text-sm">
+                        Level {level}
+                      </div>
                     </div>
 
                     {/* Stats – using shadcn Progress */}
@@ -281,7 +403,9 @@ export default function GamesPage() {
                           <span className="text-white/80 font-medium">
                             {experience}/100 XP
                           </span>
-                          <span className="text-white/80">Level 2</span>
+                          <span className="text-white/80">
+                            Level {level + 1}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -321,7 +445,7 @@ export default function GamesPage() {
                         : {
                             y: [0, -8, 0],
                             rotate: [0, 3, -3, 0],
-                            scale: [1, 1.02, 1], 
+                            scale: [1, 1.02, 1],
                           }
                     }
                     transition={{
@@ -631,10 +755,17 @@ export default function GamesPage() {
                           ? "bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
                           : "bg-gray-300 cursor-not-allowed"
                       }`}
-                      disabled={waterDrops < food.price}
+                      disabled={waterDrops < food.price || isBuying}
                       onClick={() => handleBuyFood(food)}
                     >
-                      Beli Makanan
+                      {isBuying ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Memproses...
+                        </>
+                      ) : (
+                        "Beli Makanan"
+                      )}
                     </Button>
                   </Card>
                 </motion.div>
@@ -682,7 +813,7 @@ export default function GamesPage() {
                     Streak Saat Ini
                   </h3>
                   <p className="text-2xl font-bold text-orange-700">
-                    {dailyStreak} Hari
+                    {streak} Hari
                   </p>
                 </div>
               </Card>
@@ -753,11 +884,19 @@ export default function GamesPage() {
               >
                 <Button
                   onClick={handleClaimReward}
+                  disabled={isClaiming}
                   className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 
                        hover:from-cyan-600 hover:to-blue-600 
                        text-white text-lg py-4"
                 >
-                  Klaim Hadiah Hari Ini (80 Tetesan Embun)
+                  {isClaiming ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Memproses...
+                    </>
+                  ) : (
+                    "Klaim Hadiah Hari Ini"
+                  )}
                 </Button>
               </motion.div>
             )}

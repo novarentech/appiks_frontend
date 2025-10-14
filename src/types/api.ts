@@ -1162,3 +1162,46 @@ export interface CreateStudentResponse {
   counselor_id: string;
   room_id: string;
 }
+
+// Game API types
+
+export interface ClaimRequest {
+  water: number;
+}
+
+export interface ClaimResponse {
+  success: boolean;
+  message: string;
+  data?: unknown;
+}
+
+export interface BuyRequest {
+  water: number;
+  exp: number;
+  happiness: number;
+}
+
+export interface BuyResponse {
+  success: boolean;
+  message: string;
+  data?: unknown;
+}
+
+export interface CirrusData {
+  id: number;
+  water: number;
+  level: number;
+  exp: number;
+  happiness: number;
+  streak: number;
+  last_in: string;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CirrusResponse {
+  success: boolean;
+  message: string;
+  data: CirrusData;
+}

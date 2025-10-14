@@ -74,6 +74,11 @@ import {
   CreateSensoryRelaxationResponse,
   CreateStudentRequest,
   CreateStudentResponse,
+  ClaimRequest,
+  ClaimResponse,
+  BuyRequest,
+  BuyResponse,
+  CirrusResponse,
 } from "@/types/api";
 import { RoomResponse, RoomStudentCountResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
@@ -1101,6 +1106,34 @@ export async function getLatestSharingNotifications(): Promise<Notification[]> {
   });
 
   return notifications;
+}
+
+/**
+ * Game API functions
+ */
+
+/**
+ * Claim water reward
+ */
+export async function claimWater(data: ClaimRequest): Promise<ClaimResponse> {
+  const response = await authPost("/claim", data);
+  return response;
+}
+
+/**
+ * Buy game items
+ */
+export async function buyItems(data: BuyRequest): Promise<BuyResponse> {
+  const response = await authPost("/buy", data);
+  return response;
+}
+
+/**
+ * Get cirrus game data
+ */
+export async function getCirrusData(): Promise<CirrusResponse> {
+  const response = await authGet("/cirrus");
+  return response;
 }
 
 /**
