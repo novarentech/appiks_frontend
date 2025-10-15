@@ -86,6 +86,22 @@ export interface RoomResponse {
   data: RoomData[];
 }
 
+// Interface untuk Room by Level API response
+export interface RoomByLevelData {
+  id: number;
+  name: string;
+  level: string;
+  code: string;
+  school_id: number;
+  created_at: string;
+}
+
+export interface RoomByLevelResponse {
+  success: boolean;
+  message: string;
+  data: RoomByLevelData[];
+}
+
 // Interface untuk Mentor
 export interface Mentor {
   name: string;

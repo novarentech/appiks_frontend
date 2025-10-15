@@ -80,7 +80,7 @@ import {
   BuyResponse,
   CirrusResponse,
 } from "@/types/api";
-import { RoomResponse, RoomStudentCountResponse } from "@/types/api";
+import { RoomResponse, RoomStudentCountResponse, RoomByLevelResponse } from "@/types/api";
 import { API_BASE_URL } from "@/lib/config";
 import { Bell, CheckCircle } from "lucide-react";
 import { Notification, CurhatNotification, CounselingNotification } from "@/types/notifications";
@@ -1002,6 +1002,14 @@ export async function getSchoolRooms(school: string): Promise<SchoolRoomsRespons
  */
 export async function getRoomByCode(code: string): Promise<RoomDetailResponse> {
   const response = await authGet(`/room/${code}`);
+  return response;
+}
+
+/**
+ * Get rooms by level
+ */
+export async function getRoomsByLevel(level: "X" | "XI" | "XII"): Promise<RoomByLevelResponse> {
+  const response = await authGet(`/room/level/${level}`);
   return response;
 }
 

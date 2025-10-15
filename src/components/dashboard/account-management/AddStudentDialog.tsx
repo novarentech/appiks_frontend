@@ -18,14 +18,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { createStudent, getUsersByType, getRooms } from "@/lib/api";
-import { User, RoomData } from "@/types/api";
+import { createStudent, getUsersByType, getRoomsByLevel } from "@/lib/api";
+import { User, RoomByLevelData } from "@/types/api";
 import { toast } from "sonner";
-import {
-  UserPlus,
-  Loader2,
-  AlertCircle,
-} from "lucide-react";
+import { UserPlus, Loader2, AlertCircle } from "lucide-react";
 
 interface AddStudentDialogProps {
   open: boolean;
@@ -33,7 +29,11 @@ interface AddStudentDialogProps {
   onSuccess?: () => void;
 }
 
-export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDialogProps) {
+export function AddStudentDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+}: AddStudentDialogProps) {
   const [formData, setFormData] = useState({
     name: "",
     identifier: "",
@@ -44,22 +44,24 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
 
   const [mentors, setMentors] = useState<User[]>([]);
   const [counselors, setCounselors] = useState<User[]>([]);
-  const [rooms, setRooms] = useState<RoomData[]>([]);
+  const [rooms, setRooms] = useState<RoomByLevelData[]>([]);
+  const [selectedLevel, setSelectedLevel] = useState<"X" | "XI" | "XII" | "">(
+    ""
+  );
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Load dropdown data
+  // Load mentors and counselors data
   useEffect(() => {
     const loadData = async () => {
       if (!open) return;
 
       setLoadingData(true);
       try {
-        const [mentorsRes, counselorsRes, roomsRes] = await Promise.all([
+        const [mentorsRes, counselorsRes] = await Promise.all([
           getUsersByType("teacher"),
           getUsersByType("counselor"),
-          getRooms(),
         ]);
 
         if (mentorsRes.success) {
@@ -67,9 +69,6 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
         }
         if (counselorsRes.success) {
           setCounselors(counselorsRes.data);
-        }
-        if (roomsRes.success) {
-          setRooms(roomsRes.data);
         }
       } catch (error) {
         console.error("Error loading dropdown data:", error);
@@ -81,6 +80,27 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
 
     loadData();
   }, [open]);
+
+  // Load rooms when level is selected
+  useEffect(() => {
+    const loadRooms = async () => {
+      if (!selectedLevel || !open) return;
+
+      try {
+        const roomsRes = await getRoomsByLevel(
+          selectedLevel as "X" | "XI" | "XII"
+        );
+        if (roomsRes.success) {
+          setRooms(roomsRes.data);
+        }
+      } catch (error) {
+        console.error("Error loading rooms:", error);
+        toast.error("Gagal memuat data kelas");
+      }
+    };
+
+    loadRooms();
+  }, [selectedLevel, open]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -105,6 +125,10 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
       newErrors.counselor_id = "Guru BK wajib dipilih";
     }
 
+    if (!selectedLevel) {
+      newErrors.level = "Tingkat kelas wajib dipilih";
+    }
+
     if (!formData.room_id) {
       newErrors.room_id = "Kelas wajib dipilih";
     }
@@ -122,7 +146,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
     try {
       await createStudent(formData);
       toast.success("Siswa berhasil ditambahkan");
-      
+
       // Reset form
       setFormData({
         name: "",
@@ -131,13 +155,15 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
         counselor_id: "",
         room_id: "",
       });
+      setSelectedLevel("");
       setErrors({});
-      
+
       onOpenChange(false);
       onSuccess?.();
     } catch (error: unknown) {
       console.error("Error creating student:", error);
-      const errorMessage = error instanceof Error ? error.message : "Gagal menambahkan siswa";
+      const errorMessage =
+        error instanceof Error ? error.message : "Gagal menambahkan siswa";
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -145,10 +171,10 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -168,7 +194,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
           {/* Form Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Name Field */}
-            <div className="space-y-2 md:col-span-2">
+            <div className="space-y-2">
               <Label htmlFor="name" className="flex items-center space-x-2">
                 <span>Nama Lengkap</span>
                 <span className="text-red-500">*</span>
@@ -191,14 +217,19 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
 
             {/* NISN Field */}
             <div className="space-y-2">
-              <Label htmlFor="identifier" className="flex items-center space-x-2">
+              <Label
+                htmlFor="identifier"
+                className="flex items-center space-x-2"
+              >
                 <span>NISN</span>
                 <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="identifier"
                 value={formData.identifier}
-                onChange={(e) => handleInputChange("identifier", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("identifier", e.target.value)
+                }
                 placeholder="Masukkan NISN siswa"
                 className={errors.identifier ? "border-red-500" : ""}
                 disabled={loadingData || loading}
@@ -213,7 +244,10 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
 
             {/* Mentor Dropdown */}
             <div className="space-y-2">
-              <Label htmlFor="mentor_id" className="flex items-center space-x-2">
+              <Label
+                htmlFor="mentor_id"
+                className="flex items-center space-x-2"
+              >
                 <span>Guru Wali</span>
                 <span className="text-red-500">*</span>
               </Label>
@@ -222,7 +256,11 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                 onValueChange={(value) => handleInputChange("mentor_id", value)}
                 disabled={loadingData || loading}
               >
-                <SelectTrigger className={`w-full ${errors.mentor_id ? "border-red-500" : ""}`}>
+                <SelectTrigger
+                  className={`w-full ${
+                    errors.mentor_id ? "border-red-500" : ""
+                  }`}
+                >
                   <SelectValue placeholder="Pilih guru wali" />
                 </SelectTrigger>
                 <SelectContent>
@@ -239,7 +277,10 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                     </SelectItem>
                   ) : (
                     mentors.map((mentor) => (
-                      <SelectItem key={mentor.identifier} value={mentor.identifier?.toString() || ""}>
+                      <SelectItem
+                        key={mentor.identifier}
+                        value={mentor.identifier?.toString() || ""}
+                      >
                         {mentor.name}
                       </SelectItem>
                     ))
@@ -256,16 +297,25 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
 
             {/* Counselor Dropdown */}
             <div className="space-y-2">
-              <Label htmlFor="counselor_id" className="flex items-center space-x-2">
+              <Label
+                htmlFor="counselor_id"
+                className="flex items-center space-x-2"
+              >
                 <span>Guru BK</span>
                 <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={formData.counselor_id}
-                onValueChange={(value) => handleInputChange("counselor_id", value)}
+                onValueChange={(value) =>
+                  handleInputChange("counselor_id", value)
+                }
                 disabled={loadingData || loading}
               >
-                <SelectTrigger className={`w-full ${errors.counselor_id ? "border-red-500" : ""}`}>
+                <SelectTrigger
+                  className={`w-full ${
+                    errors.counselor_id ? "border-red-500" : ""
+                  }`}
+                >
                   <SelectValue placeholder="Pilih guru BK" />
                 </SelectTrigger>
                 <SelectContent>
@@ -282,7 +332,10 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                     </SelectItem>
                   ) : (
                     counselors.map((counselor) => (
-                      <SelectItem key={counselor.identifier} value={counselor.identifier?.toString() || ""}>
+                      <SelectItem
+                        key={counselor.identifier}
+                        value={counselor.identifier?.toString() || ""}
+                      >
                         {counselor.name}
                       </SelectItem>
                     ))
@@ -297,6 +350,38 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
               )}
             </div>
 
+            {/* Level Selection Dropdown */}
+            <div className="space-y-2">
+              <Label htmlFor="level" className="flex items-center space-x-2">
+                <span>Tingkat</span>
+                <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={selectedLevel}
+                onValueChange={(value) => {
+                  setSelectedLevel(value as "X" | "XI" | "XII" | "");
+                  // Reset room selection when level changes
+                  handleInputChange("room_id", "");
+                }}
+                disabled={loadingData || loading}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Pilih tingkat kelas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="X">Kelas X</SelectItem>
+                  <SelectItem value="XI">Kelas XI</SelectItem>
+                  <SelectItem value="XII">Kelas XII</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.level && (
+                <div className="flex items-center space-x-1 text-red-600 text-sm">
+                  <AlertCircle className="w-3 h-3" />
+                  <span>{errors.level}</span>
+                </div>
+              )}
+            </div>
+
             {/* Room Dropdown */}
             <div className="space-y-2">
               <Label htmlFor="room_id" className="flex items-center space-x-2">
@@ -306,13 +391,25 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
               <Select
                 value={formData.room_id}
                 onValueChange={(value) => handleInputChange("room_id", value)}
-                disabled={loadingData || loading}
+                disabled={!selectedLevel || loadingData || loading}
               >
-                <SelectTrigger className={`w-full ${errors.room_id ? "border-red-500" : ""}`}>
-                  <SelectValue placeholder="Pilih kelas" />
+                <SelectTrigger
+                  className={`w-full ${errors.room_id ? "border-red-500" : ""}`}
+                >
+                  <SelectValue
+                    placeholder={
+                      selectedLevel
+                        ? "Pilih kelas"
+                        : "Pilih tingkat terlebih dahulu"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  {loadingData ? (
+                  {!selectedLevel ? (
+                    <SelectItem value="no-level" disabled>
+                      Pilih tingkat terlebih dahulu
+                    </SelectItem>
+                  ) : loadingData ? (
                     <SelectItem value="loading" disabled>
                       <div className="flex items-center space-x-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -321,11 +418,14 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                     </SelectItem>
                   ) : rooms.length === 0 ? (
                     <SelectItem value="empty" disabled>
-                      Tidak ada data kelas
+                      Tidak ada data kelas untuk tingkat ini
                     </SelectItem>
                   ) : (
                     rooms.map((room) => (
-                      <SelectItem key={room.code} value={room.code?.toString() || ""}>
+                      <SelectItem
+                        key={room.code}
+                        value={room.code?.toString() || ""}
+                      >
                         {room.name}
                       </SelectItem>
                     ))
@@ -355,7 +455,16 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
           <Button
             type="submit"
             onClick={handleSubmit}
-            disabled={loading || loadingData || !formData.name || !formData.identifier || !formData.mentor_id || !formData.counselor_id || !formData.room_id}
+            disabled={
+              loading ||
+              loadingData ||
+              !formData.name ||
+              !formData.identifier ||
+              !formData.mentor_id ||
+              !formData.counselor_id ||
+              !selectedLevel ||
+              !formData.room_id
+            }
             className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto disabled:opacity-50"
           >
             {loading ? (
