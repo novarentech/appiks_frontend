@@ -465,7 +465,7 @@ const DialogForm = memo(function DialogForm({
                 +62
               </div>
               <Input
-                placeholder="812-3456-7890"
+                placeholder="8XXXXXXXXXX"
                 value={localForm.telepon || ""}
                 onChange={(e) => {
                   // Remove any non-digit characters

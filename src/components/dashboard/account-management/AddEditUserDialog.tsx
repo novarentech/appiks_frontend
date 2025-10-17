@@ -653,7 +653,7 @@ export function AddEditUserDialog({
                       setFormData(prev => ({ ...prev, phone: value }));
                     }
                   }}
-                  placeholder="812-3456-7890"
+                  placeholder="8XXXXXXXXXX"
                   type="tel"
                   className={`w-full ${
                     errors.phone
