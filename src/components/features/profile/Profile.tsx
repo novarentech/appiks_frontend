@@ -16,7 +16,6 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Edit,
-  Mail,
   Shield,
   CheckCircle,
   Check,
@@ -398,11 +397,6 @@ export default function Profile() {
                 active
               </Badge>
             </div>
-
-            <div className="flex items-center justify-center text-gray-600">
-              <Mail className="w-4 h-4 mr-2" />
-              {profileData.email}
-            </div>
           </CardContent>
         </Card>
 
@@ -560,18 +554,6 @@ export default function Profile() {
                       )}
                   </>
                 )}
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                <Input
-                  value={profileData.email}
-                  disabled
-                  className="bg-gray-50"
-                />
               </div>
 
               {/* Nomor Telepon - Editable */}
