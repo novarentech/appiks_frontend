@@ -19,17 +19,16 @@ const nextConfig: NextConfig = {
   },
 
   images: {
-    domains: [
-      "images.unsplash.com",
-      "unsplash.com",
-      "img.youtube.com",
-      "via.placeholder.com",
-      "api.appiks.id",
-    ],
     remotePatterns: [
       {
         protocol: "https",
         hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "unsplash.com",
         port: "",
         pathname: "/**",
       },
