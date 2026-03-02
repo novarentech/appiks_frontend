@@ -381,14 +381,19 @@ export default function TeacherStudentData({}: StudentDataTableProps) {
   ];
 
   // Format phone number for WhatsApp
-  const formatPhoneForWhatsApp = (phone: string | null | undefined) => {
+  const formatPhoneForWhatsApp = (phone: any) => {
     // Handle null or undefined phone numbers
-    if (!phone) {
-      return "";
+    if (!phone || typeof phone !== "string") {
+      if (typeof phone === "number") {
+        phone = String(phone);
+      } else {
+        return "";
+      }
     }
     
     // Remove all non-digit characters
-    const cleaned = phone.replace(/\D/g, "");
+    const cleaned = phone?.replace ? phone.replace(/\D/g, "") : String(phone || "").replace(/\D/g, "");
+    
     // If starts with 0, replace with 62
     if (cleaned.startsWith("0")) {
       return `62${cleaned.substring(1)}`;
